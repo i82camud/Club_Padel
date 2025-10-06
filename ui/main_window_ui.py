@@ -1,0 +1,124 @@
+# -*- coding: utf-8 -*-
+
+################################################################################
+## Form generated from reading UI file 'main_window.ui'
+##
+## Created by: Qt User Interface Compiler version 6.8.3
+##
+## WARNING! All changes made in this file will be lost when recompiling UI file!
+################################################################################
+
+from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
+    QMetaObject, QObject, QPoint, QRect,
+    QSize, QTime, QUrl, Qt)
+from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
+    QFont, QFontDatabase, QGradient, QIcon,
+    QImage, QKeySequence, QLinearGradient, QPainter,
+    QPalette, QPixmap, QRadialGradient, QTransform)
+from PySide6.QtWidgets import (QApplication, QGroupBox, QLabel, QMainWindow,
+    QPushButton, QSizePolicy, QStackedWidget, QVBoxLayout,
+    QWidget)
+
+class Ui_MainWindow(object):
+    def setupUi(self, MainWindow):
+        if not MainWindow.objectName():
+            MainWindow.setObjectName(u"MainWindow")
+        MainWindow.setWindowModality(Qt.ApplicationModal)
+        MainWindow.resize(1100, 700)
+        MainWindow.setContextMenuPolicy(Qt.NoContextMenu)
+        self.centralwidget = QWidget(MainWindow)
+        self.centralwidget.setObjectName(u"centralwidget")
+        self.groupBox = QGroupBox(self.centralwidget)
+        self.groupBox.setObjectName(u"groupBox")
+        self.groupBox.setGeometry(QRect(10, 10, 150, 680))
+        self.btn_inicio = QPushButton(self.groupBox)
+        self.btn_inicio.setObjectName(u"btn_inicio")
+        self.btn_inicio.setGeometry(QRect(10, 20, 131, 31))
+        self.btn_socios = QPushButton(self.groupBox)
+        self.btn_socios.setObjectName(u"btn_socios")
+        self.btn_socios.setGeometry(QRect(10, 60, 131, 31))
+        self.btn_pistas = QPushButton(self.groupBox)
+        self.btn_pistas.setObjectName(u"btn_pistas")
+        self.btn_pistas.setGeometry(QRect(10, 100, 131, 31))
+        self.btn_pagos = QPushButton(self.groupBox)
+        self.btn_pagos.setObjectName(u"btn_pagos")
+        self.btn_pagos.setGeometry(QRect(10, 140, 131, 31))
+        self.btn_reservas = QPushButton(self.groupBox)
+        self.btn_reservas.setObjectName(u"btn_reservas")
+        self.btn_reservas.setGeometry(QRect(10, 180, 131, 31))
+        self.btn_salir = QPushButton(self.groupBox)
+        self.btn_salir.setObjectName(u"btn_salir")
+        self.btn_salir.setGeometry(QRect(10, 640, 131, 31))
+        self.stackedWidget = QStackedWidget(self.centralwidget)
+        self.stackedWidget.setObjectName(u"stackedWidget")
+        self.stackedWidget.setGeometry(QRect(180, 10, 900, 680))
+        self.page_inicio = QWidget()
+        self.page_inicio.setObjectName(u"page_inicio")
+        self.verticalLayoutWidget = QWidget(self.page_inicio)
+        self.verticalLayoutWidget.setObjectName(u"verticalLayoutWidget")
+        self.verticalLayoutWidget.setGeometry(QRect(20, 40, 561, 101))
+        self.verticalLayout = QVBoxLayout(self.verticalLayoutWidget)
+        self.verticalLayout.setObjectName(u"verticalLayout")
+        self.verticalLayout.setContentsMargins(0, 0, 0, 0)
+        self.lbl_bienvenido = QLabel(self.verticalLayoutWidget)
+        self.lbl_bienvenido.setObjectName(u"lbl_bienvenido")
+
+        self.verticalLayout.addWidget(self.lbl_bienvenido)
+
+        self.lbl_imagen = QLabel(self.verticalLayoutWidget)
+        self.lbl_imagen.setObjectName(u"lbl_imagen")
+
+        self.verticalLayout.addWidget(self.lbl_imagen)
+
+        self.stackedWidget.addWidget(self.page_inicio)
+        self.page_socios = QWidget()
+        self.page_socios.setObjectName(u"page_socios")
+        self.label = QLabel(self.page_socios)
+        self.label.setObjectName(u"label")
+        self.label.setGeometry(QRect(20, 40, 111, 81))
+        self.stackedWidget.addWidget(self.page_socios)
+        self.page_pistas = QWidget()
+        self.page_pistas.setObjectName(u"page_pistas")
+        self.label_2 = QLabel(self.page_pistas)
+        self.label_2.setObjectName(u"label_2")
+        self.label_2.setGeometry(QRect(60, 90, 131, 61))
+        self.stackedWidget.addWidget(self.page_pistas)
+        self.page_pagos = QWidget()
+        self.page_pagos.setObjectName(u"page_pagos")
+        self.label_3 = QLabel(self.page_pagos)
+        self.label_3.setObjectName(u"label_3")
+        self.label_3.setGeometry(QRect(70, 70, 181, 81))
+        self.stackedWidget.addWidget(self.page_pagos)
+        self.page_reservas = QWidget()
+        self.page_reservas.setObjectName(u"page_reservas")
+        self.label_4 = QLabel(self.page_reservas)
+        self.label_4.setObjectName(u"label_4")
+        self.label_4.setGeometry(QRect(60, 90, 131, 91))
+        self.stackedWidget.addWidget(self.page_reservas)
+        MainWindow.setCentralWidget(self.centralwidget)
+
+        self.retranslateUi(MainWindow)
+
+        self.stackedWidget.setCurrentIndex(0)
+
+
+        QMetaObject.connectSlotsByName(MainWindow)
+    # setupUi
+
+    def retranslateUi(self, MainWindow):
+        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"Club de P\u00e1del", None))
+        self.groupBox.setTitle("")
+        self.btn_inicio.setText(QCoreApplication.translate("MainWindow", u"Inicio", None))
+        self.btn_socios.setText(QCoreApplication.translate("MainWindow", u"Socios", None))
+        self.btn_pistas.setText(QCoreApplication.translate("MainWindow", u"Pistas", None))
+        self.btn_pagos.setText(QCoreApplication.translate("MainWindow", u"Pagos", None))
+        self.btn_reservas.setText(QCoreApplication.translate("MainWindow", u"Reservas", None))
+        self.btn_salir.setText(QCoreApplication.translate("MainWindow", u"Salir", None))
+        self.lbl_bienvenido.setText(QCoreApplication.translate("MainWindow", u"TextLabel", None))
+        self.lbl_imagen.setText(QCoreApplication.translate("MainWindow", u"TextLabel", None))
+        self.label.setText(QCoreApplication.translate("MainWindow", u"Socios", None))
+        self.label_2.setText(QCoreApplication.translate("MainWindow", u"Pistas", None))
+        self.label_3.setText(QCoreApplication.translate("MainWindow", u"Pagos", None))
+        self.label_4.setText(QCoreApplication.translate("MainWindow", u"Reservas", None))
+    # retranslateUi
+
