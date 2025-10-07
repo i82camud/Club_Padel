@@ -1,0 +1,2 @@
+SQLArchemy: para la persisencia de datos en la BBDD
+Sphinx: para la generación automática de documentación
