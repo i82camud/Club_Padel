@@ -1,97 +1,127 @@
-# Pago_model module
-from models.db import get_connection
+"""Model de Pago (SQLAlchemy-only)."""
+from . import orm as orm_module
+
+
+def _get_sqlalchemy_components():
+    try:
+        from . import orm as orm_module
+        from .orm_models import Pago as PagoORM, PagoCuota, PagoReserva, PagoExtra
+        return orm_module.SessionLocal, PagoORM, PagoCuota, PagoReserva, PagoExtra
+    except Exception:
+        return (None, None, None, None, None)
+
 
 # -----------------------
 # CRUD para Pago
 # -----------------------
 
+
 def insertar_pago(id_socio, importe, fecha_pago, tipo, estado="pagado"):
     """
     Inserta un pago genérico y devuelve su id.
     """
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("""
-        INSERT INTO Pagos (id_socio, importe, fecha_pago, estado, tipo)
-        VALUES (?, ?, ?, ?, ?)
-    """, (id_socio, importe, fecha_pago, estado, tipo))
-    pago_id = cursor.lastrowid
-    conn.commit()
-    conn.close()
-    return pago_id
+    SessionLocal, PagoORM, PagoCuota, PagoReserva, PagoExtra = _get_sqlalchemy_components()
+    if SessionLocal:
+        session = SessionLocal()
+        try:
+            p = PagoORM(id_socio=id_socio, importe=importe, fecha_pago=fecha_pago, tipo=tipo, estado=estado)
+            session.add(p)
+            session.commit()
+            return p.id_pago
+        finally:
+            session.close()
+
+    raise RuntimeError("SQLAlchemy must be available (project is SQLAlchemy-only)")
 
 
 # -----------------------
 # Subtipo Pago_Cuota
 # -----------------------
 def insertar_pago_cuota(id_pago, periodo):
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("""
-        INSERT INTO Pago_Cuota (id_pago, periodo)
-        VALUES (?, ?)
-    """, (id_pago, periodo))
-    conn.commit()
-    conn.close()
+    SessionLocal, PagoORM, PagoCuota, PagoReserva, PagoExtra = _get_sqlalchemy_components()
+    if SessionLocal:
+        session = SessionLocal()
+        try:
+            pc = PagoCuota(id_pago=id_pago, periodo=periodo)
+            session.add(pc)
+            session.commit()
+            return
+        finally:
+            session.close()
+
+    raise RuntimeError("SQLAlchemy must be available (project is SQLAlchemy-only)")
 
 
 # -----------------------
 # Subtipo Pago_Reserva
 # -----------------------
 def insertar_pago_reserva(id_pago, id_reserva):
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("""
-        INSERT INTO Pago_Reserva (id_pago, id_reserva)
-        VALUES (?, ?)
-    """, (id_pago, id_reserva))
-    conn.commit()
-    conn.close()
+    SessionLocal, PagoORM, PagoCuota, PagoReserva, PagoExtra = _get_sqlalchemy_components()
+    if SessionLocal:
+        session = SessionLocal()
+        try:
+            pr = PagoReserva(id_pago=id_pago, id_reserva=id_reserva)
+            session.add(pr)
+            session.commit()
+            return
+        finally:
+            session.close()
+
+    raise RuntimeError("SQLAlchemy must be available (project is SQLAlchemy-only)")
 
 
 # -----------------------
 # Subtipo Pago_Extra
 # -----------------------
 def insertar_pago_extra(id_pago, concepto_extra):
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("""
-        INSERT INTO Pago_Extra (id_pago, concepto_extra)
-        VALUES (?, ?)
-    """, (id_pago, concepto_extra))
-    conn.commit()
-    conn.close()
+    SessionLocal, PagoORM, PagoCuota, PagoReserva, PagoExtra = _get_sqlalchemy_components()
+    if SessionLocal:
+        session = SessionLocal()
+        try:
+            pe = PagoExtra(id_pago=id_pago, concepto_extra=concepto_extra)
+            session.add(pe)
+            session.commit()
+            return
+        finally:
+            session.close()
+
+    raise RuntimeError("SQLAlchemy must be available (project is SQLAlchemy-only)")
 
 
 # -----------------------
 # Consultas
 # -----------------------
 def listar_pagos(id_socio=None, tipo=None):
-    conn = get_connection()
-    cursor = conn.cursor()
-    query = "SELECT * FROM Pagos WHERE 1=1"
-    params = []
+    SessionLocal, PagoORM, PagoCuota, PagoReserva, PagoExtra = _get_sqlalchemy_components()
+    if SessionLocal:
+        session = SessionLocal()
+        try:
+            q = session.query(PagoORM)
+            if id_socio:
+                q = q.filter(PagoORM.id_socio == id_socio)
+            if tipo:
+                q = q.filter(PagoORM.tipo == tipo)
+            rows = q.all()
+            return [(p.id_pago, p.id_socio, p.importe, p.fecha_pago, p.estado, p.tipo) for p in rows]
+        finally:
+            session.close()
 
-    if id_socio:
-        query += " AND id_socio = ?"
-        params.append(id_socio)
-    if tipo:
-        query += " AND tipo = ?"
-        params.append(tipo)
-
-    cursor.execute(query, tuple(params))
-    pagos = cursor.fetchall()
-    conn.close()
-    return pagos
+    raise RuntimeError("SQLAlchemy must be available (project is SQLAlchemy-only)")
 
 
 def obtener_pago_por_id(id_pago):
     """
     Devuelve un pago genérico por su ID.
     """
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM Pagos WHERE id_pago = ?", (id_pago,))
-    pago = cursor.fetchone()
-    conn.close()
-    return pago
+    SessionLocal, PagoORM, PagoCuota, PagoReserva, PagoExtra = _get_sqlalchemy_components()
+    if SessionLocal:
+        session = SessionLocal()
+        try:
+            p = session.get(PagoORM, id_pago)
+            if p is None:
+                return None
+            return (p.id_pago, p.id_socio, p.importe, p.fecha_pago, p.estado, p.tipo)
+        finally:
+            session.close()
+
+    raise RuntimeError("SQLAlchemy must be available (project is SQLAlchemy-only)")

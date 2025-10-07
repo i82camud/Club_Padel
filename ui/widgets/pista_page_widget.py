@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QWidget, QTableWidgetItem, QMessageBox
 from ui.pista_page_ui import Ui_PistaPage  # el generado por pyside6-uic
-from models.pista_model import insertar_pista, listar_pistas, modificar_pista, activar_pista, desactivar_pista, obtener_pista_por_id
+from services.pista_service import insertar_pista, listar_pistas, modificar_pista, activar_pista, desactivar_pista, obtener_pista_por_id
 
 class PistaPage(QWidget, Ui_PistaPage):
     def __init__(self):

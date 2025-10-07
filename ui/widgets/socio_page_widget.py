@@ -1,7 +1,7 @@
 import re
 from PySide6.QtWidgets import QWidget, QTableWidgetItem, QMessageBox
 from ui.socio_page_ui import Ui_SocioPage  # el generado por pyside6-uic
-from models.socio_model import listar_socios, insertar_socio, modificar_socio, baja_socio, activa_socio, existe_correo_id
+from services.socio_service import listar_socios, insertar_socio, modificar_socio, baja_socio, activa_socio, existe_correo_id
 
 
 class SocioPage(QWidget, Ui_SocioPage):

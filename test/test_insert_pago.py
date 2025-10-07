@@ -1,58 +1,42 @@
-import sys
-import os
+import pytest
 from datetime import date
 
-# Agregar la carpeta padre al path para poder importar models
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from models.db import create_tables
-from models.socio_model import listar_socios
-from models.pista_model import listar_pistas
-from models.reserva_model import insertar_reserva, listar_reservas
-from models.pago_model import (
-    insertar_pago, insertar_pago_cuota, insertar_pago_reserva, insertar_pago_extra,
-    listar_pagos, obtener_pago_por_id
-)
+def test_pagos_workflow(db_setup):
+    # Importar los servicios dentro de la función para que la fixture
+    # pueda monkeypatchear el engine/SessionLocal antes de que los
+    # servicios capturen referencias a ellos.
+    from services.socio_service import insertar_socio, listar_socios
+    from services.pista_service import insertar_pista, listar_pistas
+    from services.reserva_service import insertar_reserva, listar_reservas
+    from services.pago_service import (
+        insertar_pago, insertar_pago_cuota, insertar_pago_reserva, insertar_pago_extra,
+        listar_pagos, obtener_pago_por_id
+    )
 
-def main():
-    # Asegurarse de que las tablas existen
-    create_tables()
+    # Crear socio y pista
+    insertar_socio(nombre='Aaa', apellido1='Aaa', apellido2='Aaa', email='aaa@aaa.aaa', telefono='611111111')
+    insertar_pista(nombre='Pista 1', tipo='cristal')
 
-    # Obtener IDs de socio y pista
     socio = listar_socios()[0]
     pista = listar_pistas()[0]
 
-    # Crear reserva
-    insertar_reserva(
-        id_socio=socio[0],
-        id_pista=pista[0],
-        fecha=str(date.today()),
-        hora_inicio="18:00",
-        hora_fin="19:00"
-    )
+    # Crear reserva usando los ids de los objetos ORM
+    insertar_reserva(id_socio=socio.id_socio, id_pista=pista.id_pista, fecha=str(date.today()), hora_inicio='18:00', hora_fin='19:00')
     reserva = listar_reservas()[0]
 
-    # Crear pago de cuota
-    pago_cuota_id = insertar_pago(id_socio=socio[0], importe=50.0, fecha_pago=str(date.today()), tipo="cuota")
-    insertar_pago_cuota(pago_cuota_id, periodo="Octubre 2025")
+    # Crear pagos y las entradas específicas (cuota, reserva, extra)
+    pago_cuota = insertar_pago(id_socio=socio.id_socio, importe=50.0, fecha_pago=str(date.today()), tipo='cuota')
+    insertar_pago_cuota(pago_cuota.id_pago, periodo='Octubre 2025')
 
-    # Crear pago de reserva
-    pago_reserva_id = insertar_pago(id_socio=socio[0], importe=20.0, fecha_pago=str(date.today()), tipo="reserva")
-    insertar_pago_reserva(pago_reserva_id, id_reserva=reserva[0])
+    pago_reserva = insertar_pago(id_socio=socio.id_socio, importe=20.0, fecha_pago=str(date.today()), tipo='reserva')
+    insertar_pago_reserva(pago_reserva.id_pago, id_reserva=reserva.id_reserva)
 
-    # Crear pago extra
-    pago_extra_id = insertar_pago(id_socio=socio[0], importe=15.0, fecha_pago=str(date.today()), tipo="extra")
-    insertar_pago_extra(pago_extra_id, concepto_extra="Bebida energética")
+    pago_extra = insertar_pago(id_socio=socio.id_socio, importe=15.0, fecha_pago=str(date.today()), tipo='extra')
+    insertar_pago_extra(pago_extra.id_pago, concepto_extra='Bebida energética')
 
-    # Listar todos los pagos
-    print("=== Todos los pagos ===")
-    for p in listar_pagos():
-        print(p)
+    pagos = listar_pagos()
+    assert len(pagos) >= 3
 
-    # Probar obtener pago por id
-    print("\n=== Pago por ID ===")
-    pago = obtener_pago_por_id(pago_reserva_id)
-    print(pago)
-
-if __name__ == "__main__":
-    main()
+    pago = obtener_pago_por_id(pago_reserva.id_pago)
+    assert pago is not None
