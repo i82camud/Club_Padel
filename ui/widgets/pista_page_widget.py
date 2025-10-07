@@ -28,7 +28,19 @@ class PistaPage(QWidget, Ui_PistaPage):
         )
 
         for fila, pista in enumerate(pistas):
-            for col, dato in enumerate(pista):
+            # soportar objetos ORM y tuplas/listas
+            if hasattr(pista, 'id_pista'):
+                values = [
+                    pista.id_pista,
+                    pista.nombre,
+                    pista.pared,
+                    pista.tipo,
+                    pista.estado,
+                ]
+            else:
+                values = list(pista)
+
+            for col, dato in enumerate(values):
                 self.tabla_pistas.setItem(fila, col, QTableWidgetItem(str(dato)))
 
     # validaciones

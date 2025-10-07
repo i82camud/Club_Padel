@@ -30,7 +30,22 @@ class SocioPage(QWidget, Ui_SocioPage):
         )
 
         for fila, socio in enumerate(socios):
-            for col, dato in enumerate(socio):
+            # soportar tanto objetos ORM como tuplas/listas antiguas
+            if hasattr(socio, 'id_socio'):
+                values = [
+                    socio.id_socio,
+                    socio.nombre,
+                    socio.apellido1,
+                    socio.apellido2,
+                    socio.email,
+                    socio.telefono,
+                    socio.estado,
+                ]
+            else:
+                # assume it's an iterable like a tuple/list
+                values = list(socio)
+
+            for col, dato in enumerate(values):
                 self.tabla_socios.setItem(fila, col, QTableWidgetItem(str(dato)))
 
     # Validaciones
