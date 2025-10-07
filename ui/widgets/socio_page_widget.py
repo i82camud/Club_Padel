@@ -1,7 +1,7 @@
 import re
 from PySide6.QtWidgets import QWidget, QTableWidgetItem, QMessageBox
 from ui.socio_page_ui import Ui_SocioPage  # el generado por pyside6-uic
-from models.socio_model import listar_socios, insertar_socio, modificar_socio, baja_socio, activa_socio, existe_correo_id
+from services.socio_service import listar_socios, insertar_socio, modificar_socio, baja_socio, activa_socio, existe_correo_id
 
 
 class SocioPage(QWidget, Ui_SocioPage):
@@ -30,7 +30,22 @@ class SocioPage(QWidget, Ui_SocioPage):
         )
 
         for fila, socio in enumerate(socios):
-            for col, dato in enumerate(socio):
+            # soportar tanto objetos ORM como tuplas/listas antiguas
+            if hasattr(socio, 'id_socio'):
+                values = [
+                    socio.id_socio,
+                    socio.nombre,
+                    socio.apellido1,
+                    socio.apellido2,
+                    socio.email,
+                    socio.telefono,
+                    socio.estado,
+                ]
+            else:
+                # assume it's an iterable like a tuple/list
+                values = list(socio)
+
+            for col, dato in enumerate(values):
                 self.tabla_socios.setItem(fila, col, QTableWidgetItem(str(dato)))
 
     # Validaciones
