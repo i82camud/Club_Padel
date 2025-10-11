@@ -17,9 +17,9 @@
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>10</y>
+     <y>60</y>
      <width>861</width>
-     <height>61</height>
+     <height>41</height>
     </rect>
    </property>
    <property name="title">
@@ -28,8 +28,8 @@
    <widget class="QPushButton" name="btn_agregar">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>10</y>
+      <x>0</x>
+      <y>0</y>
       <width>121</width>
       <height>41</height>
      </rect>
@@ -41,8 +41,8 @@
    <widget class="QPushButton" name="btn_modificar">
     <property name="geometry">
      <rect>
-      <x>160</x>
-      <y>10</y>
+      <x>150</x>
+      <y>0</y>
       <width>121</width>
       <height>41</height>
      </rect>
@@ -54,8 +54,8 @@
    <widget class="QPushButton" name="btn_baja">
     <property name="geometry">
      <rect>
-      <x>310</x>
-      <y>10</y>
+      <x>300</x>
+      <y>0</y>
       <width>121</width>
       <height>41</height>
      </rect>
@@ -67,8 +67,8 @@
    <widget class="QPushButton" name="btn_activar">
     <property name="geometry">
      <rect>
-      <x>460</x>
-      <y>10</y>
+      <x>450</x>
+      <y>0</y>
       <width>121</width>
       <height>41</height>
      </rect>
@@ -82,30 +82,23 @@
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>80</y>
+     <y>110</y>
      <width>861</width>
-     <height>41</height>
+     <height>31</height>
     </rect>
    </property>
    <layout class="QGridLayout" name="gridLayout">
-    <item row="0" column="3">
-     <widget class="QComboBox" name="cmb_pared">
+    <item row="0" column="2">
+     <widget class="QLabel" name="label_2">
       <property name="maximumSize">
        <size>
-        <width>140</width>
+        <width>60</width>
         <height>16777215</height>
        </size>
       </property>
-      <item>
-       <property name="text">
-        <string>cristal</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>muro</string>
-       </property>
-      </item>
+      <property name="text">
+       <string>Pared</string>
+      </property>
      </widget>
     </item>
     <item row="0" column="7">
@@ -124,6 +117,26 @@
       <item>
        <property name="text">
         <string>descubierta</string>
+       </property>
+      </item>
+     </widget>
+    </item>
+    <item row="0" column="3">
+     <widget class="QComboBox" name="cmb_pared">
+      <property name="maximumSize">
+       <size>
+        <width>140</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <item>
+       <property name="text">
+        <string>cristal</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>muro</string>
        </property>
       </item>
      </widget>
@@ -164,29 +177,29 @@
       </property>
      </widget>
     </item>
-    <item row="0" column="2">
-     <widget class="QLabel" name="label_2">
-      <property name="maximumSize">
-       <size>
-        <width>60</width>
-        <height>16777215</height>
-       </size>
-      </property>
-      <property name="text">
-       <string>Pared</string>
-      </property>
-     </widget>
-    </item>
    </layout>
   </widget>
   <widget class="QTableWidget" name="tabla_pistas">
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>140</y>
+     <y>170</y>
      <width>861</width>
-     <height>531</height>
+     <height>501</height>
     </rect>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_socios">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>20</y>
+     <width>221</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Pistas</string>
    </property>
   </widget>
  </widget>

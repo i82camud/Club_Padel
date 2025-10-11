@@ -1,0 +1,175 @@
+/* ===============================
+   ESTILO PRINCIPAL - CLUB DE PÁDEL
+   =============================== */
+
+/* --- Ventana principal --- */
+QMainWindow {
+    background-color: #1E272E;
+    color: #FFFFFF;
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 14px;
+}
+
+/* --- Panel lateral --- */
+#frame_menu {
+    background-color: #2C3E50;
+    border: none;
+}
+
+/* --- Botones del menú lateral --- */
+#frame_menu QPushButton {
+    background-color: transparent;
+    color: #ECF0F1;
+    border: none;
+    padding: 10px;
+    text-align: left;
+    font-size: 14px;
+    border-radius: 4px;
+}
+
+#frame_menu QPushButton:hover {
+    background-color: #34495E;
+}
+
+#frame_menu QPushButton:pressed {
+    background-color: #1ABC9C;
+    color: #FFFFFF;
+}
+
+/* --- Botón activo --- */
+#btn_inicio[active="true"],
+#btn_socios[active="true"],
+#btn_pistas[active="true"],
+#btn_pagos[active="true"],
+#btn_reservas[active="true"] {
+    background-color: #1ABC9C;
+    color: #FFFFFF;
+    font-weight: bold;
+}
+
+/* --- Botón salir --- */
+#btn_salir {
+    background-color: #C0392B;
+    color: #FFFFFF;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+#btn_salir:hover {
+    background-color: #E74C3C;
+}
+
+/* --- Área principal --- */
+#content_area, QFrame#content_area {
+    background-color: #ECF0F1;
+    border-radius: 10px;
+}
+
+/* --- Tablas --- */
+QTableWidget {
+    background-color: #FFFFFF;
+    gridline-color: #BDC3C7;
+    border: 1px solid #BDC3C7;
+    border-radius: 6px;
+    selection-background-color: #1ABC9C;
+    selection-color: #FFFFFF;
+}
+
+QHeaderView::section {
+    background-color: #1ABC9C;
+    color: white;
+    font-weight: bold;
+    padding: 4px;
+    border: none;
+}
+
+/* --- Campos de texto --- */
+QLineEdit {
+    background-color: #FFFFFF;
+    border: 1px solid #BDC3C7;
+    border-radius: 5px;
+    padding: 5px;
+    color: #2C3E50;
+}
+
+QLineEdit:focus {
+    border: 1px solid #1ABC9C;
+}
+
+/* --- GroupBox --- */
+QGroupBox {
+    border: none; /*border: 1px solid #BDC3C7 */
+    border-radius: 6px;
+    margin-top: 10px;
+    background-color: #2C3E50; /*#2C3E50 verde claro #A8D5BA gris #D3D3D3*/
+}
+
+#stackedWidget{
+    border-radius: 6px;
+    margin-top: 10px;
+    background-color: #2C3E50;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top center;
+    padding: 0 5px;
+}
+
+/* --- Etiquetas --- */
+QLabel {
+    color: #1ABC9C;
+}
+
+/* Etiquetas dentro del panel lateral */
+#frame_menu QLabel {
+    color: #ECF0F1;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+/* Etiquetas de grupo o títulos dentro de formularios */
+QGroupBox QLabel {
+    color: #34495E;
+    font-weight: 500;
+}
+
+/* QGroupBox específico para los botones de acciones en las páginas
+   (SocioPage y PistaPage). Quitamos el borde solo para esos groupboxes. */
+#SocioPage QGroupBox#groupBox,
+#PistaPage QGroupBox#groupBox {
+    border: none;
+    background-color: transparent;
+    margin-top: 0px;
+}
+
+/* Títulos destacados */
+#lbl_bienvenido, #label_socios, #label_pistas {
+    color: #1ABC9C;
+    font-size: 22px;
+    font-weight: bold;
+}
+
+#lbl_imagen {
+    color: #95A5A6;
+    font-style: italic;
+    font-size: 13px;
+}
+
+/* --- Botones generales --- */
+QPushButton {
+    background-color: #1ABC9C;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-weight: bold;
+}
+
+QPushButton:hover {
+    background-color: #16A085;
+}
+
+QPushButton:pressed {
+    background-color: #149174;
+}

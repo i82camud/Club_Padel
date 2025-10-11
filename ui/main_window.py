@@ -1,14 +1,22 @@
 import sys
 from PySide6.QtWidgets import QApplication, QMainWindow
+from PySide6.QtCore import QFile
 from ui.main_window_ui import Ui_MainWindow
 from ui.widgets.socio_page_widget import SocioPage
 from ui.widgets.pista_page_widget import PistaPage
+import recursos_rc
+
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
+
+        # Cargar y aplicar hoja de estilos
+        style_file = QFile("ui/styles/style.qss")
+        if style_file.open(QFile.ReadOnly):
+            self.setStyleSheet(str(style_file.readAll(), encoding="utf-8"))
 
         # Conectar widgets a páginas del QStackedWidget
         self.socio_page = SocioPage()
