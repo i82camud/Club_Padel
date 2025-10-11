@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'socio_page.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.8.3
+## Created by: Qt User Interface Compiler version 6.8.0
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -26,25 +26,25 @@ class Ui_SocioPage(object):
         SocioPage.resize(900, 680)
         self.tabla_socios = QTableWidget(SocioPage)
         self.tabla_socios.setObjectName(u"tabla_socios")
-        self.tabla_socios.setGeometry(QRect(20, 200, 861, 471))
+        self.tabla_socios.setGeometry(QRect(20, 170, 861, 501))
         self.groupBox = QGroupBox(SocioPage)
         self.groupBox.setObjectName(u"groupBox")
-        self.groupBox.setGeometry(QRect(20, 10, 861, 61))
+        self.groupBox.setGeometry(QRect(20, 60, 861, 41))
         self.btn_agregar = QPushButton(self.groupBox)
         self.btn_agregar.setObjectName(u"btn_agregar")
-        self.btn_agregar.setGeometry(QRect(10, 10, 121, 41))
+        self.btn_agregar.setGeometry(QRect(0, 0, 121, 41))
         self.btn_modificar = QPushButton(self.groupBox)
         self.btn_modificar.setObjectName(u"btn_modificar")
-        self.btn_modificar.setGeometry(QRect(160, 10, 121, 41))
+        self.btn_modificar.setGeometry(QRect(150, 0, 121, 41))
         self.btn_baja = QPushButton(self.groupBox)
         self.btn_baja.setObjectName(u"btn_baja")
-        self.btn_baja.setGeometry(QRect(310, 10, 121, 41))
+        self.btn_baja.setGeometry(QRect(300, 0, 121, 41))
         self.btn_activar = QPushButton(self.groupBox)
         self.btn_activar.setObjectName(u"btn_activar")
-        self.btn_activar.setGeometry(QRect(460, 10, 121, 41))
+        self.btn_activar.setGeometry(QRect(450, 0, 121, 41))
         self.gridLayoutWidget = QWidget(SocioPage)
         self.gridLayoutWidget.setObjectName(u"gridLayoutWidget")
-        self.gridLayoutWidget.setGeometry(QRect(20, 80, 861, 101))
+        self.gridLayoutWidget.setGeometry(QRect(20, 110, 861, 51))
         self.gridLayout = QGridLayout(self.gridLayoutWidget)
         self.gridLayout.setObjectName(u"gridLayout")
         self.gridLayout.setContentsMargins(0, 0, 0, 0)
@@ -113,6 +113,9 @@ class Ui_SocioPage(object):
         self.label_5.raise_()
         self.txt_telefono.raise_()
         self.txt_apellido1.raise_()
+        self.label_socios = QLabel(SocioPage)
+        self.label_socios.setObjectName(u"label_socios")
+        self.label_socios.setGeometry(QRect(20, 20, 221, 31))
 
         self.retranslateUi(SocioPage)
 
@@ -131,5 +134,6 @@ class Ui_SocioPage(object):
         self.label.setText(QCoreApplication.translate("SocioPage", u"Nombre", None))
         self.label_4.setText(QCoreApplication.translate("SocioPage", u"Correo", None))
         self.label_5.setText(QCoreApplication.translate("SocioPage", u"Tel\u00e9fono", None))
+        self.label_socios.setText(QCoreApplication.translate("SocioPage", u"Socios", None))
     # retranslateUi
 

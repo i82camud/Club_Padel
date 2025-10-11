@@ -17,9 +17,9 @@
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>200</y>
+     <y>170</y>
      <width>861</width>
-     <height>471</height>
+     <height>501</height>
     </rect>
    </property>
   </widget>
@@ -27,9 +27,9 @@
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>10</y>
+     <y>60</y>
      <width>861</width>
-     <height>61</height>
+     <height>41</height>
     </rect>
    </property>
    <property name="title">
@@ -38,8 +38,8 @@
    <widget class="QPushButton" name="btn_agregar">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>10</y>
+      <x>0</x>
+      <y>0</y>
       <width>121</width>
       <height>41</height>
      </rect>
@@ -51,8 +51,8 @@
    <widget class="QPushButton" name="btn_modificar">
     <property name="geometry">
      <rect>
-      <x>160</x>
-      <y>10</y>
+      <x>150</x>
+      <y>0</y>
       <width>121</width>
       <height>41</height>
      </rect>
@@ -64,8 +64,8 @@
    <widget class="QPushButton" name="btn_baja">
     <property name="geometry">
      <rect>
-      <x>310</x>
-      <y>10</y>
+      <x>300</x>
+      <y>0</y>
       <width>121</width>
       <height>41</height>
      </rect>
@@ -77,8 +77,8 @@
    <widget class="QPushButton" name="btn_activar">
     <property name="geometry">
      <rect>
-      <x>460</x>
-      <y>10</y>
+      <x>450</x>
+      <y>0</y>
       <width>121</width>
       <height>41</height>
      </rect>
@@ -92,9 +92,9 @@
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>80</y>
+     <y>110</y>
      <width>861</width>
-     <height>101</height>
+     <height>51</height>
     </rect>
    </property>
    <layout class="QGridLayout" name="gridLayout">
@@ -174,6 +174,19 @@
    <zorder>label_5</zorder>
    <zorder>txt_telefono</zorder>
    <zorder>txt_apellido1</zorder>
+  </widget>
+  <widget class="QLabel" name="label_socios">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>20</y>
+     <width>221</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Socios</string>
+   </property>
   </widget>
  </widget>
  <resources/>

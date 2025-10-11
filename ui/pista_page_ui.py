@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'pista_page.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.8.3
+## Created by: Qt User Interface Compiler version 6.8.0
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -26,32 +26,30 @@ class Ui_PistaPage(object):
         PistaPage.resize(900, 680)
         self.groupBox = QGroupBox(PistaPage)
         self.groupBox.setObjectName(u"groupBox")
-        self.groupBox.setGeometry(QRect(20, 10, 861, 61))
+        self.groupBox.setGeometry(QRect(20, 60, 861, 41))
         self.btn_agregar = QPushButton(self.groupBox)
         self.btn_agregar.setObjectName(u"btn_agregar")
-        self.btn_agregar.setGeometry(QRect(10, 10, 121, 41))
+        self.btn_agregar.setGeometry(QRect(0, 0, 121, 41))
         self.btn_modificar = QPushButton(self.groupBox)
         self.btn_modificar.setObjectName(u"btn_modificar")
-        self.btn_modificar.setGeometry(QRect(160, 10, 121, 41))
+        self.btn_modificar.setGeometry(QRect(150, 0, 121, 41))
         self.btn_baja = QPushButton(self.groupBox)
         self.btn_baja.setObjectName(u"btn_baja")
-        self.btn_baja.setGeometry(QRect(310, 10, 121, 41))
+        self.btn_baja.setGeometry(QRect(300, 0, 121, 41))
         self.btn_activar = QPushButton(self.groupBox)
         self.btn_activar.setObjectName(u"btn_activar")
-        self.btn_activar.setGeometry(QRect(460, 10, 121, 41))
+        self.btn_activar.setGeometry(QRect(450, 0, 121, 41))
         self.gridLayoutWidget = QWidget(PistaPage)
         self.gridLayoutWidget.setObjectName(u"gridLayoutWidget")
-        self.gridLayoutWidget.setGeometry(QRect(20, 80, 861, 41))
+        self.gridLayoutWidget.setGeometry(QRect(20, 110, 861, 31))
         self.gridLayout = QGridLayout(self.gridLayoutWidget)
         self.gridLayout.setObjectName(u"gridLayout")
         self.gridLayout.setContentsMargins(0, 0, 0, 0)
-        self.cmb_pared = QComboBox(self.gridLayoutWidget)
-        self.cmb_pared.addItem("")
-        self.cmb_pared.addItem("")
-        self.cmb_pared.setObjectName(u"cmb_pared")
-        self.cmb_pared.setMaximumSize(QSize(140, 16777215))
+        self.label_2 = QLabel(self.gridLayoutWidget)
+        self.label_2.setObjectName(u"label_2")
+        self.label_2.setMaximumSize(QSize(60, 16777215))
 
-        self.gridLayout.addWidget(self.cmb_pared, 0, 3, 1, 1)
+        self.gridLayout.addWidget(self.label_2, 0, 2, 1, 1)
 
         self.cmb_tipo = QComboBox(self.gridLayoutWidget)
         self.cmb_tipo.addItem("")
@@ -60,6 +58,14 @@ class Ui_PistaPage(object):
         self.cmb_tipo.setMaximumSize(QSize(140, 16777215))
 
         self.gridLayout.addWidget(self.cmb_tipo, 0, 7, 1, 1)
+
+        self.cmb_pared = QComboBox(self.gridLayoutWidget)
+        self.cmb_pared.addItem("")
+        self.cmb_pared.addItem("")
+        self.cmb_pared.setObjectName(u"cmb_pared")
+        self.cmb_pared.setMaximumSize(QSize(140, 16777215))
+
+        self.gridLayout.addWidget(self.cmb_pared, 0, 3, 1, 1)
 
         self.label_3 = QLabel(self.gridLayoutWidget)
         self.label_3.setObjectName(u"label_3")
@@ -79,15 +85,12 @@ class Ui_PistaPage(object):
 
         self.gridLayout.addWidget(self.label, 0, 0, 1, 1)
 
-        self.label_2 = QLabel(self.gridLayoutWidget)
-        self.label_2.setObjectName(u"label_2")
-        self.label_2.setMaximumSize(QSize(60, 16777215))
-
-        self.gridLayout.addWidget(self.label_2, 0, 2, 1, 1)
-
         self.tabla_pistas = QTableWidget(PistaPage)
         self.tabla_pistas.setObjectName(u"tabla_pistas")
-        self.tabla_pistas.setGeometry(QRect(20, 140, 861, 531))
+        self.tabla_pistas.setGeometry(QRect(20, 170, 861, 501))
+        self.label_socios = QLabel(PistaPage)
+        self.label_socios.setObjectName(u"label_socios")
+        self.label_socios.setGeometry(QRect(20, 20, 221, 31))
 
         self.retranslateUi(PistaPage)
 
@@ -101,14 +104,15 @@ class Ui_PistaPage(object):
         self.btn_modificar.setText(QCoreApplication.translate("PistaPage", u"Modificar", None))
         self.btn_baja.setText(QCoreApplication.translate("PistaPage", u"Desactivar", None))
         self.btn_activar.setText(QCoreApplication.translate("PistaPage", u"Activar", None))
-        self.cmb_pared.setItemText(0, QCoreApplication.translate("PistaPage", u"cristal", None))
-        self.cmb_pared.setItemText(1, QCoreApplication.translate("PistaPage", u"muro", None))
-
+        self.label_2.setText(QCoreApplication.translate("PistaPage", u"Pared", None))
         self.cmb_tipo.setItemText(0, QCoreApplication.translate("PistaPage", u"cubierta", None))
         self.cmb_tipo.setItemText(1, QCoreApplication.translate("PistaPage", u"descubierta", None))
 
+        self.cmb_pared.setItemText(0, QCoreApplication.translate("PistaPage", u"cristal", None))
+        self.cmb_pared.setItemText(1, QCoreApplication.translate("PistaPage", u"muro", None))
+
         self.label_3.setText(QCoreApplication.translate("PistaPage", u"Tipo", None))
         self.label.setText(QCoreApplication.translate("PistaPage", u"Nombre", None))
-        self.label_2.setText(QCoreApplication.translate("PistaPage", u"Pared", None))
+        self.label_socios.setText(QCoreApplication.translate("PistaPage", u"Pistas", None))
     # retranslateUi
 

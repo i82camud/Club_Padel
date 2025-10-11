@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'main_window.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.8.3
+## Created by: Qt User Interface Compiler version 6.8.0
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -18,6 +18,7 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
 from PySide6.QtWidgets import (QApplication, QGroupBox, QLabel, QMainWindow,
     QPushButton, QSizePolicy, QStackedWidget, QVBoxLayout,
     QWidget)
+import recursos_rc
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -34,6 +35,8 @@ class Ui_MainWindow(object):
         self.btn_inicio = QPushButton(self.groupBox)
         self.btn_inicio.setObjectName(u"btn_inicio")
         self.btn_inicio.setGeometry(QRect(10, 20, 131, 31))
+        self.btn_inicio.setIconSize(QSize(16, 16))
+        self.btn_inicio.setFlat(False)
         self.btn_socios = QPushButton(self.groupBox)
         self.btn_socios.setObjectName(u"btn_socios")
         self.btn_socios.setGeometry(QRect(10, 60, 131, 31))
@@ -49,6 +52,7 @@ class Ui_MainWindow(object):
         self.btn_salir = QPushButton(self.groupBox)
         self.btn_salir.setObjectName(u"btn_salir")
         self.btn_salir.setGeometry(QRect(10, 640, 131, 31))
+        self.btn_salir.setIconSize(QSize(24, 24))
         self.stackedWidget = QStackedWidget(self.centralwidget)
         self.stackedWidget.setObjectName(u"stackedWidget")
         self.stackedWidget.setGeometry(QRect(180, 10, 900, 680))
@@ -73,27 +77,15 @@ class Ui_MainWindow(object):
         self.stackedWidget.addWidget(self.page_inicio)
         self.page_socios = QWidget()
         self.page_socios.setObjectName(u"page_socios")
-        self.label = QLabel(self.page_socios)
-        self.label.setObjectName(u"label")
-        self.label.setGeometry(QRect(20, 40, 111, 81))
         self.stackedWidget.addWidget(self.page_socios)
         self.page_pistas = QWidget()
         self.page_pistas.setObjectName(u"page_pistas")
-        self.label_2 = QLabel(self.page_pistas)
-        self.label_2.setObjectName(u"label_2")
-        self.label_2.setGeometry(QRect(60, 90, 131, 61))
         self.stackedWidget.addWidget(self.page_pistas)
         self.page_pagos = QWidget()
         self.page_pagos.setObjectName(u"page_pagos")
-        self.label_3 = QLabel(self.page_pagos)
-        self.label_3.setObjectName(u"label_3")
-        self.label_3.setGeometry(QRect(70, 70, 181, 81))
         self.stackedWidget.addWidget(self.page_pagos)
         self.page_reservas = QWidget()
         self.page_reservas.setObjectName(u"page_reservas")
-        self.label_4 = QLabel(self.page_reservas)
-        self.label_4.setObjectName(u"label_4")
-        self.label_4.setGeometry(QRect(60, 90, 131, 91))
         self.stackedWidget.addWidget(self.page_reservas)
         MainWindow.setCentralWidget(self.centralwidget)
 
@@ -116,9 +108,5 @@ class Ui_MainWindow(object):
         self.btn_salir.setText(QCoreApplication.translate("MainWindow", u"Salir", None))
         self.lbl_bienvenido.setText(QCoreApplication.translate("MainWindow", u"TextLabel", None))
         self.lbl_imagen.setText(QCoreApplication.translate("MainWindow", u"TextLabel", None))
-        self.label.setText(QCoreApplication.translate("MainWindow", u"Socios", None))
-        self.label_2.setText(QCoreApplication.translate("MainWindow", u"Pistas", None))
-        self.label_3.setText(QCoreApplication.translate("MainWindow", u"Pagos", None))
-        self.label_4.setText(QCoreApplication.translate("MainWindow", u"Reservas", None))
     # retranslateUi
 
