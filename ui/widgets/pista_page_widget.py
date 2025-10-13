@@ -1,8 +1,40 @@
-from PySide6.QtWidgets import QWidget, QTableWidgetItem, QMessageBox
+"""Widget de gestión de Pistas.
+
+Contiene la clase `PistaPage` que permite listar, crear, modificar,
+dar de baja y reactivar pistas. Se apoya en `services.pista_service` para
+la lógica de persistencia y emite la señal `bus.pistas_changed` cuando
+se hacen cambios que deben propagar a otros widgets.
+
+API principal:
+- cargar_pistas(): recarga la tabla desde el servicio.
+- insertar(), modificar(), baja_pista(), activa_pista(): operaciones CRUD básicas.
+
+Efectos secundarios:
+- Emite `bus.pistas_changed` tras cambios.
+
+Notas:
+- Diseñado para integrarse en la ventana principal generada por Qt Designer
+  (widgets con nombres esperados: tabla, botones, combos, etc.).
+"""
+
+from PySide6.QtWidgets import QWidget, QTableWidgetItem, QMessageBox, QHeaderView
 from ui.pista_page_ui import Ui_PistaPage  # el generado por pyside6-uic
-from services.pista_service import insertar_pista, listar_pistas, modificar_pista, activar_pista, desactivar_pista, obtener_pista_por_id
+import services.pista_service as pista_service
+from utils.events import bus
+
 
 class PistaPage(QWidget, Ui_PistaPage):
+    """Widget para administrar pistas.
+
+    Métodos públicos y comportamiento:
+    - cargar_pistas(): re-lee las pistas del servicio y actualiza la tabla.
+    - insertar()/modificar()/baja_pista()/activa_pista(): realizan las operaciones
+      correspondientes y emiten `bus.pistas_changed`.
+
+    Validaciones:
+    - validar_campos() devuelve (bool, mensaje) indicando si los campos son válidos.
+    """
+
     def __init__(self):
         super().__init__()
         self.setupUi(self)
@@ -15,17 +47,18 @@ class PistaPage(QWidget, Ui_PistaPage):
 
         # Conectar tabla para que actualice los campos al seleccionar fila
         self.tabla_pistas.itemSelectionChanged.connect(self.actualizar_campos)
+        self.tabla_pistas.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
         # Cargar tabla al inicio
         self.cargar_pistas()
 
     def cargar_pistas(self):
-        pistas = listar_pistas()
+        pistas = pista_service.listar_pistas()
         self.tabla_pistas.setRowCount(len(pistas))
         self.tabla_pistas.setColumnCount(5)
-        self.tabla_pistas.setHorizontalHeaderLabels(
-            ["ID", "Nombre", "Pared", "Tipo", "Estado"]
-        )
+        self.tabla_pistas.setHorizontalHeaderLabels([
+            "ID", "Nombre", "Pared", "Tipo", "Estado"
+        ])
 
         for fila, pista in enumerate(pistas):
             # Asumimos objetos ORM: acceder a atributos directamente
@@ -34,7 +67,7 @@ class PistaPage(QWidget, Ui_PistaPage):
                 pista.nombre,
                 pista.pared,
                 pista.tipo,
-                pista.estado,
+                (pista.estado.name.capitalize() if hasattr(pista.estado, 'name') else str(pista.estado)),
             ]
 
             for col, dato in enumerate(values):
@@ -48,7 +81,7 @@ class PistaPage(QWidget, Ui_PistaPage):
             return False, "El nombre es obligatorio"
 
         return True, ""
-    
+
     # campos
     def vaciar_campos(self):
         self.txt_nombre.clear()
@@ -61,7 +94,7 @@ class PistaPage(QWidget, Ui_PistaPage):
             self.txt_nombre.setText(self.tabla_pistas.item(fila, 1).text())
             self.cmb_pared.setCurrentText(self.tabla_pistas.item(fila, 2).text())
             self.cmb_tipo.setCurrentText(self.tabla_pistas.item(fila, 3).text())
-    
+
     def normalizar_campos(self):
         nombre = self.txt_nombre.text().strip()
         pared = self.cmb_pared.currentText()
@@ -74,12 +107,13 @@ class PistaPage(QWidget, Ui_PistaPage):
         if not ok:
             QMessageBox.warning(self, "Error", mensaje)
             return
-        
+
         nombre, pared, tipo = self.normalizar_campos()
-        insertar_pista(nombre, pared, tipo)
-        QMessageBox.information(self, "Éxito", "Pista insertada correctamente")        
+        pista_service.insertar_pista(nombre, pared, tipo)
+        QMessageBox.information(self, "Éxito", "Pista insertada correctamente")
         self.vaciar_campos()
         self.cargar_pistas()
+        bus.pistas_changed.emit()
 
     def modificar(self):
         fila = self.tabla_pistas.currentRow()
@@ -94,10 +128,10 @@ class PistaPage(QWidget, Ui_PistaPage):
             return
 
         nombre, pared, tipo = self.normalizar_campos()
-        modificar_pista(id_pista, nombre, pared, tipo)
+        pista_service.modificar_pista(id_pista, nombre, pared, tipo)
         self.vaciar_campos()
         self.cargar_pistas()
-        
+        bus.pistas_changed.emit()
 
     def baja_pista(self):
         row = self.tabla_pistas.currentRow()
@@ -106,10 +140,11 @@ class PistaPage(QWidget, Ui_PistaPage):
             return
 
         id_pista = int(self.tabla_pistas.item(row, 0).text())
-        desactivar_pista(id_pista)
+        pista_service.desactivar_pista(id_pista)
         QMessageBox.information(self, "Éxito", "Pista dada de baja correctamente")
         self.vaciar_campos()
         self.cargar_pistas()
+        bus.pistas_changed.emit()
 
     def activa_pista(self):
         row = self.tabla_pistas.currentRow()
@@ -118,8 +153,8 @@ class PistaPage(QWidget, Ui_PistaPage):
             return
 
         id_pista = int(self.tabla_pistas.item(row, 0).text())
-        activar_pista(id_pista)
+        pista_service.activar_pista(id_pista)
         QMessageBox.information(self, "Éxito", "Pista activada correctamente")
         self.vaciar_campos()
         self.cargar_pistas()
-        
+        bus.pistas_changed.emit()

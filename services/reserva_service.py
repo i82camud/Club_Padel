@@ -1,14 +1,38 @@
-"""Servicios para Reserva usando SQLAlchemy: gestionan sesiones y devuelven objetos ORM."""
+"""Servicios para Reserva usando SQLAlchemy.
+
+Funciones CRUD para `Reserva` y utilidades (p.ej. detección de solapamientos).
+Las funciones gestionan sesiones y devuelven instancias ORM.
+"""
 from typing import List, Optional
+from datetime import date, time
 
 from models import orm
-from models.orm_models import Reserva as ReservaORM
+from models.orm_models import Reserva as ReservaORM, ReservaEstado
 
 
-def insertar_reserva(id_socio: int, id_pista: int, fecha: str, hora_inicio: str, hora_fin: str, estado: str = 'activa') -> ReservaORM:
+def _to_reserva_estado(value):
+	"""Normaliza un valor a `ReservaEstado` (None | Enum | int)."""
+	if value is None:
+		return None
+	if isinstance(value, ReservaEstado):
+		return value
+	if isinstance(value, int):
+		return ReservaEstado(int(value))
+	raise ValueError(f"Valor de estado de reserva inválido (esperado Enum o int): {value}")
+
+
+def insertar_reserva(id_socio: int, id_pista: int, fecha: date, hora_inicio: time, hora_fin: time, estado=ReservaEstado.ACTIVA) -> ReservaORM:
+	"""Crea una reserva verificando solapamientos y devuelve la instancia.
+
+	Lanza ValueError si existe solapamiento con otra reserva activa.
+	"""
 	session = orm.SessionLocal()
 	try:
-		r = ReservaORM(id_socio=id_socio, id_pista=id_pista, fecha=fecha, hora_inicio=hora_inicio, hora_fin=hora_fin, estado=estado)
+		if hay_solapamiento(id_pista, fecha, hora_inicio, hora_fin):
+			raise ValueError("La pista ya está reservada en ese horario.")
+
+		estado_enum = _to_reserva_estado(estado)
+		r = ReservaORM(id_socio=id_socio, id_pista=id_pista, fecha=fecha, hora_inicio=hora_inicio, hora_fin=hora_fin, estado=estado_enum)
 		session.add(r)
 		session.commit()
 		session.refresh(r)
@@ -18,6 +42,7 @@ def insertar_reserva(id_socio: int, id_pista: int, fecha: str, hora_inicio: str,
 
 
 def listar_reservas(id_socio: int = None, id_pista: int = None, estado: str = None) -> List[ReservaORM]:
+	"""Lista reservas con filtros opcionales (id_socio, id_pista, estado)."""
 	session = orm.SessionLocal()
 	try:
 		q = session.query(ReservaORM)
@@ -26,13 +51,14 @@ def listar_reservas(id_socio: int = None, id_pista: int = None, estado: str = No
 		if id_pista:
 			q = q.filter(ReservaORM.id_pista == id_pista)
 		if estado:
-			q = q.filter(ReservaORM.estado == estado)
+			q = q.filter(ReservaORM.estado == _to_reserva_estado(estado))
 		return q.all()
 	finally:
 		session.close()
 
 
 def obtener_reserva_por_id(id_reserva: int) -> Optional[ReservaORM]:
+	"""Recupera una reserva por id o devuelve None si no existe."""
 	session = orm.SessionLocal()
 	try:
 		return session.get(ReservaORM, id_reserva)
@@ -40,7 +66,8 @@ def obtener_reserva_por_id(id_reserva: int) -> Optional[ReservaORM]:
 		session.close()
 
 
-def actualizar_reserva(id_reserva: int, id_socio: int, id_pista: int, fecha: str, hora_inicio: str, hora_fin: str, estado: str = None):
+def actualizar_reserva(id_reserva: int, id_socio: int, id_pista: int, fecha: date, hora_inicio: time, hora_fin: time, estado: str = None):
+	"""Actualiza los campos de una reserva y devuelve la instancia actualizada."""
 	session = orm.SessionLocal()
 	try:
 		r = session.get(ReservaORM, id_reserva)
@@ -52,7 +79,7 @@ def actualizar_reserva(id_reserva: int, id_socio: int, id_pista: int, fecha: str
 		r.hora_inicio = hora_inicio
 		r.hora_fin = hora_fin
 		if estado is not None:
-			r.estado = estado
+			r.estado = _to_reserva_estado(estado)
 		session.commit()
 		session.refresh(r)
 		return r
@@ -61,17 +88,33 @@ def actualizar_reserva(id_reserva: int, id_socio: int, id_pista: int, fecha: str
 
 
 def cancelar_reserva(id_reserva: int):
+	"""Marca una reserva como cancelada y la devuelve."""
 	session = orm.SessionLocal()
 	try:
 		r = session.get(ReservaORM, id_reserva)
 		if r is None:
 			return None
-		r.estado = 'cancelada'
+		r.estado = ReservaEstado.CANCELADA
 		session.commit()
 		return r
 	finally:
 		session.close()
 
+
+def hay_solapamiento(id_pista: int, fecha: date, hora_inicio: time, hora_fin: time) -> bool:
+	"""Comprueba si existe una reserva activa que se solape con el rango dado."""
+	session = orm.SessionLocal()
+	try:
+		q = session.query(ReservaORM).filter(
+			ReservaORM.id_pista == id_pista,
+			ReservaORM.fecha == fecha,
+			ReservaORM.estado == ReservaEstado.ACTIVA,
+			ReservaORM.hora_inicio < hora_fin,
+			ReservaORM.hora_fin > hora_inicio
+		)
+		return session.query(q.exists()).scalar()
+	finally:
+		session.close()
 
 __all__ = [
 	'insertar_reserva', 'listar_reservas', 'obtener_reserva_por_id', 'actualizar_reserva',

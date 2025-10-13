@@ -4,6 +4,8 @@ from PySide6.QtCore import QFile
 from ui.main_window_ui import Ui_MainWindow
 from ui.widgets.socio_page_widget import SocioPage
 from ui.widgets.pista_page_widget import PistaPage
+from ui.widgets.reserva_page_widget import ReservaPage
+from ui.widgets.pago_page_widget import PagoPage
 import recursos_rc
 
 
@@ -23,6 +25,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.stackedWidget.insertWidget(1, self.socio_page)
         self.pista_page = PistaPage()
         self.stackedWidget.insertWidget(2, self.pista_page)
+        self.pago_page = PagoPage()
+        self.stackedWidget.insertWidget(3, self.pago_page)
+        self.reserva_page = ReservaPage()
+        self.stackedWidget.insertWidget(4, self.reserva_page)        
 
         # Conectar botones a páginas del QStackedWidget
         self.btn_inicio.clicked.connect(lambda: self.stackedWidget.setCurrentIndex(0))

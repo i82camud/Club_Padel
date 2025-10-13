@@ -67,12 +67,20 @@ QMainWindow {
 
 /* --- Tablas --- */
 QTableWidget {
-    background-color: #FFFFFF;
+    /* Fondo principal para la tabla; filas alternas controladas más abajo */
+    background-color: #1E272E;
     gridline-color: #BDC3C7;
     border: 1px solid #BDC3C7;
     border-radius: 6px;
-    selection-background-color: #1ABC9C;
-    selection-color: #FFFFFF;
+    selection-color: #1ABC9C;
+}
+
+/* Alternancia de filas: par = gris claro, impar = blanco */
+QTableWidget::item {
+    background-color: #F6F8F8;
+}
+QTableWidget::item:alternate {
+    background-color: #FFFFFF;
 }
 
 QHeaderView::section {
@@ -83,8 +91,7 @@ QHeaderView::section {
     border: none;
 }
 
-/* --- Campos de texto --- */
-QLineEdit {
+QLineEdit, QDateEdit, QTimeEdit, QComboBox {
     background-color: #FFFFFF;
     border: 1px solid #BDC3C7;
     border-radius: 5px;
@@ -92,9 +99,40 @@ QLineEdit {
     color: #2C3E50;
 }
 
-QLineEdit:focus {
+QLineEdit:focus, QDateEdit:focus, QTimeEdit:focus, QComboBox:focus {
     border: 1px solid #1ABC9C;
 }
+
+/* Drop-down area (date/time) and combo arrow alignment */
+QDateEdit::drop-down, QTimeEdit::drop-down, QComboBox::drop-down {
+    subcontrol-origin: padding;
+    subcontrol-position: top right;
+    width: 20px;
+}
+
+QComboBox::down-arrow {
+    /* dejar que el sistema dibuje la flecha; reservamos tamaño para ella */
+    width: 12px;
+    height: 12px;
+}
+
+QComboBox::down-arrow:on { /* cuando el combo está desplegado */
+    transform: rotate(180deg);
+}
+
+/* Popup list for QComboBox */
+QComboBox QAbstractItemView {
+    background-color: #FFFFFF;
+    border: 1px solid #BDC3C7;
+    selection-background-color: #1ABC9C;
+    selection-color: #FFFFFF;
+}
+
+/* Asegurar que los campos de tiempo y fecha con spinner quedan legibles */
+QTimeEdit::up-button, QTimeEdit::down-button {
+    width: 16px;
+}
+
 
 /* --- GroupBox --- */
 QGroupBox {
@@ -136,15 +174,15 @@ QGroupBox QLabel {
 
 /* QGroupBox específico para los botones de acciones en las páginas
    (SocioPage y PistaPage). Quitamos el borde solo para esos groupboxes. */
-#SocioPage QGroupBox#groupBox,
-#PistaPage QGroupBox#groupBox {
+#SocioPage QGroupBox#groupBox, #PistaPage QGroupBox#groupBox, #PagoPage QGroupBox#groupBox, #ReservaPage QGroupBox#groupBox 
+{
     border: none;
     background-color: transparent;
     margin-top: 0px;
 }
 
 /* Títulos destacados */
-#lbl_bienvenido, #label_socios, #label_pistas {
+#lbl_bienvenido, #label_socios, #label_pistas, #label_pagos {
     color: #1ABC9C;
     font-size: 22px;
     font-weight: bold;

@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1100</width>
-    <height>700</height>
+    <width>1280</width>
+    <height>800</height>
    </rect>
   </property>
   <property name="contextMenuPolicy">
@@ -26,7 +26,7 @@
       <x>10</x>
       <y>10</y>
       <width>150</width>
-      <height>680</height>
+      <height>771</height>
      </rect>
     </property>
     <property name="title">
@@ -110,7 +110,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>640</y>
+       <y>720</y>
        <width>131</width>
        <height>31</height>
       </rect>
@@ -131,8 +131,8 @@
      <rect>
       <x>180</x>
       <y>10</y>
-      <width>900</width>
-      <height>680</height>
+      <width>1080</width>
+      <height>770</height>
      </rect>
     </property>
     <property name="currentIndex">
@@ -142,8 +142,8 @@
      <widget class="QWidget" name="verticalLayoutWidget">
       <property name="geometry">
        <rect>
-        <x>20</x>
-        <y>40</y>
+        <x>10</x>
+        <y>10</y>
         <width>561</width>
         <height>101</height>
        </rect>

@@ -1,5 +1,5 @@
 import pytest
-from datetime import date
+from datetime import date, time
 
 
 def test_pagos_workflow(db_setup):
@@ -13,6 +13,7 @@ def test_pagos_workflow(db_setup):
         insertar_pago, insertar_pago_cuota, insertar_pago_reserva, insertar_pago_extra,
         listar_pagos, obtener_pago_por_id
     )
+    from models.orm_models import PagoTipo
 
     # Crear socio y pista
     insertar_socio(nombre='Aaa', apellido1='Aaa', apellido2='Aaa', email='aaa@aaa.aaa', telefono='611111111')
@@ -22,17 +23,15 @@ def test_pagos_workflow(db_setup):
     pista = listar_pistas()[0]
 
     # Crear reserva usando los ids de los objetos ORM
-    insertar_reserva(id_socio=socio.id_socio, id_pista=pista.id_pista, fecha=str(date.today()), hora_inicio='18:00', hora_fin='19:00')
+    insertar_reserva(id_socio=socio.id_socio, id_pista=pista.id_pista, fecha=date.today(), hora_inicio=time.fromisoformat('18:00'), hora_fin=time.fromisoformat('19:00'))
     reserva = listar_reservas()[0]
 
     # Crear pagos y las entradas específicas (cuota, reserva, extra)
-    pago_cuota = insertar_pago(id_socio=socio.id_socio, importe=50.0, fecha_pago=str(date.today()), tipo='cuota')
+    pago_cuota = insertar_pago(id_socio=socio.id_socio, importe=50.0, fecha_pago=date.today(), tipo=PagoTipo.CUOTA)
     insertar_pago_cuota(pago_cuota.id_pago, periodo='Octubre 2025')
-
-    pago_reserva = insertar_pago(id_socio=socio.id_socio, importe=20.0, fecha_pago=str(date.today()), tipo='reserva')
+    pago_reserva = insertar_pago(id_socio=socio.id_socio, importe=20.0, fecha_pago=date.today(), tipo=PagoTipo.RESERVA)
     insertar_pago_reserva(pago_reserva.id_pago, id_reserva=reserva.id_reserva)
-
-    pago_extra = insertar_pago(id_socio=socio.id_socio, importe=15.0, fecha_pago=str(date.today()), tipo='extra')
+    pago_extra = insertar_pago(id_socio=socio.id_socio, importe=15.0, fecha_pago=date.today(), tipo=PagoTipo.EXTRA)
     insertar_pago_extra(pago_extra.id_pago, concepto_extra='Bebida energética')
 
     pagos = listar_pagos()
