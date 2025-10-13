@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>SocioPage</class>
- <widget class="QWidget" name="SocioPage">
+ <class>pago_page</class>
+ <widget class="QWidget" name="pago_page">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -13,20 +13,17 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <widget class="QTableWidget" name="tabla_socios">
+  <widget class="QLabel" name="label_pagos">
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>190</y>
-     <width>1041</width>
-     <height>561</height>
+     <y>20</y>
+     <width>221</width>
+     <height>31</height>
     </rect>
    </property>
-   <property name="alternatingRowColors">
-    <bool>true</bool>
-   </property>
-   <property name="selectionBehavior">
-    <enum>QAbstractItemView::SelectRows</enum>
+   <property name="text">
+    <string>Pagos</string>
    </property>
   </widget>
   <widget class="QGroupBox" name="groupBox">
@@ -77,20 +74,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>Dar de Baja</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="btn_activar">
-    <property name="geometry">
-     <rect>
-      <x>450</x>
-      <y>0</y>
-      <width>121</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Activar</string>
+     <string>Anular</string>
     </property>
    </widget>
   </widget>
@@ -104,23 +88,34 @@
     </rect>
    </property>
    <layout class="QGridLayout" name="gridLayout">
-    <item row="0" column="2">
-     <widget class="QLabel" name="label_2">
+    <item row="0" column="4">
+     <widget class="QLineEdit" name="txt_importe">
       <property name="sizePolicy">
-       <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
         <horstretch>0</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
       </property>
+     </widget>
+    </item>
+    <item row="0" column="6">
+     <widget class="QDateEdit" name="dateEdit">
+      <property name="calendarPopup">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="0">
+     <widget class="QLabel" name="label">
       <property name="text">
-       <string>1º Apellido</string>
+       <string>Socio</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
       </property>
      </widget>
     </item>
-    <item row="0" column="4">
+    <item row="0" column="5">
      <widget class="QLabel" name="label_3">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
@@ -129,21 +124,15 @@
        </sizepolicy>
       </property>
       <property name="text">
-       <string>2º Apellido</string>
+       <string>Fecha</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
       </property>
      </widget>
     </item>
-    <item row="0" column="1">
-     <widget class="QLineEdit" name="txt_nombre"/>
-    </item>
     <item row="0" column="3">
-     <widget class="QLineEdit" name="txt_apellido1"/>
-    </item>
-    <item row="0" column="0">
-     <widget class="QLabel" name="label">
+     <widget class="QLabel" name="label_2">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
         <horstretch>0</horstretch>
@@ -151,15 +140,12 @@
        </sizepolicy>
       </property>
       <property name="text">
-       <string>Nombre</string>
+       <string>Importe</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
       </property>
      </widget>
-    </item>
-    <item row="0" column="5">
-     <widget class="QLineEdit" name="txt_apellido2"/>
     </item>
     <item row="1" column="0">
      <widget class="QLabel" name="label_4">
@@ -170,7 +156,7 @@
        </sizepolicy>
       </property>
       <property name="text">
-       <string>Correo</string>
+       <string>Tipo</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -178,50 +164,77 @@
      </widget>
     </item>
     <item row="1" column="1">
-     <widget class="QLineEdit" name="txt_email"/>
+     <widget class="QComboBox" name="comboBox">
+      <item>
+       <property name="text">
+        <string>Cuota</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Reserva</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Extra</string>
+       </property>
+      </item>
+     </widget>
     </item>
-    <item row="1" column="2">
-     <widget class="QLabel" name="label_5">
+    <item row="0" column="1">
+     <widget class="QLineEdit" name="txt_socio">
       <property name="sizePolicy">
-       <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
         <horstretch>0</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
       </property>
-      <property name="text">
-       <string>Teléfono</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
      </widget>
     </item>
     <item row="1" column="3">
-     <widget class="QLineEdit" name="txt_telefono"/>
+     <widget class="QLabel" name="label_5">
+      <property name="text">
+       <string>Concepto</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="4">
+     <widget class="QLineEdit" name="txt_concepto">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+     </widget>
     </item>
    </layout>
-   <zorder>txt_nombre</zorder>
    <zorder>label</zorder>
    <zorder>label_2</zorder>
    <zorder>label_3</zorder>
-   <zorder>txt_apellido2</zorder>
    <zorder>label_4</zorder>
-   <zorder>txt_email</zorder>
+   <zorder>dateEdit</zorder>
+   <zorder>txt_importe</zorder>
+   <zorder>comboBox</zorder>
+   <zorder>txt_socio</zorder>
    <zorder>label_5</zorder>
-   <zorder>txt_telefono</zorder>
-   <zorder>txt_apellido1</zorder>
+   <zorder>txt_concepto</zorder>
   </widget>
-  <widget class="QLabel" name="label_socios">
+  <widget class="QTableWidget" name="tabla_pagos">
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>20</y>
-     <width>221</width>
-     <height>31</height>
+     <y>190</y>
+     <width>1041</width>
+     <height>561</height>
     </rect>
    </property>
-   <property name="text">
-    <string>Socios</string>
+   <property name="alternatingRowColors">
+    <bool>true</bool>
+   </property>
+   <property name="selectionBehavior">
+    <enum>QAbstractItemView::SelectRows</enum>
    </property>
   </widget>
  </widget>

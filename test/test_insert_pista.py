@@ -13,7 +13,8 @@ def test_insertar_y_modificar_pistas(db_setup):
     assert len(pistas) == 3
 
     # Actualizar la pista 1
-    actualizar_pista(1, nombre="Pista 1 Renovada", tipo="cristal", estado="activa")
+    from models.orm_models import PistaEstado
+    actualizar_pista(1, nombre="Pista 1 Renovada", tipo="cristal", estado=PistaEstado.ACTIVA)
     desactivar_pista(2)
     activar_pista(2)
 

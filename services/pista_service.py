@@ -1,14 +1,36 @@
-"""Servicios para Pista usando SQLAlchemy: gestionan sesiones y devuelven objetos ORM."""
+"""Servicios para Pista usando SQLAlchemy.
+
+Expone funciones CRUD para `Pista` y helpers de estado. Cada función
+gestiona su propia sesión y devuelve instancias ORM.
+"""
 from typing import List, Optional
 
 from models import orm
-from models.orm_models import Pista as PistaORM
+from models.orm_models import Pista as PistaORM, PistaEstado
 
 
-def insertar_pista(nombre: str, tipo: str, pared: str = None, estado: str = 'activa') -> PistaORM:
+def _to_pista_estado(value):
+    """Normaliza un valor a `PistaEstado` (None | Enum | int)."""
+    if value is None:
+        return None
+    if isinstance(value, PistaEstado):
+        return value
+    if isinstance(value, int):
+        return PistaEstado(int(value))
+    raise ValueError(f"Valor de estado de pista inválido (esperado Enum o int): {value}")
+
+
+def insertar_pista(nombre: str, tipo: str, pared: str = None, estado=PistaEstado.ACTIVA) -> PistaORM:
+    """Inserta una pista y devuelve la instancia creada.
+
+    - nombre: str
+    - tipo: str
+    - pared: opcional (p.ej. 'cristal' / 'muro')
+    """
     session = orm.SessionLocal()
     try:
-        p = PistaORM(nombre=nombre, pared=pared, tipo=tipo, estado=estado)
+        estado_enum = _to_pista_estado(estado)
+        p = PistaORM(nombre=nombre, pared=pared, tipo=tipo, estado=estado_enum)
         session.add(p)
         session.commit()
         session.refresh(p)
@@ -18,17 +40,19 @@ def insertar_pista(nombre: str, tipo: str, pared: str = None, estado: str = 'act
 
 
 def listar_pistas(estado: str = None) -> List[PistaORM]:
+    """Lista pistas. Opcionalmente filtra por estado (PistaEstado|int)."""
     session = orm.SessionLocal()
     try:
         q = session.query(PistaORM)
         if estado:
-            q = q.filter(PistaORM.estado == estado)
+            q = q.filter(PistaORM.estado == _to_pista_estado(estado))
         return q.all()
     finally:
         session.close()
 
 
 def obtener_pista_por_id(id_pista: int) -> Optional[PistaORM]:
+    """Obtiene una pista por id o None si no existe."""
     session = orm.SessionLocal()
     try:
         return session.get(PistaORM, id_pista)
@@ -37,6 +61,10 @@ def obtener_pista_por_id(id_pista: int) -> Optional[PistaORM]:
 
 
 def modificar_pista(id_pista: int, nombre: str, pared: str, tipo: str):
+    """Modifica el nombre/pared/tipo de una pista existente.
+
+    Devuelve la instancia actualizada o None si la pista no existe.
+    """
     session = orm.SessionLocal()
     try:
         p = session.get(PistaORM, id_pista)
@@ -66,7 +94,7 @@ def actualizar_pista(id_pista: int, nombre: str = None, tipo: str = None, estado
         else:
             p.tipo = tipo
     if estado is not None:
-        p.estado = estado
+        p.estado = _to_pista_estado(estado)
 
     session = orm.SessionLocal()
     try:
@@ -84,7 +112,7 @@ def activar_pista(id_pista: int):
         p = session.get(PistaORM, id_pista)
         if p is None:
             return None
-        p.estado = 'activa'
+        p.estado = PistaEstado.ACTIVA
         session.commit()
         return p
     finally:
@@ -97,7 +125,7 @@ def desactivar_pista(id_pista: int):
         p = session.get(PistaORM, id_pista)
         if p is None:
             return None
-        p.estado = 'inactiva'
+        p.estado = PistaEstado.INACTIVA
         session.commit()
         return p
     finally:

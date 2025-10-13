@@ -20,7 +20,8 @@ def test_cargar_socios_accepts_orm_objects(monkeypatch):
     from ui.widgets.socio_page_widget import SocioPage
 
     # Fake listar_socios to return an ORM-like object
-    orm_obj = SimpleNamespace(id_socio=1, nombre='X', apellido1='Y', apellido2='Z', email='x@y.z', telefono='000', estado='activo')
+    from models.orm_models import SocioEstado
+    orm_obj = SimpleNamespace(id_socio=1, nombre='X', apellido1='Y', apellido2='Z', email='x@y.z', telefono='000', estado=SocioEstado.ACTIVO)
     monkeypatch.setattr('services.socio_service.listar_socios', lambda: [orm_obj])
 
     page = SocioPage()
@@ -32,7 +33,8 @@ def test_cargar_pistas_accepts_orm_objects(monkeypatch):
     _make_qapp()
     from ui.widgets.pista_page_widget import PistaPage
 
-    orm_obj = SimpleNamespace(id_pista=1, nombre='P1', pared=None, tipo='cristal', estado='activa')
+    from models.orm_models import PistaEstado
+    orm_obj = SimpleNamespace(id_pista=1, nombre='P1', pared=None, tipo='cristal', estado=PistaEstado.ACTIVA)
     monkeypatch.setattr('services.pista_service.listar_pistas', lambda: [orm_obj])
 
     page = PistaPage()
