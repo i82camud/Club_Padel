@@ -113,7 +113,7 @@ class Pago(Base):
     tipo = Column(IntEnumType(PagoTipo), nullable=False)
 
     socio = relationship("Socio", back_populates="pagos")
-    cuota = relationship("PagoCuota", uselist=False, back_populates="pago")
+    pago_cuota = relationship("PagoCuota", uselist=False, back_populates="pago")
     pago_reserva = relationship("PagoReserva", uselist=False, back_populates="pago")
     pago_extra = relationship("PagoExtra", uselist=False, back_populates="pago")
 
@@ -124,7 +124,7 @@ class PagoCuota(Base):
     id_pago = Column(Integer, ForeignKey("Pagos.id_pago"), primary_key=True)
     periodo = Column(String, nullable=False)
 
-    pago = relationship("Pago", back_populates="cuota")
+    pago = relationship("Pago", back_populates="pago_cuota")
 
 
 class PagoReserva(Base):
