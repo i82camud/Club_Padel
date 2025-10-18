@@ -87,14 +87,14 @@ def insertar_pago_cuota(id_pago: int, periodo: str):
 		session.close()
 
 
-def insertar_pago_reserva(id_pago: int, id_reserva: int, concepto: str = None):
+def insertar_pago_reserva(id_pago: int, id_reserva: int):
 	"""Asocia un pago a una reserva (PagoReserva).
 
-	- concepto: texto legible que se almacena junto al enlace a la reserva.
+	- id_reserva: id de la reserva asociada.
 	"""
 	session = orm.SessionLocal()
 	try:
-		pr = PagoReservaORM(id_pago=id_pago, id_reserva=id_reserva, concepto=concepto)
+		pr = PagoReservaORM(id_pago=id_pago, id_reserva=id_reserva)
 		session.add(pr)
 		session.commit()
 		return pr
@@ -102,14 +102,14 @@ def insertar_pago_reserva(id_pago: int, id_reserva: int, concepto: str = None):
 		session.close()
 
 
-def insertar_pago_extra(id_pago: int, concepto_extra: str):
+def insertar_pago_extra(id_pago: int, concepto: str):
 	"""Crea una entrada de tipo 'extra' asociada a `id_pago`.
 
-	- concepto_extra: descripción libre.
+	- concepto: descripción libre.
 	"""
 	session = orm.SessionLocal()
 	try:
-		pe = PagoExtraORM(id_pago=id_pago, concepto_extra=concepto_extra)
+		pe = PagoExtraORM(id_pago=id_pago, concepto=concepto)
 		session.add(pe)
 		session.commit()
 		return pe

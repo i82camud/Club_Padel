@@ -32,7 +32,7 @@ def test_pagos_workflow(db_setup):
     pago_reserva = insertar_pago(id_socio=socio.id_socio, importe=20.0, fecha_pago=date.today(), tipo=PagoTipo.RESERVA)
     insertar_pago_reserva(pago_reserva.id_pago, id_reserva=reserva.id_reserva)
     pago_extra = insertar_pago(id_socio=socio.id_socio, importe=15.0, fecha_pago=date.today(), tipo=PagoTipo.EXTRA)
-    insertar_pago_extra(pago_extra.id_pago, concepto_extra='Bebida energética')
+    insertar_pago_extra(pago_extra.id_pago, concepto='Bebida energética')
 
     pagos = listar_pagos()
     assert len(pagos) >= 3

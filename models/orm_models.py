@@ -132,7 +132,6 @@ class PagoReserva(Base):
 
     id_pago = Column(Integer, ForeignKey("Pagos.id_pago"), primary_key=True)
     id_reserva = Column(Integer, ForeignKey("Reservas.id_reserva"), nullable=False)
-    concepto = Column(String, nullable=True)
 
     pago = relationship("Pago", back_populates="pago_reserva")
 
@@ -141,6 +140,6 @@ class PagoExtra(Base):
     __tablename__ = "Pago_Extra"
 
     id_pago = Column(Integer, ForeignKey("Pagos.id_pago"), primary_key=True)
-    concepto_extra = Column(String, nullable=False)
+    concepto = Column(String, nullable=False)
 
     pago = relationship("Pago", back_populates="pago_extra")

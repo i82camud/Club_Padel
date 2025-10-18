@@ -136,7 +136,7 @@ class PagoPage(QWidget, Ui_pago_page):
             self.txt_socio.setText(str(r.id_socio))
             self.selected_socio_id = r.id_socio
 
-        # concepto: descripción legible de la reserva
+    # concepto: descripción legible de la reserva (no se almacena en Pago_Reserva)
         # intentar obtener nombre de pista y hora
         pistas = listar_pistas()
         mapa_pistas = {p.id_pista: p.nombre for p in pistas}
@@ -252,17 +252,17 @@ class PagoPage(QWidget, Ui_pago_page):
             elif tipo == 'reserva':
                 # Si venimos de una reserva vinculada, usamos ese id.
                 if getattr(self, '_linked_reserva_id', None):
-                    insertar_pago_reserva(pago.id_pago, id_reserva=self._linked_reserva_id, concepto=concepto)
+                    insertar_pago_reserva(pago.id_pago, id_reserva=self._linked_reserva_id)
                 else:
-                    # Intentar interpretar el concepto como id de reserva; si falla, crear sin enlace
+                    # Intentar interpretar el texto del campo como id de reserva; si falla, no vinculamos
                     try:
                         id_res = int(concepto)
-                        insertar_pago_reserva(pago.id_pago, id_reserva=id_res, concepto=None)
+                        insertar_pago_reserva(pago.id_pago, id_reserva=id_res)
                     except Exception:
-                        # No hay id de reserva: creamos el pago sin enlace a reserva
+                        # No hay id de reserva: no se crea enlace
                         pass
             elif tipo == 'extra':
-                insertar_pago_extra(pago.id_pago, concepto_extra=concepto)
+                insertar_pago_extra(pago.id_pago, concepto=concepto)
 
             QMessageBox.information(self, "Éxito", "Pago insertado")
             self.cargar_pagos()
