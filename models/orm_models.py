@@ -80,7 +80,7 @@ class Pista(Base):
 
     id_pista = Column(Integer, primary_key=True, autoincrement=True)
     nombre = Column(String, nullable=False)
-    pared = Column(String, nullable=True)
+    pared = Column(String, nullable=False)
     tipo = Column(String, nullable=False)
     estado = Column(IntEnumType(PistaEstado), nullable=False, default=PistaEstado.ACTIVA)
 

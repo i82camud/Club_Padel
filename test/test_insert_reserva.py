@@ -9,7 +9,7 @@ def test_reserva_workflow(db_setup):
 
     # Crear socio y pista
     insertar_socio(nombre='Aaa', apellido1='Aaa', apellido2='Aaa', email='aaa@aaa.aaa', telefono='611111111')
-    insertar_pista(nombre='Pista 1', tipo='cristal')
+    insertar_pista(nombre='Pista 1', pared='cristal', tipo='cristal')
 
     socio = listar_socios()[0]
     pista = listar_pistas()[0]

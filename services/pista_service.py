@@ -20,12 +20,12 @@ def _to_pista_estado(value):
     raise ValueError(f"Valor de estado de pista inválido (esperado Enum o int): {value}")
 
 
-def insertar_pista(nombre: str, tipo: str, pared: str = None, estado=PistaEstado.ACTIVA) -> PistaORM:
+def insertar_pista(nombre: str, pared: str, tipo: str, estado=PistaEstado.ACTIVA) -> PistaORM:
     """Inserta una pista y devuelve la instancia creada.
 
     - nombre: str
+    - pared: str
     - tipo: str
-    - pared: opcional (p.ej. 'cristal' / 'muro')
     """
     session = orm.SessionLocal()
     try:

@@ -34,7 +34,7 @@ def test_cargar_pistas_accepts_orm_objects(monkeypatch):
     from ui.widgets.pista_page_widget import PistaPage
 
     from models.orm_models import PistaEstado
-    orm_obj = SimpleNamespace(id_pista=1, nombre='P1', pared=None, tipo='cristal', estado=PistaEstado.ACTIVA)
+    orm_obj = SimpleNamespace(id_pista=1, nombre='P1', pared='cristal', tipo='cristal', estado=PistaEstado.ACTIVA)
     monkeypatch.setattr('services.pista_service.listar_pistas', lambda: [orm_obj])
 
     page = PistaPage()
