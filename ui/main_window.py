@@ -1,7 +1,8 @@
 import sys
-from PySide6.QtWidgets import QApplication, QMainWindow
+from PySide6.QtWidgets import QApplication, QMainWindow, QPushButton
 from PySide6.QtCore import QFile
 from ui.main_window_ui import Ui_MainWindow
+from ui.widgets.configuracion_page_widget import ConfiguracionPage
 from ui.widgets.socio_page_widget import SocioPage
 from ui.widgets.pista_page_widget import PistaPage
 from ui.widgets.reserva_page_widget import ReservaPage
@@ -28,7 +29,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.pago_page = PagoPage()
         self.stackedWidget.insertWidget(3, self.pago_page)
         self.reserva_page = ReservaPage()
-        self.stackedWidget.insertWidget(4, self.reserva_page)        
+        self.stackedWidget.insertWidget(4, self.reserva_page) 
+        self.configuracion_page = ConfiguracionPage()
+        self.stackedWidget.insertWidget(5, self.configuracion_page)         
 
         # Conectar botones a páginas del QStackedWidget
         self.btn_inicio.clicked.connect(lambda: self.stackedWidget.setCurrentIndex(0))
@@ -36,6 +39,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.btn_pistas.clicked.connect(lambda: self.stackedWidget.setCurrentIndex(2))
         self.btn_pagos.clicked.connect(lambda: self.stackedWidget.setCurrentIndex(3))
         self.btn_reservas.clicked.connect(lambda: self.stackedWidget.setCurrentIndex(4))
+        self.btn_configuracion.clicked.connect(lambda: self.stackedWidget.setCurrentIndex(5))
         self.btn_salir.clicked.connect(QApplication.quit)
 
         # Configuración inicial
