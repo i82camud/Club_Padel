@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="windowModality">
+   <enum>Qt::ApplicationModal</enum>
+  </property>
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1280</width>
+    <height>800</height>
+   </rect>
+  </property>
+  <property name="contextMenuPolicy">
+   <enum>Qt::NoContextMenu</enum>
+  </property>
+  <property name="windowTitle">
+   <string>Club de Pádel</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QGroupBox" name="groupBox">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>10</y>
+      <width>150</width>
+      <height>771</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string/>
+    </property>
+    <widget class="QPushButton" name="btn_inicio">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>20</y>
+       <width>131</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Inicio</string>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>16</width>
+       <height>16</height>
+      </size>
+     </property>
+     <property name="flat">
+      <bool>false</bool>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_socios">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>60</y>
+       <width>131</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Socios</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_pistas">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>100</y>
+       <width>131</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Pistas</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_pagos">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>140</y>
+       <width>131</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Pagos</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_reservas">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>180</y>
+       <width>131</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Reservas</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_salir">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>720</y>
+       <width>131</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Salir</string>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>24</width>
+       <height>24</height>
+      </size>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btn_configuracion">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>680</y>
+       <width>131</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Configuración</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QStackedWidget" name="stackedWidget">
+    <property name="geometry">
+     <rect>
+      <x>180</x>
+      <y>10</y>
+      <width>1080</width>
+      <height>770</height>
+     </rect>
+    </property>
+    <property name="currentIndex">
+     <number>0</number>
+    </property>
+    <widget class="QWidget" name="page_inicio">
+     <widget class="QWidget" name="verticalLayoutWidget">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>10</y>
+        <width>561</width>
+        <height>101</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <widget class="QLabel" name="lbl_bienvenido">
+         <property name="text">
+          <string>TextLabel</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="lbl_imagen">
+         <property name="text">
+          <string>TextLabel</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="page_socios"/>
+    <widget class="QWidget" name="page_pistas"/>
+    <widget class="QWidget" name="page_pagos"/>
+    <widget class="QWidget" name="page_reservas"/>
+   </widget>
+  </widget>
+ </widget>
+ <resources>
+  <include location="../recursos.qrc"/>
+ </resources>
+ <connections/>
+</ui>
