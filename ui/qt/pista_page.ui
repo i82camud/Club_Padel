@@ -77,6 +77,19 @@
      <string>Activar</string>
     </property>
    </widget>
+   <widget class="QPushButton" name="btn_listar">
+    <property name="geometry">
+     <rect>
+      <x>600</x>
+      <y>0</y>
+      <width>121</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Listar Pistas</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QTableWidget" name="tabla_pistas">
    <property name="geometry">

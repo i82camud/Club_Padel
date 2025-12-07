@@ -93,6 +93,45 @@
      <string>Activar</string>
     </property>
    </widget>
+   <widget class="QPushButton" name="btn_listar">
+    <property name="geometry">
+     <rect>
+      <x>600</x>
+      <y>0</y>
+      <width>121</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Listar Socios</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btn_listar_reservas">
+    <property name="geometry">
+     <rect>
+      <x>750</x>
+      <y>0</y>
+      <width>121</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Listar Reservas</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btn_listar_pagos">
+    <property name="geometry">
+     <rect>
+      <x>900</x>
+      <y>0</y>
+      <width>121</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Listar Pagos</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QWidget" name="gridLayoutWidget">
    <property name="geometry">
@@ -104,6 +143,9 @@
     </rect>
    </property>
    <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="1">
+     <widget class="QLineEdit" name="txt_nombre"/>
+    </item>
     <item row="0" column="2">
      <widget class="QLabel" name="label_2">
       <property name="sizePolicy">
@@ -120,28 +162,6 @@
       </property>
      </widget>
     </item>
-    <item row="0" column="4">
-     <widget class="QLabel" name="label_3">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="text">
-       <string>2º Apellido</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="1">
-     <widget class="QLineEdit" name="txt_nombre"/>
-    </item>
-    <item row="0" column="3">
-     <widget class="QLineEdit" name="txt_apellido1"/>
-    </item>
     <item row="0" column="0">
      <widget class="QLabel" name="label">
       <property name="sizePolicy">
@@ -157,6 +177,12 @@
        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
       </property>
      </widget>
+    </item>
+    <item row="0" column="3">
+     <widget class="QLineEdit" name="txt_apellido1"/>
+    </item>
+    <item row="1" column="1">
+     <widget class="QLineEdit" name="txt_email"/>
     </item>
     <item row="0" column="5">
      <widget class="QLineEdit" name="txt_apellido2"/>
@@ -177,9 +203,6 @@
       </property>
      </widget>
     </item>
-    <item row="1" column="1">
-     <widget class="QLineEdit" name="txt_email"/>
-    </item>
     <item row="1" column="2">
      <widget class="QLabel" name="label_5">
       <property name="sizePolicy">
@@ -198,6 +221,22 @@
     </item>
     <item row="1" column="3">
      <widget class="QLineEdit" name="txt_telefono"/>
+    </item>
+    <item row="0" column="4">
+     <widget class="QLabel" name="label_3">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="text">
+       <string>2º Apellido</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+     </widget>
     </item>
    </layout>
    <zorder>txt_nombre</zorder>

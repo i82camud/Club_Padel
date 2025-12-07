@@ -8,6 +8,7 @@ se hacen cambios que deben propagar a otros widgets.
 API principal:
 - cargar_pistas(): recarga la tabla desde el servicio.
 - insertar(), modificar(), baja_pista(), activa_pista(): operaciones CRUD básicas.
+- generar_listado(): genera un listado Excel de pistas con filtros.
 
 Efectos secundarios:
 - Emite `bus.pistas_changed` tras cambios.
@@ -17,10 +18,16 @@ Notas:
   (widgets con nombres esperados: tabla, botones, combos, etc.).
 """
 
-from PySide6.QtWidgets import QWidget, QTableWidgetItem, QMessageBox, QHeaderView
+from PySide6.QtWidgets import QWidget, QTableWidgetItem, QMessageBox, QHeaderView, QFileDialog
+from PySide6.QtCore import QDate
 from ui.pista_page_ui import Ui_PistaPage  # el generado por pyside6-uic
 import services.pista_service as pista_service
 from utils.events import bus
+from ui.widgets.filtros_dialog import FiltrosPistasDialog, _obtener_estilos_dialogo
+from models.orm_models import PistaEstado
+from openpyxl import Workbook
+from openpyxl.styles import Font, PatternFill, Alignment
+from openpyxl.utils import get_column_letter
 
 
 class PistaPage(QWidget, Ui_PistaPage):
@@ -44,6 +51,7 @@ class PistaPage(QWidget, Ui_PistaPage):
         self.btn_modificar.clicked.connect(self.modificar)
         self.btn_baja.clicked.connect(self.baja_pista)
         self.btn_activar.clicked.connect(self.activa_pista)
+        self.btn_listar.clicked.connect(self.generar_listado)
 
         # Conectar tabla para que actualice los campos al seleccionar fila
         self.tabla_pistas.itemSelectionChanged.connect(self.actualizar_campos)
@@ -158,3 +166,78 @@ class PistaPage(QWidget, Ui_PistaPage):
         self.vaciar_campos()
         self.cargar_pistas()
         bus.pistas_changed.emit()
+
+    def generar_listado(self):
+        """Genera un listado de pistas en Excel con filtros."""
+        # Mostrar diálogo de filtros
+        dlg = FiltrosPistasDialog(self)
+        if dlg.exec() != QFileDialog.Accepted:
+            return
+        
+        filtros = dlg.get_filtros()
+        
+        # Obtener todas las pistas
+        pistas = pista_service.listar_pistas()
+        
+        # Filtrar por estado
+        if filtros['estado'] == "Activas":
+            pistas = [p for p in pistas if p.estado == PistaEstado.ACTIVA]
+        elif filtros['estado'] == "Inactivas":
+            pistas = [p for p in pistas if p.estado == PistaEstado.INACTIVA]
+        
+        # Validar que hay datos
+        if not pistas:
+            QMessageBox.information(self, "Sin datos", "No hay pistas que coincidan con los criterios de filtro.")
+            return
+        
+        # Mostrar diálogo para guardar
+        estado_filtro = filtros['estado'].lower()
+        archivo, _ = QFileDialog.getSaveFileName(
+            self,
+            "Guardar Listado de Pistas",
+            f"listado_pistas_{estado_filtro}.xlsx",
+            "Excel (*.xlsx)"
+        )
+        
+        if not archivo:
+            return
+        
+        # Generar Excel
+        self._generar_xlsx_pistas(archivo, pistas)
+        QMessageBox.information(self, "Éxito", f"Listado generado correctamente en:\n{archivo}")
+
+    def _generar_xlsx_pistas(self, archivo, pistas):
+        """Genera un archivo Excel con el listado de pistas."""
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Pistas"
+        
+        # Cabecera con estilo
+        cabecera = ["ID", "Nombre", "Pared", "Tipo", "Estado"]
+        ws.append(cabecera)
+        
+        # Aplicar estilos a la cabecera
+        for cell in ws[1]:
+            cell.font = Font(bold=True, color="FFFFFF")
+            cell.fill = PatternFill(start_color="4472C4", end_color="4472C4", fill_type="solid")
+            cell.alignment = Alignment(horizontal="center", vertical="center")
+        
+        # Añadir datos
+        for pista in pistas:
+            estado_display = pista.estado.name.capitalize() if hasattr(pista.estado, 'name') else str(pista.estado)
+            fila = [
+                pista.id_pista,
+                pista.nombre,
+                pista.pared,
+                pista.tipo,
+                estado_display
+            ]
+            ws.append(fila)
+        
+        # Ajustar ancho de columnas
+        anchos = [8, 20, 15, 15, 12]
+        for i, ancho in enumerate(anchos, start=1):
+            col_letter = get_column_letter(i)
+            ws.column_dimensions[col_letter].width = ancho
+        
+        wb.save(archivo)
