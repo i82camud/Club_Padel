@@ -42,7 +42,7 @@ class ReservaPage(QWidget, Ui_reserva_page):
         self.selected_socio_id = None
         # fecha por defecto: hoy
         self.dateEdit.setDate(QDate.currentDate())
-        # cuando se cambia la hora de inicio, ajustar hora fin a +1.5h
+        # cuando se cambia la hora de inicio, ajustar hora fin
         self.timeEdit.timeChanged.connect(self.suma_tiempo)
 
         # Conectar botones
@@ -206,14 +206,32 @@ class ReservaPage(QWidget, Ui_reserva_page):
             return None
 
     def suma_tiempo(self, qtime: QTime):
-        """Al cambiar la hora de inicio, actualizar la hora fin a +90 minutos."""
+        """Al cambiar la hora de inicio, actualizar la hora fin según duración configurada."""
         try:
-            new_qt = qtime.addSecs(90 * 60)  # 90 minutos
+            from utils.settings import get_reservation_duration
+            duracion_minutos = get_reservation_duration()
+            new_qt = qtime.addSecs(duracion_minutos * 60)
             # establecer la hora fin sin disparar loops (no desconectamos señales porque no hay handling recíproco)
             self.timeEdit_2.setTime(new_qt)
         except Exception:
             # no queremos que un fallo de UI rompa la app
             pass
+
+    def vaciar_campos(self):
+        """Restablece los campos del formulario de reserva al estado por defecto.
+
+        - Limpia el campo de socio y resetea el id seleccionado.
+        - Selecciona la primera pista del combo si existe.
+        - Pone la fecha a hoy y las horas a valores por defecto.
+        """
+        self.txt_socio.clear()
+        self.selected_socio_id = None
+        self.cmb_pista.setCurrentIndex(0)
+        # Fecha a hoy
+        self.dateEdit.setDate(QDate.currentDate())
+        # Horas a 00:00
+        self.timeEdit.setTime(QTime(0, 0))
+        self.timeEdit_2.setTime(QTime(0, 0))
 
     def insertar(self):
         ok, msg = self.validar_campos()
@@ -241,6 +259,7 @@ class ReservaPage(QWidget, Ui_reserva_page):
         try:
             insertar_reserva(id_socio=id_socio, id_pista=id_pista, fecha=fecha_py, hora_inicio=hi_py, hora_fin=hf_py)
             QMessageBox.information(self, "Éxito", "Reserva insertada correctamente")
+            self.vaciar_campos()
             self.cargar_reservas()
         except Exception as e:
             QMessageBox.warning(self, "Error", str(e))
@@ -277,6 +296,7 @@ class ReservaPage(QWidget, Ui_reserva_page):
         try:
             actualizar_reserva(id_reserva=id_reserva, id_socio=id_socio, id_pista=id_pista, fecha=fecha_py, hora_inicio=hi_py, hora_fin=hf_py)
             QMessageBox.information(self, "Éxito", "Reserva modificada correctamente")
+            self.vaciar_campos()
             self.cargar_reservas()
         except Exception as e:
             QMessageBox.warning(self, "Error", str(e))

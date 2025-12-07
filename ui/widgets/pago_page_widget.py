@@ -265,6 +265,11 @@ class PagoPage(QWidget, Ui_pago_page):
                 insertar_pago_extra(pago.id_pago, concepto=concepto)
 
             QMessageBox.information(self, "Éxito", "Pago insertado")
+            # limpiar formulario y recargar tabla
+            try:
+                self.vaciar_campos()
+            except Exception:
+                pass
             self.cargar_pagos()
         except Exception as e:
             QMessageBox.warning(self, "Error", str(e))
@@ -302,5 +307,16 @@ class PagoPage(QWidget, Ui_pago_page):
             session.close()
         QMessageBox.information(self, "Éxito", "Pago anulado")
         self.cargar_pagos()
+
+    def vaciar_campos(self):
+        """Restablece los campos del formulario de pago al estado por defecto."""
+        self.txt_importe.clear()
+        self.txt_socio.clear()
+        self.selected_socio_id = None
+        self.comboBox.setCurrentIndex(0)
+        self.txt_concepto.clear()
+        self._linked_reserva_id = None
+        self.txt_concepto.setReadOnly(False)
+        self.dateEdit.setDate(QDate.currentDate())
 
 __all__ = ['PagoPage']

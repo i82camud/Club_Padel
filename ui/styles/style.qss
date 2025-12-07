@@ -2,6 +2,14 @@
    ESTILO PRINCIPAL - CLUB DE PÁDEL
    =============================== */
 
+/* --- Ventana login --- */
+QDialog {
+    background-color: #2C3E50;
+    color: #FFFFFF;
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 14px;
+}
+
 /* --- Ventana principal --- */
 QMainWindow {
     background-color: #1E272E;
@@ -174,7 +182,7 @@ QGroupBox QLabel {
 
 /* QGroupBox específico para los botones de acciones en las páginas
    (SocioPage y PistaPage). Quitamos el borde solo para esos groupboxes. */
-#SocioPage QGroupBox#groupBox, #PistaPage QGroupBox#groupBox, #PagoPage QGroupBox#groupBox, #ReservaPage QGroupBox#groupBox 
+#SocioPage QGroupBox#groupBox, #PistaPage QGroupBox#groupBox, #PagoPage QGroupBox#groupBox, #ReservaPage QGroupBox#groupBox, #ConfiguracionPage QGroupBox#groupBox  
 {
     border: none;
     background-color: transparent;
@@ -182,7 +190,7 @@ QGroupBox QLabel {
 }
 
 /* Títulos destacados */
-#lbl_bienvenido, #label_socios, #label_pistas, #label_pagos {
+#lbl_bienvenido, #label_socios, #label_pistas, #label_pagos, #label_configuracion {
     color: #1ABC9C;
     font-size: 22px;
     font-weight: bold;

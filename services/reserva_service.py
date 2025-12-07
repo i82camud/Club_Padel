@@ -8,6 +8,7 @@ from datetime import date, time
 
 from models import orm
 from models.orm_models import Reserva as ReservaORM, ReservaEstado
+from utils.settings import get_opening_hours
 
 
 def _to_reserva_estado(value):
@@ -28,6 +29,21 @@ def insertar_reserva(id_socio: int, id_pista: int, fecha: date, hora_inicio: tim
 	"""
 	session = orm.SessionLocal()
 	try:
+		# Comprobar que la reserva está dentro del horario de apertura configurado
+		apertura, cierre = get_opening_hours()
+		if hora_inicio < apertura or hora_fin > cierre:
+			raise ValueError(f"Horario fuera de apertura: el club abre a {apertura.strftime('%H:%M')} y cierra a {cierre.strftime('%H:%M')}")
+		
+		# Validar que la duración de la reserva sea al menos la configurada
+		from utils.settings import get_reservation_duration
+		duracion_minima = get_reservation_duration()
+		# Calcular duración en minutos
+		duracion_actual = (hora_fin.hour * 60 + hora_fin.minute) - (hora_inicio.hour * 60 + hora_inicio.minute)
+		if duracion_actual < duracion_minima:
+			horas = duracion_minima // 60
+			minutos = duracion_minima % 60
+			raise ValueError(f"La duración de la reserva debe ser de al menos {horas:02d}:{minutos:02d}")
+
 		if hay_solapamiento(id_pista, fecha, hora_inicio, hora_fin):
 			raise ValueError("La pista ya está reservada en ese horario.")
 

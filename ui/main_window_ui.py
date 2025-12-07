@@ -53,6 +53,9 @@ class Ui_MainWindow(object):
         self.btn_salir.setObjectName(u"btn_salir")
         self.btn_salir.setGeometry(QRect(10, 720, 131, 31))
         self.btn_salir.setIconSize(QSize(24, 24))
+        self.btn_configuracion = QPushButton(self.groupBox)
+        self.btn_configuracion.setObjectName(u"btn_configuracion")
+        self.btn_configuracion.setGeometry(QRect(10, 680, 131, 31))
         self.stackedWidget = QStackedWidget(self.centralwidget)
         self.stackedWidget.setObjectName(u"stackedWidget")
         self.stackedWidget.setGeometry(QRect(180, 10, 1080, 770))
@@ -106,6 +109,7 @@ class Ui_MainWindow(object):
         self.btn_pagos.setText(QCoreApplication.translate("MainWindow", u"Pagos", None))
         self.btn_reservas.setText(QCoreApplication.translate("MainWindow", u"Reservas", None))
         self.btn_salir.setText(QCoreApplication.translate("MainWindow", u"Salir", None))
+        self.btn_configuracion.setText(QCoreApplication.translate("MainWindow", u"Configuraci\u00f3n", None))
         self.lbl_bienvenido.setText(QCoreApplication.translate("MainWindow", u"TextLabel", None))
         self.lbl_imagen.setText(QCoreApplication.translate("MainWindow", u"TextLabel", None))
     # retranslateUi
