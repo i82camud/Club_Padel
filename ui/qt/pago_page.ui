@@ -77,6 +77,19 @@
      <string>Anular</string>
     </property>
    </widget>
+   <widget class="QPushButton" name="btn_listar">
+    <property name="geometry">
+     <rect>
+      <x>450</x>
+      <y>0</y>
+      <width>121</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Listar Pagos</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QWidget" name="gridLayoutWidget">
    <property name="geometry">
