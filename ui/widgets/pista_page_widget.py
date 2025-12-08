@@ -169,9 +169,10 @@ class PistaPage(QWidget, Ui_PistaPage):
 
     def generar_listado(self):
         """Genera un listado de pistas en Excel con filtros."""
+        from PySide6.QtWidgets import QDialog
         # Mostrar diálogo de filtros
         dlg = FiltrosPistasDialog(self)
-        if dlg.exec() != QFileDialog.Accepted:
+        if dlg.exec() != QDialog.Accepted:
             return
         
         filtros = dlg.get_filtros()
@@ -204,7 +205,7 @@ class PistaPage(QWidget, Ui_PistaPage):
         
         # Generar Excel
         self._generar_xlsx_pistas(archivo, pistas)
-        QMessageBox.information(self, "Éxito", f"Listado generado correctamente en:\n{archivo}")
+        QMessageBox.information(self, "Éxito", f"Listado guardado en:\n{archivo}")
 
     def _generar_xlsx_pistas(self, archivo, pistas):
         """Genera un archivo Excel con el listado de pistas."""

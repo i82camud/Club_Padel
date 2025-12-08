@@ -338,7 +338,7 @@ class SocioPage(QWidget, Ui_SocioPage):
         # Generar el archivo
         try:
             self._generar_xlsx_reservas(archivo, id_socio, nombre_socio, filtros)
-            QMessageBox.information(self, "Éxito", f"Listado de reservas guardado en:\n{archivo}")
+            QMessageBox.information(self, "Éxito", f"Listado guardado en:\n{archivo}")
         except Exception as e:
             QMessageBox.warning(self, "Error", f"No se pudo generar el listado:\n{e}")
 
@@ -481,7 +481,7 @@ class SocioPage(QWidget, Ui_SocioPage):
         # Generar el archivo
         try:
             self._generar_xlsx_pagos(archivo, id_socio, nombre_socio, filtros)
-            QMessageBox.information(self, "Éxito", f"Listado de pagos guardado en:\n{archivo}")
+            QMessageBox.information(self, "Éxito", f"Listado guardado en:\n{archivo}")
         except Exception as e:
             QMessageBox.warning(self, "Error", f"No se pudo generar el listado:\n{e}")
 

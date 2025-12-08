@@ -106,7 +106,7 @@
      <string>Listar Socios</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="btn_listar_reservas">
+   <widget class="QPushButton" name="btn_listar_pagos">
     <property name="geometry">
      <rect>
       <x>750</x>
@@ -116,10 +116,10 @@
      </rect>
     </property>
     <property name="text">
-     <string>Listar Reservas</string>
+     <string>Listar Pagos</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="btn_listar_pagos">
+   <widget class="QPushButton" name="btn_listar_reservas">
     <property name="geometry">
      <rect>
       <x>900</x>
@@ -129,7 +129,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>Listar Pagos</string>
+     <string>Listar Reservas</string>
     </property>
    </widget>
   </widget>

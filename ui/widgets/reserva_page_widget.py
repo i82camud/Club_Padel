@@ -17,7 +17,7 @@ API pública:
 - ir_a_pagos(): navega a la página de pagos precargando la reserva.
 """
 
-from PySide6.QtWidgets import QWidget, QTableWidgetItem, QMessageBox, QCompleter, QHeaderView
+from PySide6.QtWidgets import QWidget, QTableWidgetItem, QMessageBox, QCompleter, QHeaderView, QFileDialog
 from PySide6.QtCore import Qt, QDate, QTime
 from datetime import date, time
 from utils.helpers import format_date, format_time
@@ -26,6 +26,11 @@ from services.reserva_service import insertar_reserva, listar_reservas, obtener_
 from services.pista_service import listar_pistas
 from services.socio_service import listar_socios
 from utils.events import bus
+from models.orm_models import ReservaEstado
+from models.orm import SessionLocal
+from openpyxl import Workbook
+from openpyxl.styles import Font, PatternFill, Alignment
+from ui.widgets.filtros_dialog import FiltrosReservasDialog
 
 
 class ReservaPage(QWidget, Ui_reserva_page):
@@ -50,6 +55,7 @@ class ReservaPage(QWidget, Ui_reserva_page):
         self.btn_modificar.clicked.connect(self.modificar)
         self.btn_baja.clicked.connect(self.cancelar)
         self.btn_pagar.clicked.connect(self.ir_a_pagos)
+        self.btn_listar.clicked.connect(self.generar_listado)
 
         # Conectar tabla
         self.tabla_reservas.itemSelectionChanged.connect(self.actualizar_campos)
@@ -356,3 +362,109 @@ class ReservaPage(QWidget, Ui_reserva_page):
         except Exception:
             # fallback: intentar buscar método público
             pass
+
+    def generar_listado(self):
+        """Genera un listado de reservas en Excel con filtros por fecha y estado."""
+        from PySide6.QtWidgets import QDialog
+        dlg = FiltrosReservasDialog(self)
+        if dlg.exec() == QDialog.Accepted:
+            filtros = dlg.get_filtros()
+            
+            # Obtener todas las reservas y filtrar
+            session = SessionLocal()
+            try:
+                reservas = session.query(
+                    __import__('models.orm_models', fromlist=['Reserva']).Reserva
+                ).all()
+                
+                # Filtrar por fecha
+                fecha_inicio = filtros['fecha_inicio']
+                fecha_fin = filtros['fecha_fin']
+                reservas = [r for r in reservas if fecha_inicio <= r.fecha <= fecha_fin]
+                
+                # Filtrar por estado
+                estado_filter = filtros['estado']
+                if estado_filter != 'Todas':
+                    if estado_filter == 'Activas':
+                        reservas = [r for r in reservas if r.estado == ReservaEstado.ACTIVA]
+                    elif estado_filter == 'Canceladas':
+                        reservas = [r for r in reservas if r.estado == ReservaEstado.CANCELADA]
+                
+                if not reservas:
+                    QMessageBox.information(self, "Sin datos", "No hay reservas que coincidan con los filtros seleccionados")
+                    return
+                
+                # Generar nombre del archivo por defecto
+                estado_name = estado_filter.lower().replace('á', 'a')
+                archivo_default = f"listado_reservas_{estado_name}.xlsx"
+                
+                # Abrir diálogo de guardado
+                archivo, _ = QFileDialog.getSaveFileName(
+                    self,
+                    "Guardar listado de reservas",
+                    archivo_default,
+                    "Excel Files (*.xlsx);;All Files (*)"
+                )
+                
+                if not archivo:
+                    return
+                
+                self._generar_xlsx_reservas(archivo, reservas)
+                QMessageBox.information(self, "Éxito", f"Listado guardado en:\n{archivo}")
+            finally:
+                session.close()
+
+    def _generar_xlsx_reservas(self, archivo: str, reservas: list):
+        """Genera un archivo Excel con el listado de reservas con nombres de socio y pista."""
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Reservas"
+        
+        # Definir encabezados
+        headers = ["ID", "Socio", "Pista", "Fecha", "Hora Inicio", "Hora Fin", "Estado"]
+        ws.append(headers)
+        
+        # Estilos para encabezado
+        header_fill = PatternFill(start_color="4472C4", end_color="4472C4", fill_type="solid")
+        header_font = Font(bold=True, color="FFFFFF")
+        
+        for col_num, header in enumerate(headers, 1):
+            cell = ws.cell(row=1, column=col_num)
+            cell.fill = header_fill
+            cell.font = header_font
+            cell.alignment = Alignment(horizontal="center", vertical="center")
+        
+        # Sesión para cargar relaciones
+        session = SessionLocal()
+        try:
+            # Re-queryear reservas dentro de la sesión para acceder a relaciones
+            from models.orm_models import Reserva
+            ids_reservas = [r.id_reserva for r in reservas]
+            reservas_session = session.query(Reserva).filter(Reserva.id_reserva.in_(ids_reservas)).all()
+            
+            # Agregar datos
+            for fila, r in enumerate(reservas_session, 2):
+                ws.cell(row=fila, column=1, value=r.id_reserva)
+                ws.cell(row=fila, column=2, value=f"{r.socio.nombre} {r.socio.apellido1}")
+                ws.cell(row=fila, column=3, value=r.pista.nombre)
+                ws.cell(row=fila, column=4, value=format_date(r.fecha))
+                ws.cell(row=fila, column=5, value=format_time(r.hora_inicio))
+                ws.cell(row=fila, column=6, value=format_time(r.hora_fin))
+                ws.cell(row=fila, column=7, value=r.estado.name.capitalize())
+                
+                # Centrar celdas
+                for col in range(1, 8):
+                    ws.cell(row=fila, column=col).alignment = Alignment(horizontal="center", vertical="center")
+        finally:
+            session.close()
+        
+        # Ajustar ancho de columnas
+        ws.column_dimensions['A'].width = 8
+        ws.column_dimensions['B'].width = 25
+        ws.column_dimensions['C'].width = 15
+        ws.column_dimensions['D'].width = 12
+        ws.column_dimensions['E'].width = 12
+        ws.column_dimensions['F'].width = 12
+        ws.column_dimensions['G'].width = 12
+        
+        wb.save(archivo)
