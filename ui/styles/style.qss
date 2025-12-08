@@ -219,3 +219,21 @@ QPushButton:hover {
 QPushButton:pressed {
     background-color: #149174;
 }
+
+/* --- Estilos específicos para diálogos de filtros --- */
+QDialog QLabel {
+    color: #1ABC9C;
+}
+
+QDialog QGroupBox {
+    color: #1ABC9C;
+    border: 1px solid #1ABC9C;
+    border-radius: 5px;
+}
+
+QDialog QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top center;
+    padding: 0 5px;
+    color: #1ABC9C;
+}

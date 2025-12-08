@@ -1,0 +1,100 @@
+# Resumen - Distribución de Club Padel
+
+## ¿Qué necesita otra persona para ejecutar la aplicación?
+
+### Requisitos mínimos:
+- **Python 3.8+** (descargar de python.org)
+- **Git** (opcional, para clonar; o recibir carpeta ZIP)
+
+### Pasos totales: 7
+
+```bash
+# 1. Obtener código
+git clone https://github.com/i82camud/Club_Padel.git
+cd Club_Padel
+
+# 2. Crear entorno virtual
+python -m venv .venv
+
+# 3. Activar entorno
+.venv\Scripts\activate
+
+# 4. Instalar dependencias
+pip install -r requirements.txt
+
+# 5. Crear base de datos
+python scripts/reset_db.py
+
+# 6. Llenar con datos de prueba
+python scripts/seed_test_data.py
+
+# 7. Ejecutar
+python main.py
+```
+
+**Tiempo total:** ~5-10 minutos (depende de velocidad de Internet para descargas)
+
+---
+
+## Documentación disponible
+
+1. **DISTRIBUCION.md** - Guía paso a paso (la más sencilla)
+2. **SETUP.md** - Guía detallada con solución de problemas
+3. **README.md** - Documentación técnica del proyecto
+4. **check_setup.py** - Verificador automático de configuración
+
+---
+
+## Archivos críticos
+
+Estos archivos DEBEN estar presentes para que la aplicación funcione:
+
+✅ **requirements.txt** - Lista de dependencias (PySide6, SQLAlchemy, openpyxl, pytest)
+✅ **main.py** - Punto de entrada de la aplicación
+✅ **scripts/reset_db.py** - Script para crear base de datos
+✅ **scripts/seed_test_data.py** - Script para datos de prueba
+✅ **Todos los archivos en carpetas:** models/, services/, ui/, utils/
+
+❌ **NO incluir en distribución:** .venv/ (se crea en cada PC) | __pycache__/ (se crea automáticamente) | .git/ (opcional)
+
+---
+
+## Verificación
+
+Una vez instalado, ejecutar:
+```bash
+python check_setup.py
+```
+
+Debe mostrar:
+- ✓ Python versión correcta
+- ✓ Todas las dependencias instaladas
+- ✓ Archivos de configuración presentes
+- ✓ Base de datos existe
+
+---
+
+## Actualizaciones futuras
+
+Cualquier cambio se puede sincronizar con:
+```bash
+git pull
+pip install -r requirements.txt  # por si hay dependencias nuevas
+python main.py
+```
+
+---
+
+## Soporte
+
+Si algo falla:
+
+1. Ejecutar `python check_setup.py` para diagnosticar
+2. Ver soluciones en **DISTRIBUCION.md**
+3. Ver soluciones en **SETUP.md** (más detallado)
+
+---
+
+**¡La aplicación está lista para distribuir!** 🎉
+
+Cualquier PC con Python puede ejecutarla en 7 pasos simples.

@@ -9,6 +9,7 @@ Responsabilidades principales:
 - Permitir insertar pagos (cuota, reserva, extra) con `insertar()`.
 - Soportar prefilling desde una reserva con `cargar_para_reserva(id_reserva)`.
 - Anular pagos (cambiar estado a ANULADO) con `anular()`.
+- Generar listado Excel de pagos con filtros `generar_listado()`.
 
 Efectos secundarios:
 - Emite/escucha la señal `bus.socios_changed` para recargar autocompletado de socios.
@@ -27,7 +28,7 @@ Notas:
     los nombres generados por Qt Designer.
 """
 
-from PySide6.QtWidgets import QWidget, QTableWidgetItem, QMessageBox, QCompleter, QHeaderView
+from PySide6.QtWidgets import QWidget, QTableWidgetItem, QMessageBox, QCompleter, QHeaderView, QFileDialog
 from PySide6.QtCore import Qt, QDate
 from datetime import date
 from utils.helpers import format_date
@@ -41,6 +42,12 @@ from services.socio_service import listar_socios
 from services.reserva_service import listar_reservas
 from services.pista_service import listar_pistas
 from utils.events import bus
+from ui.widgets.filtros_dialog import FiltrosPagePagosDialog, _obtener_estilos_dialogo
+from models.orm_models import PagoEstado, PagoTipo
+from openpyxl import Workbook
+from openpyxl.styles import Font, PatternFill, Alignment
+from openpyxl.utils import get_column_letter
+from models.orm import SessionLocal
 
 
 class PagoPage(QWidget, Ui_pago_page):
@@ -89,6 +96,7 @@ class PagoPage(QWidget, Ui_pago_page):
         self.btn_agregar.clicked.connect(self.insertar)
         self.btn_modificar.clicked.connect(self.modificar)
         self.btn_baja.clicked.connect(self.anular)
+        self.btn_listar.clicked.connect(self.generar_listado)
 
         # cargar tabla
         self.cargar_pagos()
@@ -307,6 +315,127 @@ class PagoPage(QWidget, Ui_pago_page):
             session.close()
         QMessageBox.information(self, "Éxito", "Pago anulado")
         self.cargar_pagos()
+
+    def generar_listado(self):
+        """Genera un listado de pagos en Excel con filtros."""
+        from PySide6.QtWidgets import QDialog
+        # Mostrar diálogo de filtros
+        dlg = FiltrosPagePagosDialog(self)
+        if dlg.exec() != QDialog.Accepted:
+            return
+        
+        filtros = dlg.get_filtros()
+        
+        # Obtener todos los pagos
+        pagos = listar_pagos()
+        
+        # Filtrar por tipo
+        if filtros['tipo'] != "Todos":
+            tipo_mapa = {"Cuota": PagoTipo.CUOTA, "Reserva": PagoTipo.RESERVA, "Extra": PagoTipo.EXTRA}
+            tipo_enum = tipo_mapa.get(filtros['tipo'])
+            if tipo_enum:
+                pagos = [p for p in pagos if p.tipo == tipo_enum]
+        
+        # Filtrar por fechas
+        if filtros['fecha_inicio']:
+            pagos = [p for p in pagos if p.fecha_pago >= filtros['fecha_inicio']]
+        if filtros['fecha_fin']:
+            pagos = [p for p in pagos if p.fecha_pago <= filtros['fecha_fin']]
+        
+        # Filtrar por estado
+        if filtros['estado'] == "Pagados":
+            pagos = [p for p in pagos if p.estado == PagoEstado.PAGADO]
+        elif filtros['estado'] == "Anulados":
+            pagos = [p for p in pagos if p.estado == PagoEstado.ANULADO]
+        
+        # Validar que hay datos
+        if not pagos:
+            QMessageBox.information(self, "Sin datos", "No hay pagos que coincidan con los criterios de filtro.")
+            return
+        
+        # Mostrar diálogo para guardar
+        tipo_filtro = filtros['tipo'].lower()
+        estado_filtro = filtros['estado'].lower()
+        archivo, _ = QFileDialog.getSaveFileName(
+            self,
+            "Guardar Listado de Pagos",
+            f"listado_pagos_{tipo_filtro}_{estado_filtro}.xlsx",
+            "Excel (*.xlsx)"
+        )
+        
+        if not archivo:
+            return
+        
+        # Generar Excel
+        self._generar_xlsx_pagos(archivo, pagos)
+        QMessageBox.information(self, "Éxito", f"Listado guardado en:\n{archivo}")
+
+    def _generar_xlsx_pagos(self, archivo, pagos):
+        """Genera un archivo Excel con el listado de pagos."""
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Pagos"
+        
+        # Cabecera con estilo
+        cabecera = ["ID", "Socio", "Fecha", "Importe (€)", "Tipo", "Estado", "Concepto"]
+        ws.append(cabecera)
+        
+        # Aplicar estilos a la cabecera
+        for cell in ws[1]:
+            cell.font = Font(bold=True, color="FFFFFF")
+            cell.fill = PatternFill(start_color="4472C4", end_color="4472C4", fill_type="solid")
+            cell.alignment = Alignment(horizontal="center", vertical="center")
+        
+        # Sesión para lazy-loaded relationships
+        session = SessionLocal()
+        try:
+            from models.orm_models import PagoCuota, PagoExtra, Socio
+            
+            # Obtener IDs de pagos para re-consultar dentro de la sesión
+            pago_ids = [p.id_pago for p in pagos]
+            pagos_sesion = session.query(__import__('models.orm_models', fromlist=['Pago']).Pago).filter(
+                __import__('models.orm_models', fromlist=['Pago']).Pago.id_pago.in_(pago_ids)
+            ).all()
+            
+            # Añadir datos
+            for pago in pagos_sesion:
+                # Obtener concepto según tipo
+                concepto = ""
+                if pago.tipo == PagoTipo.CUOTA:
+                    pago_cuota = session.query(PagoCuota).filter_by(id_pago=pago.id_pago).first()
+                    concepto = pago_cuota.periodo if pago_cuota else ""
+                elif pago.tipo == PagoTipo.EXTRA:
+                    pago_extra = session.query(PagoExtra).filter_by(id_pago=pago.id_pago).first()
+                    concepto = pago_extra.concepto if pago_extra else ""
+                # RESERVA no tiene concepto adicional
+                
+                estado_display = pago.estado.name.capitalize() if hasattr(pago.estado, 'name') else str(pago.estado)
+                tipo_display = pago.tipo.name.capitalize() if hasattr(pago.tipo, 'name') else str(pago.tipo)
+                
+                # Obtener nombre del socio
+                socio = pago.socio
+                nombre_socio = f"{socio.nombre} {socio.apellido1}" if socio else ""
+                
+                fila = [
+                    pago.id_pago,
+                    nombre_socio,
+                    format_date(pago.fecha_pago),
+                    f"{pago.importe:.2f}",
+                    tipo_display,
+                    estado_display,
+                    concepto
+                ]
+                ws.append(fila)
+        finally:
+            session.close()
+        
+        # Ajustar ancho de columnas
+        anchos = [10, 20, 12, 15, 12, 12, 35]
+        for i, ancho in enumerate(anchos, start=1):
+            col_letter = get_column_letter(i)
+            ws.column_dimensions[col_letter].width = ancho
+        
+        wb.save(archivo)
 
     def vaciar_campos(self):
         """Restablece los campos del formulario de pago al estado por defecto."""

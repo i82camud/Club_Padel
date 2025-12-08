@@ -17,10 +17,16 @@ Efectos secundarios:
 """
 
 import re
-from PySide6.QtWidgets import QWidget, QTableWidgetItem, QMessageBox, QHeaderView
+from datetime import date
+from PySide6.QtWidgets import QWidget, QTableWidgetItem, QMessageBox, QHeaderView, QInputDialog, QFileDialog, QDialog
 from ui.socio_page_ui import Ui_SocioPage  # el generado por pyside6-uic
 import services.socio_service as socio_service
 from utils.events import bus
+from models.orm_models import SocioEstado, ReservaEstado, PagoEstado, PagoTipo
+from openpyxl import Workbook
+from openpyxl.styles import Font, PatternFill, Alignment
+from ui.widgets.filtros_dialog import FiltrosSociosDialog, FiltrosReservasDialog, FiltrosPagosDialog
+from utils.helpers import format_date, format_time
 
 
 class SocioPage(QWidget, Ui_SocioPage):
@@ -40,6 +46,9 @@ class SocioPage(QWidget, Ui_SocioPage):
         self.btn_modificar.clicked.connect(self.modificar)
         self.btn_baja.clicked.connect(self.desactivar_socio)
         self.btn_activar.clicked.connect(self.activar_socio)
+        self.btn_listar.clicked.connect(self.generar_listado)
+        self.btn_listar_reservas.clicked.connect(self.generar_listado_reservas)
+        self.btn_listar_pagos.clicked.connect(self.generar_listado_pagos)
 
         # Conectar tabla para que actualice los campos al seleccionar fila
         self.tabla_socios.itemSelectionChanged.connect(self.actualizar_campos)
@@ -185,3 +194,408 @@ class SocioPage(QWidget, Ui_SocioPage):
         self.vaciar_campos()
         self.cargar_socios()
         bus.socios_changed.emit()
+
+    def generar_listado(self):
+        """Genera un listado de socios en formato XLSX."""
+        # Mostrar diálogo de filtros
+        dialogo = FiltrosSociosDialog(self)
+        if dialogo.exec() != QDialog.Accepted:
+            return
+        
+        filtros = dialogo.get_filtros()
+        estado = filtros['estado']
+        
+        # Verificar si hay datos con los filtros actuales
+        socios = socio_service.listar_socios()
+        if estado == "Activos":
+            socios = [s for s in socios if s.estado == SocioEstado.ACTIVO]
+        elif estado == "Inactivos":
+            socios = [s for s in socios if s.estado == SocioEstado.INACTIVO]
+        
+        if not socios:
+            QMessageBox.information(self, "Sin datos", f"No hay socios {estado.lower()} para listar.")
+            return
+        
+        # Preguntar dónde guardar
+        archivo, _ = QFileDialog.getSaveFileName(
+            self,
+            "Guardar Listado de Socios",
+            f"listado_socios_{estado.lower()}.xlsx",
+            "Excel (*.xlsx)"
+        )
+        
+        if not archivo:
+            return  # Usuario canceló
+        
+        # Generar el archivo
+        try:
+            self._generar_xlsx(archivo, estado)
+            QMessageBox.information(self, "Éxito", f"Listado guardado en:\n{archivo}")
+        except Exception as e:
+            QMessageBox.warning(self, "Error", f"No se pudo generar el listado:\n{e}")
+
+    def _generar_xlsx(self, archivo: str, filtro_estado: str):
+        """Genera el archivo XLSX con los datos de socios filtrados."""
+        
+        # Obtener socios según filtro
+        socios = socio_service.listar_socios()
+        if filtro_estado == "Activos":
+            socios = [s for s in socios if s.estado == SocioEstado.ACTIVO]
+        elif filtro_estado == "Inactivos":
+            socios = [s for s in socios if s.estado == SocioEstado.INACTIVO]
+        # Si es "Todos", no filtramos
+        
+        # Crear libro y hoja
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Socios"
+        
+        # Cabecera con estilo
+        cabecera = ["ID", "Nombre", "Apellido 1", "Apellido 2", "Email", "Teléfono", "Estado"]
+        ws.append(cabecera)
+        
+        # Aplicar estilos a la cabecera
+        for cell in ws[1]:
+            cell.font = Font(bold=True, color="FFFFFF")
+            cell.fill = PatternFill(start_color="4472C4", end_color="4472C4", fill_type="solid")
+            cell.alignment = Alignment(horizontal="center", vertical="center")
+        
+        # Añadir datos
+        for socio in socios:
+            estado_display = socio.estado.name.capitalize() if hasattr(socio.estado, 'name') else str(socio.estado)
+            fila = [
+                socio.id_socio,
+                socio.nombre,
+                socio.apellido1,
+                socio.apellido2,
+                socio.email,
+                socio.telefono,
+                estado_display
+            ]
+            ws.append(fila)
+        
+        # Ajustar ancho de columnas
+        from openpyxl.utils import get_column_letter
+        anchos = [8, 20, 20, 20, 30, 15, 12]
+        for i, ancho in enumerate(anchos, start=1):
+            ws.column_dimensions[get_column_letter(i)].width = ancho
+        
+        # Guardar archivo
+        wb.save(archivo)
+
+    def generar_listado_reservas(self):
+        """Genera un listado de reservas del socio seleccionado en formato XLSX."""
+        # Verificar que hay un socio seleccionado
+        fila = self.tabla_socios.currentRow()
+        if fila < 0:
+            QMessageBox.warning(self, "Error", "Selecciona un socio para listar sus reservas")
+            return
+        
+        id_socio = int(self.tabla_socios.item(fila, 0).text())
+        nombre_socio = f"{self.tabla_socios.item(fila, 1).text()} {self.tabla_socios.item(fila, 2).text()}"
+        
+        # Mostrar diálogo de filtros
+        dialogo = FiltrosReservasDialog(self)
+        if dialogo.exec() != QDialog.Accepted:
+            return
+        
+        filtros = dialogo.get_filtros()
+        
+        # Verificar si hay datos con los filtros actuales
+        from services.reserva_service import listar_reservas
+        reservas = listar_reservas(id_socio=id_socio)
+        
+        # Aplicar filtros temporalmente para verificar
+        if filtros['fecha_inicio'] and filtros['fecha_fin']:
+            reservas_filtradas = [r for r in reservas if filtros['fecha_inicio'] <= r.fecha <= filtros['fecha_fin']]
+        elif filtros['fecha_inicio']:
+            reservas_filtradas = [r for r in reservas if r.fecha >= filtros['fecha_inicio']]
+        elif filtros['fecha_fin']:
+            reservas_filtradas = [r for r in reservas if r.fecha <= filtros['fecha_fin']]
+        else:
+            reservas_filtradas = reservas
+        
+        if filtros['estado'] == "Activas":
+            reservas_filtradas = [r for r in reservas_filtradas if r.estado == ReservaEstado.ACTIVA]
+        elif filtros['estado'] == "Canceladas":
+            reservas_filtradas = [r for r in reservas_filtradas if r.estado == ReservaEstado.CANCELADA]
+        
+        if not reservas_filtradas:
+            QMessageBox.information(self, "Sin datos", "No hay reservas que cumplan los criterios de filtro.")
+            return
+        
+        # Preguntar dónde guardar
+        archivo, _ = QFileDialog.getSaveFileName(
+            self,
+            "Guardar Listado de Reservas",
+            f"reservas_{nombre_socio.replace(' ', '_').lower()}.xlsx",
+            "Excel (*.xlsx)"
+        )
+        
+        if not archivo:
+            return
+        
+        # Generar el archivo
+        try:
+            self._generar_xlsx_reservas(archivo, id_socio, nombre_socio, filtros)
+            QMessageBox.information(self, "Éxito", f"Listado guardado en:\n{archivo}")
+        except Exception as e:
+            QMessageBox.warning(self, "Error", f"No se pudo generar el listado:\n{e}")
+
+    def _generar_xlsx_reservas(self, archivo: str, id_socio: int, nombre_socio: str, filtros: dict):
+        """Genera el archivo XLSX con las reservas del socio filtradas."""
+        from services.reserva_service import listar_reservas
+        from services.pista_service import listar_pistas
+        
+        # Obtener todas las reservas del socio
+        reservas = listar_reservas(id_socio=id_socio)
+        
+        # Filtrar por fechas si se especificaron
+        if filtros['fecha_inicio'] and filtros['fecha_fin']:
+            reservas = [r for r in reservas if filtros['fecha_inicio'] <= r.fecha <= filtros['fecha_fin']]
+        elif filtros['fecha_inicio']:
+            reservas = [r for r in reservas if r.fecha >= filtros['fecha_inicio']]
+        elif filtros['fecha_fin']:
+            reservas = [r for r in reservas if r.fecha <= filtros['fecha_fin']]
+        
+        # Filtrar por estado
+        if filtros['estado'] == "Activas":
+            reservas = [r for r in reservas if r.estado == ReservaEstado.ACTIVA]
+        elif filtros['estado'] == "Canceladas":
+            reservas = [r for r in reservas if r.estado == ReservaEstado.CANCELADA]
+        
+        # Crear mapa de pistas para evitar lazy loading
+        pistas = listar_pistas()
+        mapa_pistas = {p.id_pista: p.nombre for p in pistas}
+        
+        # Crear libro y hoja
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Reservas"
+        
+        # Título
+        ws.merge_cells('A1:G1')
+        titulo = ws['A1']
+        titulo.value = f"Reservas de {nombre_socio}"
+        titulo.font = Font(bold=True, size=14)
+        titulo.alignment = Alignment(horizontal="center", vertical="center")
+        
+        # Cabecera con estilo
+        cabecera = ["ID", "Pista", "Fecha", "Hora Inicio", "Hora Fin", "Estado", "Duración (min)"]
+        ws.append(cabecera)
+        
+        # Aplicar estilos a la cabecera
+        for cell in ws[2]:
+            cell.font = Font(bold=True, color="FFFFFF")
+            cell.fill = PatternFill(start_color="4472C4", end_color="4472C4", fill_type="solid")
+            cell.alignment = Alignment(horizontal="center", vertical="center")
+        
+        # Añadir datos
+        for reserva in reservas:
+            estado_display = reserva.estado.name.capitalize() if hasattr(reserva.estado, 'name') else str(reserva.estado)
+            pista_nombre = mapa_pistas.get(reserva.id_pista, str(reserva.id_pista))
+            
+            # Calcular duración
+            duracion_min = (reserva.hora_fin.hour * 60 + reserva.hora_fin.minute) - (reserva.hora_inicio.hour * 60 + reserva.hora_inicio.minute)
+            
+            fila = [
+                reserva.id_reserva,
+                pista_nombre,
+                format_date(reserva.fecha),
+                format_time(reserva.hora_inicio),
+                format_time(reserva.hora_fin),
+                estado_display,
+                duracion_min
+            ]
+            ws.append(fila)
+        
+        # Ajustar ancho de columnas
+        from openpyxl.utils import get_column_letter
+        anchos = [8, 20, 15, 15, 15, 12, 15]
+        for i, ancho in enumerate(anchos, start=1):
+            ws.column_dimensions[get_column_letter(i)].width = ancho
+        
+        # Guardar archivo
+        wb.save(archivo)
+
+    def generar_listado_pagos(self):
+        """Genera un listado de pagos del socio seleccionado en formato XLSX."""
+        # Verificar que hay un socio seleccionado
+        fila = self.tabla_socios.currentRow()
+        if fila < 0:
+            QMessageBox.warning(self, "Error", "Selecciona un socio para listar sus pagos")
+            return
+        
+        id_socio = int(self.tabla_socios.item(fila, 0).text())
+        nombre_socio = f"{self.tabla_socios.item(fila, 1).text()} {self.tabla_socios.item(fila, 2).text()}"
+        
+        # Mostrar diálogo de filtros
+        dialogo = FiltrosPagosDialog(self)
+        if dialogo.exec() != QDialog.Accepted:
+            return
+        
+        filtros = dialogo.get_filtros()
+        
+        # Verificar si hay datos con los filtros actuales
+        from services.pago_service import listar_pagos
+        pagos = listar_pagos()
+        pagos = [p for p in pagos if p.id_socio == id_socio]
+        
+        # Aplicar filtros temporalmente para verificar
+        if filtros['tipo'] == "Cuota":
+            pagos_filtrados = [p for p in pagos if p.tipo == PagoTipo.CUOTA]
+        elif filtros['tipo'] == "Reserva":
+            pagos_filtrados = [p for p in pagos if p.tipo == PagoTipo.RESERVA]
+        elif filtros['tipo'] == "Extra":
+            pagos_filtrados = [p for p in pagos if p.tipo == PagoTipo.EXTRA]
+        else:
+            pagos_filtrados = pagos
+        
+        if filtros['fecha_inicio'] and filtros['fecha_fin']:
+            pagos_filtrados = [p for p in pagos_filtrados if filtros['fecha_inicio'] <= p.fecha_pago <= filtros['fecha_fin']]
+        elif filtros['fecha_inicio']:
+            pagos_filtrados = [p for p in pagos_filtrados if p.fecha_pago >= filtros['fecha_inicio']]
+        elif filtros['fecha_fin']:
+            pagos_filtrados = [p for p in pagos_filtrados if p.fecha_pago <= filtros['fecha_fin']]
+        
+        if filtros['estado'] == "Pagados":
+            pagos_filtrados = [p for p in pagos_filtrados if p.estado == PagoEstado.PAGADO]
+        elif filtros['estado'] == "Anulados":
+            pagos_filtrados = [p for p in pagos_filtrados if p.estado == PagoEstado.ANULADO]
+        
+        if not pagos_filtrados:
+            QMessageBox.information(self, "Sin datos", "No hay pagos que cumplan los criterios de filtro.")
+            return
+        
+        # Preguntar dónde guardar
+        archivo, _ = QFileDialog.getSaveFileName(
+            self,
+            "Guardar Listado de Pagos",
+            f"pagos_{nombre_socio.replace(' ', '_').lower()}.xlsx",
+            "Excel (*.xlsx)"
+        )
+        
+        if not archivo:
+            return
+        
+        # Generar el archivo
+        try:
+            self._generar_xlsx_pagos(archivo, id_socio, nombre_socio, filtros)
+            QMessageBox.information(self, "Éxito", f"Listado guardado en:\n{archivo}")
+        except Exception as e:
+            QMessageBox.warning(self, "Error", f"No se pudo generar el listado:\n{e}")
+
+    def _generar_xlsx_pagos(self, archivo: str, id_socio: int, nombre_socio: str, filtros: dict):
+        """Genera el archivo XLSX con los pagos del socio filtrados."""
+        from services.pago_service import listar_pagos
+        from models import orm
+        
+        # Obtener todos los pagos
+        pagos = listar_pagos()
+        # Filtrar por socio
+        pagos = [p for p in pagos if p.id_socio == id_socio]
+        
+        # Filtrar por tipo
+        if filtros['tipo'] == "Cuota":
+            pagos = [p for p in pagos if p.tipo == PagoTipo.CUOTA]
+        elif filtros['tipo'] == "Reserva":
+            pagos = [p for p in pagos if p.tipo == PagoTipo.RESERVA]
+        elif filtros['tipo'] == "Extra":
+            pagos = [p for p in pagos if p.tipo == PagoTipo.EXTRA]
+        
+        # Filtrar por fechas si se especificaron
+        if filtros['fecha_inicio'] and filtros['fecha_fin']:
+            pagos = [p for p in pagos if filtros['fecha_inicio'] <= p.fecha_pago <= filtros['fecha_fin']]
+        elif filtros['fecha_inicio']:
+            pagos = [p for p in pagos if p.fecha_pago >= filtros['fecha_inicio']]
+        elif filtros['fecha_fin']:
+            pagos = [p for p in pagos if p.fecha_pago <= filtros['fecha_fin']]
+        
+        # Filtrar por estado
+        if filtros['estado'] == "Pagados":
+            pagos = [p for p in pagos if p.estado == PagoEstado.PAGADO]
+        elif filtros['estado'] == "Anulados":
+            pagos = [p for p in pagos if p.estado == PagoEstado.ANULADO]
+        
+        # Crear libro y hoja
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Pagos"
+        
+        # Título
+        ws.merge_cells('A1:F1')
+        titulo = ws['A1']
+        titulo.value = f"Pagos de {nombre_socio}"
+        titulo.font = Font(bold=True, size=14)
+        titulo.alignment = Alignment(horizontal="center", vertical="center")
+        
+        # Cabecera con estilo
+        cabecera = ["ID", "Fecha", "Importe (€)", "Tipo", "Estado", "Concepto"]
+        ws.append(cabecera)
+        
+        # Aplicar estilos a la cabecera
+        for cell in ws[2]:
+            cell.font = Font(bold=True, color="FFFFFF")
+            cell.fill = PatternFill(start_color="4472C4", end_color="4472C4", fill_type="solid")
+            cell.alignment = Alignment(horizontal="center", vertical="center")
+        
+        # Añadir datos
+        total = 0.0
+        for pago in pagos:
+            tipo_display = pago.tipo.name.capitalize() if hasattr(pago.tipo, 'name') else str(pago.tipo)
+            estado_display = pago.estado.name.capitalize() if hasattr(pago.estado, 'name') else str(pago.estado)
+            
+            # Obtener concepto según el tipo de pago
+            concepto = ""
+            if pago.tipo == PagoTipo.CUOTA:
+                # Obtener período desde PagoCuota
+                session = orm.SessionLocal()
+                try:
+                    from models.orm_models import PagoCuota
+                    pago_cuota = session.query(PagoCuota).filter(PagoCuota.id_pago == pago.id_pago).first()
+                    if pago_cuota:
+                        concepto = pago_cuota.periodo
+                finally:
+                    session.close()
+            elif pago.tipo == PagoTipo.EXTRA:
+                # Obtener concepto desde PagoExtra
+                session = orm.SessionLocal()
+                try:
+                    from models.orm_models import PagoExtra
+                    pago_extra = session.query(PagoExtra).filter(PagoExtra.id_pago == pago.id_pago).first()
+                    if pago_extra:
+                        concepto = pago_extra.concepto
+                finally:
+                    session.close()
+            elif pago.tipo == PagoTipo.RESERVA:
+                concepto = ""  # Reserva se deja en blanco
+            
+            # Sumar solo pagos con estado PAGADO (no anulados)
+            if pago.estado == PagoEstado.PAGADO:
+                total += pago.importe
+            
+            fila = [
+                pago.id_pago,
+                format_date(pago.fecha_pago),
+                f"{pago.importe:.2f}",
+                tipo_display,
+                estado_display,
+                concepto
+            ]
+            ws.append(fila)
+        
+        # Añadir fila de total (separada por una línea en blanco)
+        ws.append([])
+        ws.append(["TOTAL PAGADO:", "", f"{total:.2f}"])
+        fila_total = ws.max_row
+        ws[f'A{fila_total}'].font = Font(bold=True)
+        ws[f'C{fila_total}'].font = Font(bold=True)
+        
+        # Ajustar ancho de columnas
+        from openpyxl.utils import get_column_letter
+        anchos = [15, 15, 15, 12, 12, 35]
+        for i, ancho in enumerate(anchos, start=1):
+            ws.column_dimensions[get_column_letter(i)].width = ancho
+        
+        # Guardar archivo
+        wb.save(archivo)
