@@ -9,12 +9,12 @@ AUTH_PATH = os.path.join(ROOT, 'data', 'auth.json')
 
 
 def _pbkdf2_hash(password: str, salt: bytes, iterations: int = 200_000) -> bytes:
-    """Genera un hash PBKDF2-SHA256 para una contrase\u00f1a.
+    """Genera un hash PBKDF2-SHA256 para una contraseña.
     
     Args:
-        password (str): Contrase\u00f1a a hashear.
+        password (str): Contraseña a hashear.
         salt (bytes): Salt para el hash.
-        iterations (int): N\u00famero de iteraciones (por defecto 200000).
+        iterations (int): Número de iteraciones (por defecto 200000).
     
     Returns:
         bytes: Hash PBKDF2 calculado.

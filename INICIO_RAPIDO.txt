@@ -24,6 +24,9 @@ python scripts/seed_test_data.py
 python main.py
 ```
 
+### 🔐 Contraseña por defecto: admin
+(Cambiar en Configuración tras primer acceso)
+
 ---
 
 ## Para ejecutar en otro PC (macOS/Linux)
@@ -47,6 +50,9 @@ python scripts/seed_test_data.py
 # 5. Ejecutar (cada vez)
 python main.py
 ```
+
+### 🔐 Contraseña por defecto: admin
+(Cambiar en Configuración tras primer acceso)
 
 ---
 
