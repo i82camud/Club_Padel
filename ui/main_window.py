@@ -1,6 +1,7 @@
 import sys
-from PySide6.QtWidgets import QApplication, QMainWindow, QPushButton
-from PySide6.QtCore import QFile
+from PySide6.QtWidgets import QApplication, QMainWindow, QPushButton, QSizePolicy
+from PySide6.QtCore import QFile, Qt
+from PySide6.QtGui import QPixmap
 from ui.main_window_ui import Ui_MainWindow
 from ui.widgets.configuracion_page_widget import ConfiguracionPage
 from ui.widgets.socio_page_widget import SocioPage
@@ -45,7 +46,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # Configuración inicial
         self.stackedWidget.setCurrentIndex(0)
         self.lbl_bienvenido.setText("Bienvenido al Club de Pádel")
-        self.lbl_imagen.setText("[Aquí podría ir una imagen]")
+        
+        # Cargar imagen de inicio
+        pixmap = QPixmap("ui/icons/ImangenInicio.png")
+        if not pixmap.isNull():
+            # Escalar la imagen manteniendo la proporción
+            scaled_pixmap = pixmap.scaledToHeight(600)
+            self.lbl_imagen.setPixmap(scaled_pixmap)
+            self.lbl_imagen.setAlignment(Qt.AlignCenter)
+            self.lbl_imagen.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        else:
+            self.lbl_imagen.setText("[Imagen no encontrada]")
 
 
 def main():
