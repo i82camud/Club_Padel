@@ -78,6 +78,7 @@ python scripts/seed_test_data.py
 Se crea:
 - `data/club_padel.db` (base de datos)
 - Datos iniciales para probar
+- Archivo de autenticación con contraseña por defecto
 
 ---
 
@@ -88,6 +89,10 @@ python main.py
 ```
 
 ¡La aplicación se abrirá! 🎉
+
+**🔐 Credenciales de acceso:**
+- **Contraseña por defecto:** `admin`
+- **Recomendación:** Cambiar la contraseña en la primera sesión desde la página de Configuración
 
 ---
 
@@ -158,9 +163,10 @@ python main.py
 ## 📦 Archivos importantes
 
 | Archivo | Propósito |
-|---------|-----------|
-| `requirements.txt` | Lista de dependencias (NECESARIO) |
-| `main.py` | Punto de entrada (NECESARIO) |
+| `scripts/reset_db.py` | Crear base de datos (necesario 1ª vez) |
+| `scripts/seed_test_data.py` | Datos de prueba (recomendado) |
+| `data/` | Carpeta de datos (se crea automáticamente) |
+| `data/auth.json` | Almacena contraseña hasheada (se crea automáticamente) |
 | `check_setup.py` | Verificador de entorno (útil) |
 | `scripts/reset_db.py` | Crear base de datos (necesario 1ª vez) |
 | `scripts/seed_test_data.py` | Datos de prueba (recomendado) |

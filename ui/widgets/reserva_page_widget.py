@@ -69,7 +69,12 @@ class ReservaPage(QWidget, Ui_reserva_page):
         bus.socios_changed.connect(self.cargar_socios)
         bus.pistas_changed.connect(self.cargar_pistas)
 
-    def cargar_pistas(self):
+    def cargar_pistas(self) -> None:
+        """Recarga la lista de pistas en el combo y crea mapeos internos.
+        
+        Obtiene todas las pistas del servicio, carga el combo de pistas y
+        crea un mapa interno para acceso rápido sin lazy loading.
+        """
         pistas = listar_pistas()
         self.cmb_pista.clear()
         for p in pistas:
@@ -78,7 +83,12 @@ class ReservaPage(QWidget, Ui_reserva_page):
         # mapa id -> nombre para usar en la tabla sin lazy-loading
         self.mapa_pistas = {p.id_pista: p.nombre for p in pistas}
 
-    def cargar_socios(self):
+    def cargar_socios(self) -> None:
+        """Recarga la lista de socios y configura el autocompletado.
+        
+        Obtiene todos los socios del servicio y configura un completer con autocompletado
+        case-insensitive para el campo de socio. Crea mapeos internos para acceso rápido.
+        """
         socios = listar_socios()
         # Creamos un diccionario para mapear texto mostrado → id_socio
         self.mapa_socios = {
@@ -95,7 +105,12 @@ class ReservaPage(QWidget, Ui_reserva_page):
         # crear mapa inverso id -> display para buscar rápidamente
         self.mapa_socios_id_to_display = {v: k for k, v in self.mapa_socios.items()}
 
-    def cargar_reservas(self):
+    def cargar_reservas(self) -> None:
+        """Recarga la tabla de reservas desde el servicio.
+        
+        Obtiene todas las reservas de la base de datos y actualiza la tabla con sus datos.
+        Utiliza mapeos internos para evitar acceso lazy loading a relaciones.
+        """
         reservas = listar_reservas()
         self.tabla_reservas.setRowCount(len(reservas))
         # Definir siempre las columnas y las cabeceras para que se muestren aun sin filas
@@ -127,7 +142,12 @@ class ReservaPage(QWidget, Ui_reserva_page):
             header.setSectionResizeMode(col, QHeaderView.Fixed)
             self.tabla_reservas.setColumnWidth(col, 120)    
     
-    def actualizar_campos(self):
+    def actualizar_campos(self) -> None:
+        """Carga los datos de la fila seleccionada en los campos del formulario.
+        
+        Lee la fila actualmente seleccionada en la tabla y rellena los campos de entrada
+        con los datos de la reserva seleccionada.
+        """
         fila = self.tabla_reservas.currentRow()
         if fila < 0:
             return
@@ -164,7 +184,15 @@ class ReservaPage(QWidget, Ui_reserva_page):
         if hasattr(r.hora_fin, 'hour'):
             self.timeEdit_2.setTime(r.hora_fin)
 
-    def validar_campos(self):
+    def validar_campos(self) -> tuple:
+        """Valida que los campos del formulario cumplan con los requisitos.
+        
+        Verifica que haya una pista seleccionada, que exista un socio válido,
+        y que la hora inicio sea anterior a la hora fin.
+        
+        Returns:
+            tuple: (bool, str) - Tupla con éxito de validación y mensaje de error si aplica.
+        """
         # Validar que exista pista seleccionada y que horas sean coherentes
         if self.cmb_pista.currentIndex() < 0:
             return False, "Selecciona una pista"
@@ -178,19 +206,29 @@ class ReservaPage(QWidget, Ui_reserva_page):
 
         return True, ""
 
-    def _on_completer_activated(self, text: str):
-        """Handler llamado cuando el usuario selecciona un elemento del completer."""
+    def _on_completer_activated(self, text: str) -> None:
+        """Handler llamado cuando el usuario selecciona un elemento del completer.
+        
+        Args:
+            text (str): Texto del elemento seleccionado del completer.
+        """
         sid = self.mapa_socios.get(text)
         if sid:
             self.selected_socio_id = sid
 
-    def _resolve_socio_id(self, text: str):
+    def _resolve_socio_id(self, text: str) -> int:
         """Resuelve el id del socio a partir del texto del campo.
 
         - Si el usuario seleccionó via completer, `self.selected_socio_id` estará fijado.
         - Si el texto coincide con una clave del mapa, devolvemos su id.
         - Si el texto es un entero (id), lo devolvemos.
         - En cualquier otro caso devolvemos None.
+        
+        Args:
+            text (str): Texto del campo de socio.
+        
+        Returns:
+            int: ID del socio si se resuelve, None en caso contrario.
         """
         if self.selected_socio_id is not None and self.txt_socio.text().strip() in self.mapa_socios:
             # usuario seleccionó algo y el texto coincide
@@ -211,8 +249,12 @@ class ReservaPage(QWidget, Ui_reserva_page):
         except Exception:
             return None
 
-    def suma_tiempo(self, qtime: QTime):
-        """Al cambiar la hora de inicio, actualizar la hora fin según duración configurada."""
+    def suma_tiempo(self, qtime: QTime) -> None:
+        """Al cambiar la hora de inicio, actualizar la hora fin según duración configurada.
+        
+        Args:
+            qtime (QTime): Nueva hora de inicio seleccionada.
+        """
         try:
             from utils.settings import get_reservation_duration
             duracion_minutos = get_reservation_duration()
@@ -223,7 +265,7 @@ class ReservaPage(QWidget, Ui_reserva_page):
             # no queremos que un fallo de UI rompa la app
             pass
 
-    def vaciar_campos(self):
+    def vaciar_campos(self) -> None:
         """Restablece los campos del formulario de reserva al estado por defecto.
 
         - Limpia el campo de socio y resetea el id seleccionado.
@@ -239,7 +281,12 @@ class ReservaPage(QWidget, Ui_reserva_page):
         self.timeEdit.setTime(QTime(0, 0))
         self.timeEdit_2.setTime(QTime(0, 0))
 
-    def insertar(self):
+    def insertar(self) -> None:
+        """Inserta una nueva reserva en la base de datos.
+        
+        Valida los campos, normaliza los datos y crea un nuevo registro de reserva.
+        Luego recarga la tabla de reservas.
+        """
         ok, msg = self.validar_campos()
         if not ok:
             QMessageBox.warning(self, "Error", msg)
@@ -270,7 +317,12 @@ class ReservaPage(QWidget, Ui_reserva_page):
         except Exception as e:
             QMessageBox.warning(self, "Error", str(e))
 
-    def modificar(self):
+    def modificar(self) -> None:
+        """Actualiza los datos de la reserva seleccionada.
+        
+        Valida los campos, normaliza los datos y actualiza el registro de la reserva.
+        Luego recarga la tabla de reservas.
+        """
         fila = self.tabla_reservas.currentRow()
         if fila < 0:
             QMessageBox.warning(self, "Error", "Selecciona una reserva para modificar")
@@ -307,7 +359,11 @@ class ReservaPage(QWidget, Ui_reserva_page):
         except Exception as e:
             QMessageBox.warning(self, "Error", str(e))
 
-    def cancelar(self):
+    def cancelar(self) -> None:
+        """Marca la reserva seleccionada como cancelada.
+        
+        Cambia el estado de la reserva a CANCELADA. Luego recarga la tabla de reservas.
+        """
         fila = self.tabla_reservas.currentRow()
         if fila < 0:
             QMessageBox.warning(self, "Error", "Selecciona una reserva para cancelar")
@@ -321,7 +377,7 @@ class ReservaPage(QWidget, Ui_reserva_page):
         QMessageBox.information(self, "Éxito", "Reserva cancelada")
         self.cargar_reservas()
 
-    def ir_a_pagos(self):
+    def ir_a_pagos(self) -> None:
         """Navega a la página de Pagos y carga los datos de la reserva seleccionada.
 
         - Verifica que hay una reserva seleccionada en la tabla.
@@ -363,8 +419,12 @@ class ReservaPage(QWidget, Ui_reserva_page):
             # fallback: intentar buscar método público
             pass
 
-    def generar_listado(self):
-        """Genera un listado de reservas en Excel con filtros por fecha y estado."""
+    def generar_listado(self) -> None:
+        """Genera un listado de reservas en formato XLSX con filtros.
+        
+        Muestra un diálogo para seleccionar filtros (fechas y estado),
+        solicita la ubicación del archivo y exporta los datos a Excel.
+        """
         from PySide6.QtWidgets import QDialog
         dlg = FiltrosReservasDialog(self)
         if dlg.exec() == QDialog.Accepted:
@@ -414,8 +474,13 @@ class ReservaPage(QWidget, Ui_reserva_page):
             finally:
                 session.close()
 
-    def _generar_xlsx_reservas(self, archivo: str, reservas: list):
-        """Genera un archivo Excel con el listado de reservas con nombres de socio y pista."""
+    def _generar_xlsx_reservas(self, archivo: str, reservas: list) -> None:
+        """Genera un archivo Excel con el listado de reservas con nombres de socio y pista.
+        
+        Args:
+            archivo (str): Ruta del archivo XLSX a crear.
+            reservas (list): Lista de objetos reserva a exportar.
+        """
         wb = Workbook()
         ws = wb.active
         ws.title = "Reservas"

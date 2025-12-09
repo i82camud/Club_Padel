@@ -64,6 +64,32 @@
      <string>Cambiar Contraseña</string>
     </property>
    </widget>
+   <widget class="QPushButton" name="btn_copia">
+    <property name="geometry">
+     <rect>
+      <x>340</x>
+      <y>0</y>
+      <width>141</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Hacer Copia Seg.</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btn_restaurar">
+    <property name="geometry">
+     <rect>
+      <x>510</x>
+      <y>0</y>
+      <width>141</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Restaurar Copia Seg.</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QWidget" name="gridLayoutWidget">
    <property name="geometry">

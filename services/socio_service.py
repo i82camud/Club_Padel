@@ -23,7 +23,19 @@ def _to_socio_estado(value):
 
 
 def insertar_socio(nombre: str, apellido1: str, apellido2: str, email: str, telefono: str, estado=SocioEstado.ACTIVO) -> SocioORM:
-	"""Inserta un socio y devuelve la instancia creada."""
+	"""Inserta un nuevo socio en la base de datos.
+	
+	Args:
+		nombre (str): Nombre del socio.
+		apellido1 (str): Primer apellido del socio.
+		apellido2 (str): Segundo apellido del socio.
+		email (str): Correo electrónico del socio.
+		telefono (str): Número de teléfono del socio.
+		estado (SocioEstado): Estado del socio (por defecto ACTIVO).
+	
+	Returns:
+		SocioORM: Instancia del socio creada con su ID asignado.
+	"""
 	session = orm.SessionLocal()
 	try:
 		estado_enum = _to_socio_estado(estado)
@@ -37,7 +49,11 @@ def insertar_socio(nombre: str, apellido1: str, apellido2: str, email: str, tele
 
 
 def listar_socios() -> List[SocioORM]:
-	"""Devuelve la lista completa de socios."""
+	"""Obtiene la lista completa de socios de la base de datos.
+	
+	Returns:
+		List[SocioORM]: Lista de instancias ORM de todos los socios.
+	"""
 	session = orm.SessionLocal()
 	try:
 		return session.query(SocioORM).all()
@@ -102,7 +118,15 @@ def activa_socio(id_socio: int):
 
 
 def existe_correo_id(correo: str, id_socio: int = None) -> bool:
-	"""Comprueba si existe un correo registrado en otro socio (excluye id_socio si dado)."""
+	"""Verifica si un correo ya está registrado en otro socio.
+	
+	Args:
+		correo (str): Correo electrónico a verificar.
+		id_socio (int, optional): ID de socio a excluir de la búsqueda (para validar modificaciones).
+	
+	Returns:
+		bool: True si el correo existe en otro socio, False en caso contrario.
+	"""
 	session = orm.SessionLocal()
 	try:
 		q = session.query(SocioORM).filter(SocioORM.email == correo)
@@ -114,18 +138,28 @@ def existe_correo_id(correo: str, id_socio: int = None) -> bool:
 
 
 def existe_telefono_id(telefono: str, id_socio: int = None) -> bool:
-	"""Comprueba si existe un teléfono registrado en otro socio (excluye id_socio si dado)."""
-	session = orm.SessionLocal()
-	try:
-		q = session.query(SocioORM).filter(SocioORM.telefono == telefono)
-		if id_socio:
-			q = q.filter(SocioORM.id_socio != id_socio)
-		return session.query(q.exists()).scalar()
-	finally:
-		session.close()
+    """Comprueba si existe un teléfono registrado en otro socio.
+    
+    Excluye de la búsqueda el socio indicado por id_socio si es proporcionado.
+    
+    Args:
+        telefono (str): Número de teléfono a verificar.
+        id_socio (int): Identificador del socio a excluir de la búsqueda (opcional).
+    
+    Returns:
+        bool: True si el teléfono existe en otro socio, False en caso contrario.
+    """
+    session = orm.SessionLocal()
+    try:
+        q = session.query(SocioORM).filter(SocioORM.telefono == telefono)
+        if id_socio:
+            q = q.filter(SocioORM.id_socio != id_socio)
+        return session.query(q.exists()).scalar()
+    finally:
+        session.close()
 
 
 __all__ = [
-	'insertar_socio', 'listar_socios', 'obtener_socio_por_id', 'modificar_socio',
-	'baja_socio', 'activa_socio', 'existe_correo_id'
+    'insertar_socio', 'listar_socios', 'obtener_socio_por_id', 'modificar_socio',
+    'baja_socio', 'activa_socio', 'existe_correo_id', 'existe_telefono_id'
 ]

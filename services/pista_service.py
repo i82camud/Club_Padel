@@ -21,11 +21,16 @@ def _to_pista_estado(value):
 
 
 def insertar_pista(nombre: str, pared: str, tipo: str, estado=PistaEstado.ACTIVA) -> PistaORM:
-    """Inserta una pista y devuelve la instancia creada.
-
-    - nombre: str
-    - pared: str
-    - tipo: str
+    """Inserta una nueva pista en la base de datos.
+    
+    Args:
+        nombre (str): Nombre de la pista.
+        pared (str): Tipo de pared (ej: 'cristal', 'muro').
+        tipo (str): Tipo de pista (ej: 'cubierta', 'descubierta').
+        estado (PistaEstado): Estado de la pista (por defecto ACTIVA).
+    
+    Returns:
+        PistaORM: Instancia de la pista creada con su ID asignado.
     """
     session = orm.SessionLocal()
     try:
@@ -40,7 +45,14 @@ def insertar_pista(nombre: str, pared: str, tipo: str, estado=PistaEstado.ACTIVA
 
 
 def listar_pistas(estado: str = None) -> List[PistaORM]:
-    """Lista pistas. Opcionalmente filtra por estado (PistaEstado|int)."""
+    """Obtiene la lista de pistas con filtro opcional por estado.
+    
+    Args:
+        estado (str, optional): Estado a filtrar (PistaEstado o int). Si es None, devuelve todas.
+    
+    Returns:
+        List[PistaORM]: Lista de instancias ORM de pistas.
+    """
     session = orm.SessionLocal()
     try:
         q = session.query(PistaORM)
@@ -52,7 +64,14 @@ def listar_pistas(estado: str = None) -> List[PistaORM]:
 
 
 def obtener_pista_por_id(id_pista: int) -> Optional[PistaORM]:
-    """Obtiene una pista por id o None si no existe."""
+    """Obtiene una pista por su ID.
+    
+    Args:
+        id_pista (int): ID de la pista a recuperar.
+    
+    Returns:
+        Optional[PistaORM]: Instancia ORM de la pista o None si no existe.
+    """
     session = orm.SessionLocal()
     try:
         return session.get(PistaORM, id_pista)
@@ -60,10 +79,17 @@ def obtener_pista_por_id(id_pista: int) -> Optional[PistaORM]:
         session.close()
 
 
-def modificar_pista(id_pista: int, nombre: str, pared: str, tipo: str):
-    """Modifica el nombre/pared/tipo de una pista existente.
-
-    Devuelve la instancia actualizada o None si la pista no existe.
+def modificar_pista(id_pista: int, nombre: str, pared: str, tipo: str) -> Optional[PistaORM]:
+    """Modifica los datos de una pista existente.
+    
+    Args:
+        id_pista (int): ID de la pista a modificar.
+        nombre (str): Nuevo nombre de la pista.
+        pared (str): Nuevo tipo de pared.
+        tipo (str): Nuevo tipo de pista.
+    
+    Returns:
+        Optional[PistaORM]: Pista actualizada o None si no existe.
     """
     session = orm.SessionLocal()
     try:
@@ -80,7 +106,18 @@ def modificar_pista(id_pista: int, nombre: str, pared: str, tipo: str):
         session.close()
 
 
-def actualizar_pista(id_pista: int, nombre: str = None, tipo: str = None, estado: str = None):
+def actualizar_pista(id_pista: int, nombre: str = None, tipo: str = None, estado: str = None) -> Optional[PistaORM]:
+    """Actualiza selectivamente los campos de una pista.
+    
+    Args:
+        id_pista (int): ID de la pista a actualizar.
+        nombre (str, optional): Nuevo nombre (si se proporciona).
+        tipo (str, optional): Nuevo tipo (si se proporciona).
+        estado (str, optional): Nuevo estado (si se proporciona).
+    
+    Returns:
+        Optional[PistaORM]: Pista actualizada o None si no existe.
+    """
     p = obtener_pista_por_id(id_pista)
     if p is None:
         return None
@@ -106,7 +143,15 @@ def actualizar_pista(id_pista: int, nombre: str = None, tipo: str = None, estado
         session.close()
 
 
-def activar_pista(id_pista: int):
+def activar_pista(id_pista: int) -> Optional[PistaORM]:
+    """Marca una pista como activa.
+    
+    Args:
+        id_pista (int): ID de la pista a activar.
+    
+    Returns:
+        Optional[PistaORM]: Pista actualizada o None si no existe.
+    """
     session = orm.SessionLocal()
     try:
         p = session.get(PistaORM, id_pista)
@@ -119,7 +164,15 @@ def activar_pista(id_pista: int):
         session.close()
 
 
-def desactivar_pista(id_pista: int):
+def desactivar_pista(id_pista: int) -> Optional[PistaORM]:
+    """Marca una pista como inactiva (da de baja).
+    
+    Args:
+        id_pista (int): ID de la pista a desactivar.
+    
+    Returns:
+        Optional[PistaORM]: Pista actualizada o None si no existe.
+    """
     session = orm.SessionLocal()
     try:
         p = session.get(PistaORM, id_pista)

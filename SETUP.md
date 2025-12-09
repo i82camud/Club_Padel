@@ -54,6 +54,7 @@ Esto creará:
 - 3 pistas (2 cubiertas, 1 descubierta)
 - 5 reservas de ejemplo
 - Varios pagos
+- Archivo de autenticación con contraseña por defecto
 
 ### 5. Ejecutar la aplicación
 ```bash
@@ -61,6 +62,10 @@ python main.py
 ```
 
 La aplicación se abrirá en una ventana de escritorio.
+
+**🔐 Acceso inicial:**
+- **Contraseña por defecto:** `admin`
+- Se recomienda cambiar la contraseña en la página de Configuración tras el primer acceso
 
 ---
 

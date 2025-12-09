@@ -4,7 +4,17 @@ from utils.auth import verify_password, ensure_auth_file_exists
 
 
 class LoginDialog(QDialog):
+    """Diálogo de autenticación para la aplicación.
+    
+    Permite al usuario ingresar su contraseña para acceder a la aplicación.
+    Valida la contraseña contra el sistema de autenticación antes de permitir el acceso.
+    """
     def __init__(self, parent=None):
+        """Inicializa el diálogo de login.
+        
+        Args:
+            parent: Widget padre (por defecto None).
+        """
         super().__init__(parent)
         self.setWindowTitle('Login')
         self.setModal(True)
@@ -61,8 +71,12 @@ class LoginDialog(QDialog):
         except Exception:
             pass
 
-    def showEvent(self, event):
-        """Asegura el foco en el campo de contraseña cuando el diálogo se muestra."""
+    def showEvent(self, event) -> None:
+        """Asegura que el foco esté en el campo de contraseña cuando el diálogo se muestra.
+        
+        Args:
+            event: Evento de Qt.
+        """
         try:
             self.ui.txt_clave.setFocus()
             self.ui.txt_clave.selectAll()

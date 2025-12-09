@@ -32,6 +32,9 @@ Proyecto en Python usando PySide6, SQLAlchemy y Excel para exportar reportes.
    python main.py
    ```
 
+   **🔐 Contraseña por defecto:** `admin`
+   (Se recomienda cambiarla en la página de Configuración)
+
 ### Verificar configuración
 
 Antes de ejecutar, puedes verificar que todo está bien:

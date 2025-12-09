@@ -16,8 +16,7 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QApplication, QGroupBox, QLabel, QMainWindow,
-    QPushButton, QSizePolicy, QStackedWidget, QVBoxLayout,
-    QWidget)
+    QPushButton, QSizePolicy, QStackedWidget, QWidget)
 import recursos_rc
 
 class Ui_MainWindow(object):
@@ -61,22 +60,12 @@ class Ui_MainWindow(object):
         self.stackedWidget.setGeometry(QRect(180, 10, 1080, 770))
         self.page_inicio = QWidget()
         self.page_inicio.setObjectName(u"page_inicio")
-        self.verticalLayoutWidget = QWidget(self.page_inicio)
-        self.verticalLayoutWidget.setObjectName(u"verticalLayoutWidget")
-        self.verticalLayoutWidget.setGeometry(QRect(10, 10, 561, 101))
-        self.verticalLayout = QVBoxLayout(self.verticalLayoutWidget)
-        self.verticalLayout.setObjectName(u"verticalLayout")
-        self.verticalLayout.setContentsMargins(0, 0, 0, 0)
-        self.lbl_bienvenido = QLabel(self.verticalLayoutWidget)
-        self.lbl_bienvenido.setObjectName(u"lbl_bienvenido")
-
-        self.verticalLayout.addWidget(self.lbl_bienvenido)
-
-        self.lbl_imagen = QLabel(self.verticalLayoutWidget)
+        self.lbl_imagen = QLabel(self.page_inicio)
         self.lbl_imagen.setObjectName(u"lbl_imagen")
-
-        self.verticalLayout.addWidget(self.lbl_imagen)
-
+        self.lbl_imagen.setGeometry(QRect(10, 110, 1031, 631))
+        self.lbl_bienvenido = QLabel(self.page_inicio)
+        self.lbl_bienvenido.setObjectName(u"lbl_bienvenido")
+        self.lbl_bienvenido.setGeometry(QRect(10, 10, 559, 99))
         self.stackedWidget.addWidget(self.page_inicio)
         self.page_socios = QWidget()
         self.page_socios.setObjectName(u"page_socios")
@@ -110,7 +99,7 @@ class Ui_MainWindow(object):
         self.btn_reservas.setText(QCoreApplication.translate("MainWindow", u"Reservas", None))
         self.btn_salir.setText(QCoreApplication.translate("MainWindow", u"Salir", None))
         self.btn_configuracion.setText(QCoreApplication.translate("MainWindow", u"Configuraci\u00f3n", None))
-        self.lbl_bienvenido.setText(QCoreApplication.translate("MainWindow", u"TextLabel", None))
         self.lbl_imagen.setText(QCoreApplication.translate("MainWindow", u"TextLabel", None))
+        self.lbl_bienvenido.setText(QCoreApplication.translate("MainWindow", u"TextLabel", None))
     # retranslateUi
 

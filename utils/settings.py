@@ -5,7 +5,8 @@ from datetime import time
 CONFIG_PATH = Path("data") / "config.json"
 
 
-def _ensure_config_exists():
+def _ensure_config_exists() -> None:
+    """Asegura que el fichero de configuración existe creándolo con valores por defecto si es necesario."""
     CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
     if not CONFIG_PATH.exists():
         # valores por defecto
@@ -18,6 +19,11 @@ def _ensure_config_exists():
 
 
 def _read_raw() -> dict:
+    """Lee y parsea el fichero de configuración JSON.
+    
+    Returns:
+        dict: Diccionario con la configuración o {} si hay error.
+    """
     _ensure_config_exists()
     try:
         return json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
@@ -25,26 +31,49 @@ def _read_raw() -> dict:
         return {}
 
 
-def _write_raw(data: dict):
+def _write_raw(data: dict) -> None:
+    """Escribe datos en el fichero de configuración JSON.
+    
+    Args:
+        data (dict): Diccionario a serializar y guardar.
+    """
     CONFIG_PATH.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
 def get_config(key: str, default=None):
+    """Obtiene un valor de configuración.
+    
+    Args:
+        key (str): Clave de configuración a obtener.
+        default: Valor por defecto si la clave no existe.
+    
+    Returns:
+        Valor asociado a la clave o el valor por defecto.
+    """
     cfg = _read_raw()
     return cfg.get(key, default)
 
 
-def set_config(key: str, value):
+def set_config(key: str, value) -> None:
+    """Establece un valor de configuración.
+    
+    Args:
+        key (str): Clave de configuración.
+        value: Valor a guardar.
+    """
     cfg = _read_raw()
     cfg[key] = value
     _write_raw(cfg)
 
 
-def get_opening_hours() -> (time, time):
-    """Devuelve (hora_apertura, hora_cierre) como objetos datetime.time.
-
+def get_opening_hours() -> tuple[time, time]:
+    """Obtiene el horario de apertura y cierre del club.
+    
     Los valores se almacenan en formato 'HH:MM'. Si no existen, se usan
     valores por defecto (09:00 - 22:00).
+    
+    Returns:
+        tuple[time, time]: Tupla con (hora_apertura, hora_cierre).
     """
     s_open = get_config("timeApertura", "09:00")
     s_close = get_config("timeCierre", "22:00")
