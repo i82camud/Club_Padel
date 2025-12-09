@@ -8,18 +8,36 @@ from .orm import Base
 
 
 class IntEnumType(TypeDecorator):
-    """Almacena un IntEnum en la base de datos como Integer y lo convierte al recuperar.
-
-    Uso: Column(IntEnumType(MyEnum), ...)
+    """Tipo personalizado para almacenar IntEnum en la base de datos como Integer.
+    
+    Almacena un IntEnum en la base de datos como Integer y lo convierte
+    automáticamente al recuperar valores.
+    
+    Uso:
+        Column(IntEnumType(MyEnum), ...)
     """
     impl = Integer
     cache_ok = True
 
     def __init__(self, enum_class, *args, **kwargs):
+        """Inicializa el tipo con la clase Enum a usar.
+        
+        Args:
+            enum_class: Clase IntEnum a usar para conversión.
+        """
         super().__init__(*args, **kwargs)
         self._enum_class = enum_class
 
     def process_bind_param(self, value, dialect):
+        """Convierte el valor Enum a entero para almacenar en BD.
+        
+        Args:
+            value: Valor Enum o entero.
+            dialect: Dialecto de SQLAlchemy.
+        
+        Returns:
+            int: Valor entero o None.
+        """
         if value is None:
             return None
         if isinstance(value, self._enum_class):
@@ -28,6 +46,15 @@ class IntEnumType(TypeDecorator):
         return int(value)
 
     def process_result_value(self, value, dialect):
+        """Convierte el valor entero de BD a Enum.
+        
+        Args:
+            value: Valor entero de la BD.
+            dialect: Dialecto de SQLAlchemy.
+        
+        Returns:
+            IntEnum: Valor Enum o None.
+        """
         if value is None:
             return None
         # Expect integer storage; convert to Enum

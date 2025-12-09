@@ -3,8 +3,17 @@ from utils.auth import change_password, verify_password
 
 
 class ChangePasswordDialog(QDialog):
-    """Dialog to change the admin password."""
+    """Diálogo para cambiar la contraseña del administrador.
+    
+    Permite al usuario cambiar su contraseña actual por una nueva después
+    de verificar que la contraseña actual es correcta.
+    """
     def __init__(self, parent=None):
+        """Inicializa el diálogo de cambio de contraseña.
+        
+        Args:
+            parent: Widget padre (por defecto None).
+        """
         super().__init__(parent)
         self.setWindowTitle('Cambiar contraseña')
         layout = QVBoxLayout(self)
@@ -29,8 +38,12 @@ class ChangePasswordDialog(QDialog):
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)
 
-    def _on_accept(self):
-        cur = self.current.text()
+    def _on_accept(self) -> None:
+        """Maneja la aceptación del diálogo validando y aplicando el cambio de contraseña.
+        
+        Verifica que todos los campos estén llenos, que las nuevas contraseñas coincidan,
+        y que la contraseña actual sea correcta antes de guardar el cambio.
+        """
         n1 = self.new.text()
         n2 = self.new2.text()
         if not cur or not n1:

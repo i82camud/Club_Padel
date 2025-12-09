@@ -57,7 +57,12 @@ class SocioPage(QWidget, Ui_SocioPage):
         # Cargar tabla al inicio
         self.cargar_socios()
     
-    def cargar_socios(self):
+    def cargar_socios(self) -> None:
+        """Recarga la tabla de socios desde el servicio.
+        
+        Obtiene todos los socios de la base de datos y actualiza la tabla con sus datos.
+        Muestra el estado de forma legible (Activo/Inactivo).
+        """
         socios = socio_service.listar_socios()
         self.tabla_socios.setRowCount(len(socios))
         self.tabla_socios.setColumnCount(7)
@@ -83,15 +88,42 @@ class SocioPage(QWidget, Ui_SocioPage):
                 self.tabla_socios.setItem(fila, col, QTableWidgetItem(str(dato)))
 
     # Validaciones
-    def validar_correo(self, correo):
+    def validar_correo(self, correo: str) -> bool:
+        """Valida que el correo tenga formato válido.
+        
+        Args:
+            correo (str): Correo a validar.
+        
+        Returns:
+            bool: True si el formato es válido, False en caso contrario.
+        """
         patron = r'^[\w\.-]+@[\w\.-]+\.\w+$'
         return re.match(patron, correo)
 
-    def validar_telefono(self, telefono):
+    def validar_telefono(self, telefono: str) -> bool:
+        """Valida que el teléfono tenga exactamente 9 dígitos numéricos.
+        
+        Args:
+            telefono (str): Teléfono a validar.
+        
+        Returns:
+            bool: True si tiene 9 dígitos, False en caso contrario.
+        """
         patron = r'^\d{9}$'
         return re.match(patron, telefono)
     
-    def validar_campos(self, correo_existente_id=None, telefono_existente_id=None):
+    def validar_campos(self, correo_existente_id: int = None, telefono_existente_id: int = None) -> tuple:
+        """Valida que los campos cumplan con los requisitos.
+        
+        Comprueba que nombre, correo y teléfono sean válidos y no existan duplicados.
+        
+        Args:
+            correo_existente_id (int): ID del socio existente para permitir actualización sin duplicar correo.
+            telefono_existente_id (int): ID del socio existente para permitir actualización sin duplicar teléfono.
+        
+        Returns:
+            tuple: (bool, str) - Tupla con éxito de validación y mensaje de error si aplica.
+        """
         nombre, apellido1, apellido2, correo, telefono = self.normalizar_campos()
 
         if not nombre or not apellido1:
@@ -112,14 +144,23 @@ class SocioPage(QWidget, Ui_SocioPage):
         return True, ""
     
     # Campos
-    def vaciar_campos(self):
+    def vaciar_campos(self) -> None:
+        """Limpia todos los campos del formulario de socios.
+        
+        Borra el contenido de los campos de entrada de nombre, apellidos, correo y teléfono.
+        """
         self.txt_nombre.clear()
         self.txt_apellido1.clear()
         self.txt_apellido2.clear()
         self.txt_email.clear()
         self.txt_telefono.clear()
 
-    def actualizar_campos(self):
+    def actualizar_campos(self) -> None:
+        """Carga los datos de la fila seleccionada en los campos del formulario.
+        
+        Lee la fila actualmente seleccionada en la tabla y rellena los campos de entrada
+        con los datos del socio seleccionado.
+        """
         fila = self.tabla_socios.currentRow()
         if fila >= 0:
             self.txt_nombre.setText(self.tabla_socios.item(fila, 1).text())
@@ -128,7 +169,15 @@ class SocioPage(QWidget, Ui_SocioPage):
             self.txt_email.setText(self.tabla_socios.item(fila, 4).text())
             self.txt_telefono.setText(self.tabla_socios.item(fila, 5).text())
     
-    def normalizar_campos(self):
+    def normalizar_campos(self) -> tuple:
+        """Normaliza el formato de los datos ingresados en los campos del formulario.
+        
+        Aplica transformaciones como trim de espacios, conversión a mayúsculas/minúsculas
+        y extracción de solo dígitos en el teléfono.
+        
+        Returns:
+            tuple: (nombre, apellido1, apellido2, correo, telefono) normalizados.
+        """
         nombre = self.txt_nombre.text().strip().title()         # .strip() para eliminar espacios al inicio y al final 
         apellido1 = self.txt_apellido1.text().strip().title()   # .title() para poner la primera letra en mayúscula y el resto en minúscula
         apellido2 = self.txt_apellido2.text().strip().title()
@@ -137,7 +186,12 @@ class SocioPage(QWidget, Ui_SocioPage):
         return nombre, apellido1, apellido2, correo, telefono
 
     # CRUD
-    def insertar(self):
+    def insertar(self) -> None:
+        """Inserta un nuevo socio en la base de datos.
+        
+        Valida los campos, normaliza los datos y crea un nuevo registro de socio.
+        Emite la señal bus.socios_changed para actualizar otros widgets.
+        """
         ok, mensaje = self.validar_campos()
         if not ok:
             QMessageBox.warning(self, "Error", mensaje)
@@ -150,7 +204,12 @@ class SocioPage(QWidget, Ui_SocioPage):
         self.cargar_socios()
         bus.socios_changed.emit()
 
-    def modificar(self):
+    def modificar(self) -> None:
+        """Actualiza los datos del socio seleccionado.
+        
+        Valida los campos, normaliza los datos y actualiza el registro del socio.
+        Emite la señal bus.socios_changed para actualizar otros widgets.
+        """
         fila = self.tabla_socios.currentRow()
         if fila < 0:
             QMessageBox.warning(self, "Error", "Selecciona un socio para modificar")
@@ -169,7 +228,12 @@ class SocioPage(QWidget, Ui_SocioPage):
         self.cargar_socios()
         bus.socios_changed.emit()
 
-    def desactivar_socio(self):
+    def desactivar_socio(self) -> None:
+        """Marca el socio seleccionado como inactivo (baja).
+        
+        Cambia el estado del socio a INACTIVO. Emite la señal bus.socios_changed
+        para actualizar otros widgets.
+        """
         fila = self.tabla_socios.currentRow()
         if fila < 0:
             QMessageBox.warning(self, "Error", "Selecciona un socio para darlo de baja")
@@ -182,7 +246,12 @@ class SocioPage(QWidget, Ui_SocioPage):
         self.cargar_socios()
         bus.socios_changed.emit()
 
-    def activar_socio(self):
+    def activar_socio(self) -> None:
+        """Marca el socio seleccionado como activo (reactivación).
+        
+        Cambia el estado del socio a ACTIVO. Emite la señal bus.socios_changed
+        para actualizar otros widgets.
+        """
         fila = self.tabla_socios.currentRow()
         if fila < 0:
             QMessageBox.warning(self, "Error", "Selecciona un socio para activar")
@@ -195,8 +264,12 @@ class SocioPage(QWidget, Ui_SocioPage):
         self.cargar_socios()
         bus.socios_changed.emit()
 
-    def generar_listado(self):
-        """Genera un listado de socios en formato XLSX."""
+    def generar_listado(self) -> None:
+        """Genera un listado de socios en formato XLSX con filtros.
+        
+        Muestra un diálogo para seleccionar filtros (estado: Todos/Activos/Inactivos),
+        solicita la ubicación del archivo y exporta los datos a Excel.
+        """
         # Mostrar diálogo de filtros
         dialogo = FiltrosSociosDialog(self)
         if dialogo.exec() != QDialog.Accepted:
@@ -234,8 +307,13 @@ class SocioPage(QWidget, Ui_SocioPage):
         except Exception as e:
             QMessageBox.warning(self, "Error", f"No se pudo generar el listado:\n{e}")
 
-    def _generar_xlsx(self, archivo: str, filtro_estado: str):
-        """Genera el archivo XLSX con los datos de socios filtrados."""
+    def _generar_xlsx(self, archivo: str, filtro_estado: str) -> None:
+        """Genera el archivo XLSX con los datos de socios filtrados.
+        
+        Args:
+            archivo (str): Ruta del archivo XLSX a crear.
+            filtro_estado (str): Estado de filtro ('Todos', 'Activos' o 'Inactivos').
+        """
         
         # Obtener socios según filtro
         socios = socio_service.listar_socios()
@@ -283,8 +361,12 @@ class SocioPage(QWidget, Ui_SocioPage):
         # Guardar archivo
         wb.save(archivo)
 
-    def generar_listado_reservas(self):
-        """Genera un listado de reservas del socio seleccionado en formato XLSX."""
+    def generar_listado_reservas(self) -> None:
+        """Genera un listado de reservas del socio seleccionado en formato XLSX.
+        
+        Requiere que haya un socio seleccionado en la tabla. Muestra un diálogo
+        de filtros (fechas y estado) y exporta las reservas a Excel.
+        """
         # Verificar que hay un socio seleccionado
         fila = self.tabla_socios.currentRow()
         if fila < 0:
@@ -342,8 +424,15 @@ class SocioPage(QWidget, Ui_SocioPage):
         except Exception as e:
             QMessageBox.warning(self, "Error", f"No se pudo generar el listado:\n{e}")
 
-    def _generar_xlsx_reservas(self, archivo: str, id_socio: int, nombre_socio: str, filtros: dict):
-        """Genera el archivo XLSX con las reservas del socio filtradas."""
+    def _generar_xlsx_reservas(self, archivo: str, id_socio: int, nombre_socio: str, filtros: dict) -> None:
+        """Genera el archivo XLSX con las reservas del socio filtradas.
+        
+        Args:
+            archivo (str): Ruta del archivo XLSX a crear.
+            id_socio (int): ID del socio.
+            nombre_socio (str): Nombre completo del socio para el título.
+            filtros (dict): Diccionario con filtros (fecha_inicio, fecha_fin, estado).
+        """
         from services.reserva_service import listar_reservas
         from services.pista_service import listar_pistas
         
@@ -418,8 +507,12 @@ class SocioPage(QWidget, Ui_SocioPage):
         # Guardar archivo
         wb.save(archivo)
 
-    def generar_listado_pagos(self):
-        """Genera un listado de pagos del socio seleccionado en formato XLSX."""
+    def generar_listado_pagos(self) -> None:
+        """Genera un listado de pagos del socio seleccionado en formato XLSX.
+        
+        Requiere que haya un socio seleccionado en la tabla. Muestra un diálogo
+        de filtros (tipo, fechas y estado) y exporta los pagos a Excel.
+        """
         # Verificar que hay un socio seleccionado
         fila = self.tabla_socios.currentRow()
         if fila < 0:
@@ -485,8 +578,15 @@ class SocioPage(QWidget, Ui_SocioPage):
         except Exception as e:
             QMessageBox.warning(self, "Error", f"No se pudo generar el listado:\n{e}")
 
-    def _generar_xlsx_pagos(self, archivo: str, id_socio: int, nombre_socio: str, filtros: dict):
-        """Genera el archivo XLSX con los pagos del socio filtrados."""
+    def _generar_xlsx_pagos(self, archivo: str, id_socio: int, nombre_socio: str, filtros: dict) -> None:
+        """Genera el archivo XLSX con los pagos del socio filtrados.
+        
+        Args:
+            archivo (str): Ruta del archivo XLSX a crear.
+            id_socio (int): ID del socio.
+            nombre_socio (str): Nombre completo del socio para el título.
+            filtros (dict): Diccionario con filtros (tipo, fecha_inicio, fecha_fin, estado).
+        """
         from services.pago_service import listar_pagos
         from models import orm
         

@@ -101,7 +101,12 @@ class PagoPage(QWidget, Ui_pago_page):
         # cargar tabla
         self.cargar_pagos()
 
-    def _cargar_socios(self):
+    def _cargar_socios(self) -> None:
+        """Carga el autocompletado de socios desde el servicio.
+        
+        Obtiene todos los socios del servicio y configura un completer con autocompletado
+        case-insensitive para el campo de socio. Crea mapeos internos para acceso rápido.
+        """
         socios = listar_socios()
         self.mapa_socios = {f"{s.nombre} {s.apellido1} ({s.email})": s.id_socio for s in socios}
         completer = QCompleter(list(self.mapa_socios.keys()))
@@ -111,15 +116,26 @@ class PagoPage(QWidget, Ui_pago_page):
         self.txt_socio.setCompleter(completer)
         self.selected_socio_id = None
 
-    def _on_completer_activated(self, text: str):
+    def _on_completer_activated(self, text: str) -> None:
+        """Handler llamado cuando el usuario selecciona un elemento del completer.
+        
+        Args:
+            text (str): Texto del elemento seleccionado del completer.
+        """
         self.selected_socio_id = self.mapa_socios.get(text)
 
-    def cargar_para_reserva(self, id_reserva: int):
+    def cargar_para_reserva(self, id_reserva: int) -> None:
         """Prefill the payment form using a reservation id.
 
         - Busca la reserva y coloca el socio relacionado en el autocompleter y campo.
         - Rellena el concepto con el id de la reserva y selecciona el tipo 'Reserva'.
         - Ajusta la fecha al día de la reserva.
+        
+        Args:
+            id_reserva (int): ID de la reserva para precarga.
+        
+        Raises:
+            ValueError: Si la reserva no se encuentra en la base de datos.
         """
         from services.reserva_service import obtener_reserva_por_id
 
@@ -174,8 +190,12 @@ class PagoPage(QWidget, Ui_pago_page):
         except Exception:
             pass
 
-    def _on_tipo_changed(self, idx: int):
-        """Si el tipo deja de ser 'Reserva', limpiamos la vinculación."""
+    def _on_tipo_changed(self, idx: int) -> None:
+        """Si el tipo deja de ser 'Reserva', limpiamos la vinculación.
+        
+        Args:
+            idx (int): Índice del item seleccionado en el combo.
+        """
         try:
             tipo_text = self.comboBox.currentText().lower()
         except Exception:
@@ -183,19 +203,29 @@ class PagoPage(QWidget, Ui_pago_page):
         if tipo_text != 'reserva' and self._linked_reserva_id is not None:
             self._clear_linked_reserva()
 
-    def _on_concepto_edited(self, text: str):
-        """Si el usuario edita el concepto manualmente, limpiamos la vinculación."""
+    def _on_concepto_edited(self, text: str) -> None:
+        """Si el usuario edita el concepto manualmente, limpiamos la vinculación.
+        
+        Args:
+            text (str): Nuevo texto del campo concepto.
+        """
         if self._linked_reserva_id is not None:
             self._clear_linked_reserva()
 
-    def _clear_linked_reserva(self):
+    def _clear_linked_reserva(self) -> None:
+        """Limpia la vinculación a una reserva precargada."""
         self._linked_reserva_id = None
         try:
             self.txt_concepto.setReadOnly(False)
         except Exception:
             pass
 
-    def cargar_pagos(self):
+    def cargar_pagos(self) -> None:
+        """Recarga la tabla de pagos desde el servicio.
+        
+        Obtiene todos los pagos de la base de datos y actualiza la tabla con sus datos.
+        Utiliza mapeos internos para evitar acceso lazy loading a relaciones.
+        """
         pagos = listar_pagos()
         self.tabla_pagos.setRowCount(len(pagos))
         self.tabla_pagos.setColumnCount(6)
@@ -228,7 +258,13 @@ class PagoPage(QWidget, Ui_pago_page):
             header.setSectionResizeMode(col, QHeaderView.Fixed)
             self.tabla_pagos.setColumnWidth(col, 120) 
 
-    def insertar(self):
+    def insertar(self) -> None:
+        """Inserta un nuevo pago en la base de datos.
+        
+        Valida los campos, lee los valores del formulario y crea un nuevo registro de pago
+        con sus correspondientes entradas vinculadas (PagoCuota, PagoReserva o PagoExtra).
+        Luego recarga la tabla de pagos.
+        """
         # Validaciones mínimas
         try:
             importe = float(self.txt_importe.text())
@@ -282,10 +318,19 @@ class PagoPage(QWidget, Ui_pago_page):
         except Exception as e:
             QMessageBox.warning(self, "Error", str(e))
 
-    def modificar(self):
+    def modificar(self) -> None:
+        """Modificación de pagos (no implementado).
+        
+        Actualmente muestra un mensaje informativo indicando que esta funcionalidad
+        no está disponible.
+        """
         QMessageBox.information(self, "Info", "Modificar pagos no implementado")
 
-    def anular(self):
+    def anular(self) -> None:
+        """Marca el pago seleccionado como anulado.
+        
+        Cambia el estado del pago a ANULADO. Luego recarga la tabla de pagos.
+        """
         fila = self.tabla_pagos.currentRow()
         if fila < 0:
             QMessageBox.warning(self, "Error", "Selecciona un pago para anular")
@@ -316,8 +361,12 @@ class PagoPage(QWidget, Ui_pago_page):
         QMessageBox.information(self, "Éxito", "Pago anulado")
         self.cargar_pagos()
 
-    def generar_listado(self):
-        """Genera un listado de pagos en Excel con filtros."""
+    def generar_listado(self) -> None:
+        """Genera un listado de pagos en formato XLSX con filtros.
+        
+        Muestra un diálogo para seleccionar filtros (tipo, fechas y estado),
+        solicita la ubicación del archivo y exporta los datos a Excel.
+        """
         from PySide6.QtWidgets import QDialog
         # Mostrar diálogo de filtros
         dlg = FiltrosPagePagosDialog(self)
@@ -370,8 +419,13 @@ class PagoPage(QWidget, Ui_pago_page):
         self._generar_xlsx_pagos(archivo, pagos)
         QMessageBox.information(self, "Éxito", f"Listado guardado en:\n{archivo}")
 
-    def _generar_xlsx_pagos(self, archivo, pagos):
-        """Genera un archivo Excel con el listado de pagos."""
+    def _generar_xlsx_pagos(self, archivo: str, pagos: list) -> None:
+        """Genera un archivo Excel con el listado de pagos.
+        
+        Args:
+            archivo (str): Ruta del archivo XLSX a crear.
+            pagos (list): Lista de objetos pago a exportar.
+        """
         wb = Workbook()
         ws = wb.active
         ws.title = "Pagos"
@@ -437,8 +491,11 @@ class PagoPage(QWidget, Ui_pago_page):
         
         wb.save(archivo)
 
-    def vaciar_campos(self):
-        """Restablece los campos del formulario de pago al estado por defecto."""
+    def vaciar_campos(self) -> None:
+        """Restablece los campos del formulario de pago al estado por defecto.
+        
+        Limpia todos los campos de entrada y resetea los valores de control internos.
+        """
         self.txt_importe.clear()
         self.txt_socio.clear()
         self.selected_socio_id = None

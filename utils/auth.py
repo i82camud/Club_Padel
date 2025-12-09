@@ -9,16 +9,36 @@ AUTH_PATH = os.path.join(ROOT, 'data', 'auth.json')
 
 
 def _pbkdf2_hash(password: str, salt: bytes, iterations: int = 200_000) -> bytes:
+    """Genera un hash PBKDF2-SHA256 para una contrase\u00f1a.
+    
+    Args:
+        password (str): Contrase\u00f1a a hashear.
+        salt (bytes): Salt para el hash.
+        iterations (int): N\u00famero de iteraciones (por defecto 200000).
+    
+    Returns:
+        bytes: Hash PBKDF2 calculado.
+    """
     return hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, iterations)
 
 
-def _write_auth(data: Dict):
+def _write_auth(data: Dict) -> None:
+    """Escribe los datos de autenticación en el fichero de configuración.
+    
+    Args:
+        data (Dict): Diccionario con los datos de autenticación (salt, iterations, hash).
+    """
     os.makedirs(os.path.dirname(AUTH_PATH), exist_ok=True)
     with open(AUTH_PATH, 'w', encoding='utf-8') as f:
         json.dump(data, f)
 
 
 def _read_auth() -> Dict:
+    """Lee los datos de autenticación del fichero de configuración.
+    
+    Returns:
+        Dict: Diccionario con datos de autenticación o {} si no existe.
+    """
     if not os.path.exists(AUTH_PATH):
         return {}
     with open(AUTH_PATH, 'r', encoding='utf-8') as f:
@@ -46,6 +66,14 @@ def ensure_auth_file_exists(default_password: str = 'admin') -> None:
 
 
 def verify_password(password: str) -> bool:
+    """Verifica una contraseña contra el hash almacenado.
+    
+    Args:
+        password (str): Contraseña a verificar.
+    
+    Returns:
+        bool: True si la contraseña es correcta, False en caso contrario.
+    """
     data = _read_auth()
     if not data:
         return False
@@ -57,6 +85,11 @@ def verify_password(password: str) -> bool:
 
 
 def set_password(new_password: str) -> None:
+    """Establece una nueva contraseña en el sistema de autenticación.
+    
+    Args:
+        new_password (str): Nueva contraseña a guardar.
+    """
     salt = secrets.token_bytes(16)
     iterations = 200_000
     h = _pbkdf2_hash(new_password, salt, iterations)
@@ -69,6 +102,15 @@ def set_password(new_password: str) -> None:
 
 
 def change_password(current_password: str, new_password: str) -> bool:
+    """Cambia la contraseña actual por una nueva después de verificar la actual.
+    
+    Args:
+        current_password (str): Contraseña actual para verificación.
+        new_password (str): Nueva contraseña a guardar.
+    
+    Returns:
+        bool: True si el cambio fue exitoso, False si la contraseña actual es incorrecta.
+    """
     if not verify_password(current_password):
         return False
     set_password(new_password)

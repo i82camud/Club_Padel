@@ -60,7 +60,12 @@ class PistaPage(QWidget, Ui_PistaPage):
         # Cargar tabla al inicio
         self.cargar_pistas()
 
-    def cargar_pistas(self):
+    def cargar_pistas(self) -> None:
+        """Recarga la tabla de pistas desde el servicio.
+        
+        Obtiene todas las pistas de la base de datos y actualiza la tabla con sus datos.
+        Muestra el estado de forma legible (Activa/Inactiva).
+        """
         pistas = pista_service.listar_pistas()
         self.tabla_pistas.setRowCount(len(pistas))
         self.tabla_pistas.setColumnCount(5)
@@ -82,7 +87,14 @@ class PistaPage(QWidget, Ui_PistaPage):
                 self.tabla_pistas.setItem(fila, col, QTableWidgetItem(str(dato)))
 
     # validaciones
-    def validar_campos(self):
+    def validar_campos(self) -> tuple:
+        """Valida que los campos del formulario cumplan con los requisitos.
+        
+        Verifica que el nombre de la pista no esté vacío.
+        
+        Returns:
+            tuple: (bool, str) - Tupla con éxito de validación y mensaje de error si aplica.
+        """
         nombre, pared, tipo = self.normalizar_campos()
 
         if not nombre:
@@ -91,26 +103,48 @@ class PistaPage(QWidget, Ui_PistaPage):
         return True, ""
 
     # campos
-    def vaciar_campos(self):
+    def vaciar_campos(self) -> None:
+        """Limpia todos los campos del formulario de pistas.
+        
+        Borra el contenido del campo de nombre y resetea los combos a su primer elemento.
+        """
         self.txt_nombre.clear()
         self.cmb_pared.setCurrentIndex(0)
         self.cmb_tipo.setCurrentIndex(0)
 
-    def actualizar_campos(self):
+    def actualizar_campos(self) -> None:
+        """Carga los datos de la fila seleccionada en los campos del formulario.
+        
+        Lee la fila actualmente seleccionada en la tabla y rellena los campos de entrada
+        con los datos de la pista seleccionada.
+        """
         fila = self.tabla_pistas.currentRow()
         if fila >= 0:
             self.txt_nombre.setText(self.tabla_pistas.item(fila, 1).text())
             self.cmb_pared.setCurrentText(self.tabla_pistas.item(fila, 2).text())
             self.cmb_tipo.setCurrentText(self.tabla_pistas.item(fila, 3).text())
 
-    def normalizar_campos(self):
+    def normalizar_campos(self) -> tuple:
+        """Normaliza el formato de los datos ingresados en los campos del formulario.
+        
+        Aplica transformaciones como trim de espacios en el nombre, obtiene los valores
+        seleccionados en los combos.
+        
+        Returns:
+            tuple: (nombre, pared, tipo) normalizados.
+        """
         nombre = self.txt_nombre.text().strip()
         pared = self.cmb_pared.currentText()
         tipo = self.cmb_tipo.currentText()
         return nombre, pared, tipo
 
     # CRUD
-    def insertar(self):
+    def insertar(self) -> None:
+        """Inserta una nueva pista en la base de datos.
+        
+        Valida los campos, normaliza los datos y crea un nuevo registro de pista.
+        Emite la señal bus.pistas_changed para actualizar otros widgets.
+        """
         ok, mensaje = self.validar_campos()
         if not ok:
             QMessageBox.warning(self, "Error", mensaje)
@@ -123,7 +157,12 @@ class PistaPage(QWidget, Ui_PistaPage):
         self.cargar_pistas()
         bus.pistas_changed.emit()
 
-    def modificar(self):
+    def modificar(self) -> None:
+        """Actualiza los datos de la pista seleccionada.
+        
+        Valida los campos, normaliza los datos y actualiza el registro de la pista.
+        Emite la señal bus.pistas_changed para actualizar otros widgets.
+        """
         fila = self.tabla_pistas.currentRow()
         if fila < 0:
             QMessageBox.warning(self, "Error", "Selecciona una pista para modificar.")
@@ -141,7 +180,12 @@ class PistaPage(QWidget, Ui_PistaPage):
         self.cargar_pistas()
         bus.pistas_changed.emit()
 
-    def baja_pista(self):
+    def baja_pista(self) -> None:
+        """Marca la pista seleccionada como inactiva (baja).
+        
+        Cambia el estado de la pista a INACTIVA. Emite la señal bus.pistas_changed
+        para actualizar otros widgets.
+        """
         row = self.tabla_pistas.currentRow()
         if row < 0:
             QMessageBox.warning(self, "Error", "Selecciona una pista para dar de baja.")
@@ -154,7 +198,12 @@ class PistaPage(QWidget, Ui_PistaPage):
         self.cargar_pistas()
         bus.pistas_changed.emit()
 
-    def activa_pista(self):
+    def activa_pista(self) -> None:
+        """Marca la pista seleccionada como activa (reactivación).
+        
+        Cambia el estado de la pista a ACTIVA. Emite la señal bus.pistas_changed
+        para actualizar otros widgets.
+        """
         row = self.tabla_pistas.currentRow()
         if row < 0:
             QMessageBox.warning(self, "Error", "Selecciona una pista para activar.")
@@ -167,8 +216,12 @@ class PistaPage(QWidget, Ui_PistaPage):
         self.cargar_pistas()
         bus.pistas_changed.emit()
 
-    def generar_listado(self):
-        """Genera un listado de pistas en Excel con filtros."""
+    def generar_listado(self) -> None:
+        """Genera un listado de pistas en formato XLSX con filtros.
+        
+        Muestra un diálogo para seleccionar filtros (estado: Todas/Activas/Inactivas),
+        solicita la ubicación del archivo y exporta los datos a Excel.
+        """
         from PySide6.QtWidgets import QDialog
         # Mostrar diálogo de filtros
         dlg = FiltrosPistasDialog(self)
@@ -207,8 +260,13 @@ class PistaPage(QWidget, Ui_PistaPage):
         self._generar_xlsx_pistas(archivo, pistas)
         QMessageBox.information(self, "Éxito", f"Listado guardado en:\n{archivo}")
 
-    def _generar_xlsx_pistas(self, archivo, pistas):
-        """Genera un archivo Excel con el listado de pistas."""
+    def _generar_xlsx_pistas(self, archivo: str, pistas: list) -> None:
+        """Genera un archivo Excel con el listado de pistas.
+        
+        Args:
+            archivo (str): Ruta del archivo XLSX a crear.
+            pistas (list): Lista de objetos pista a exportar.
+        """
         wb = Workbook()
         ws = wb.active
         ws.title = "Pistas"
