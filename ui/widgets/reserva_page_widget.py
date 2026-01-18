@@ -72,27 +72,33 @@ class ReservaPage(QWidget, Ui_reserva_page):
     def cargar_pistas(self) -> None:
         """Recarga la lista de pistas en el combo y crea mapeos internos.
         
-        Obtiene todas las pistas del servicio, carga el combo de pistas y
+        Obtiene todas las pistas activas del servicio, carga el combo de pistas y
         crea un mapa interno para acceso rápido sin lazy loading.
         """
-        pistas = listar_pistas()
+        from models.orm_models import PistaEstado
+        pistas = listar_pistas(estado=PistaEstado.ACTIVA)
         self.cmb_pista.clear()
         for p in pistas:
             # mostrar nombre, almacenar id en data
             self.cmb_pista.addItem(p.nombre, p.id_pista)
         # mapa id -> nombre para usar en la tabla sin lazy-loading
-        self.mapa_pistas = {p.id_pista: p.nombre for p in pistas}
+        # Incluir todas las pistas para mostrar en la tabla aunque sean inactivas
+        todas_pistas = listar_pistas()
+        self.mapa_pistas = {p.id_pista: p.nombre for p in todas_pistas}
 
     def cargar_socios(self) -> None:
         """Recarga la lista de socios y configura el autocompletado.
         
-        Obtiene todos los socios del servicio y configura un completer con autocompletado
+        Obtiene solo los socios activos del servicio y configura un completer con autocompletado
         case-insensitive para el campo de socio. Crea mapeos internos para acceso rápido.
         """
-        socios = listar_socios()
+        from models.orm_models import SocioEstado
+        
+        # Filtrar solo socios activos para el autocompletado
+        socios_activos = [s for s in listar_socios() if s.estado == SocioEstado.ACTIVO]
         # Creamos un diccionario para mapear texto mostrado → id_socio
         self.mapa_socios = {
-            f"{s.nombre} {s.apellido1} ({s.email})": s.id_socio for s in socios
+            f"{s.nombre} {s.apellido1} ({s.email})": s.id_socio for s in socios_activos
         }
 
         completer = QCompleter(list(self.mapa_socios.keys()))
@@ -103,7 +109,9 @@ class ReservaPage(QWidget, Ui_reserva_page):
         self.txt_socio.setCompleter(completer)
 
         # crear mapa inverso id -> display para buscar rápidamente
-        self.mapa_socios_id_to_display = {v: k for k, v in self.mapa_socios.items()}
+        # Incluir todos los socios para mostrar en la tabla aunque sean inactivos
+        todos_socios = listar_socios()
+        self.mapa_socios_id_to_display = {s.id_socio: f"{s.nombre} {s.apellido1} ({s.email})" for s in todos_socios}
 
     def cargar_reservas(self) -> None:
         """Recarga la tabla de reservas desde el servicio.
@@ -293,6 +301,15 @@ class ReservaPage(QWidget, Ui_reserva_page):
             return
 
         id_pista = self.cmb_pista.currentData()
+        
+        # Validar que la pista esté activa
+        from services.pista_service import obtener_pista_por_id
+        from models.orm_models import PistaEstado
+        pista = obtener_pista_por_id(id_pista)
+        if pista is None or pista.estado != PistaEstado.ACTIVA:
+            QMessageBox.warning(self, "Error", "La pista seleccionada no está activa")
+            return
+        
         # Para simplicidad usamos el texto de socio; servicio espera id_socio, pero
         # en este widget no resolvemos id desde nombre: se asume que el flujo de UI
         # usará ids. Aquí intentaremos interpretar un entero si se introdujo.
@@ -301,13 +318,30 @@ class ReservaPage(QWidget, Ui_reserva_page):
         if id_socio is None:
             QMessageBox.warning(self, "Error", "Selecciona un socio válido del autocompletado")
             return
+        
+        # Validar que el socio esté activo
+        from services.socio_service import obtener_socio_por_id
+        from models.orm_models import SocioEstado
+        socio = obtener_socio_por_id(id_socio)
+        if socio is None or socio.estado != SocioEstado.ACTIVO:
+            QMessageBox.warning(self, "Error", "El socio seleccionado no está activo")
+            return
 
         fecha_qdate = self.dateEdit.date()
         fecha_py = date(fecha_qdate.year(), fecha_qdate.month(), fecha_qdate.day())
+        
         hi_q = self.timeEdit.time()
         hf_q = self.timeEdit_2.time()
         hi_py = time(hi_q.hour(), hi_q.minute())
         hf_py = time(hf_q.hour(), hf_q.minute())
+        
+        # Validar que la fecha y hora no sean anteriores a ahora
+        from datetime import datetime
+        ahora = datetime.now()
+        fecha_hora_reserva = datetime.combine(fecha_py, hi_py)
+        if fecha_hora_reserva < ahora:
+            QMessageBox.warning(self, "Error", "La reserva no puede ser anterior a la fecha y hora actual")
+            return
 
         try:
             insertar_reserva(id_socio=id_socio, id_pista=id_pista, fecha=fecha_py, hora_inicio=hi_py, hora_fin=hf_py)
@@ -338,18 +372,44 @@ class ReservaPage(QWidget, Ui_reserva_page):
             return
 
         id_pista = self.cmb_pista.currentData()
+        
+        # Validar que la pista esté activa
+        from services.pista_service import obtener_pista_por_id
+        from models.orm_models import PistaEstado
+        pista = obtener_pista_por_id(id_pista)
+        if pista is None or pista.estado != PistaEstado.ACTIVA:
+            QMessageBox.warning(self, "Error", "La pista seleccionada no está activa")
+            return
+        
         socio_text = self.txt_socio.text().strip()
         id_socio = self._resolve_socio_id(socio_text)
         if id_socio is None:
             QMessageBox.warning(self, "Error", "Selecciona un socio válido del autocompletado")
             return
+        
+        # Validar que el socio esté activo
+        from services.socio_service import obtener_socio_por_id
+        from models.orm_models import SocioEstado
+        socio = obtener_socio_por_id(id_socio)
+        if socio is None or socio.estado != SocioEstado.ACTIVO:
+            QMessageBox.warning(self, "Error", "El socio seleccionado no está activo")
+            return
 
         fecha_qdate = self.dateEdit.date()
         fecha_py = date(fecha_qdate.year(), fecha_qdate.month(), fecha_qdate.day())
+        
         hi_q = self.timeEdit.time()
         hf_q = self.timeEdit_2.time()
         hi_py = time(hi_q.hour(), hi_q.minute())
         hf_py = time(hf_q.hour(), hf_q.minute())
+        
+        # Validar que la fecha y hora no sean anteriores a ahora
+        from datetime import datetime
+        ahora = datetime.now()
+        fecha_hora_reserva = datetime.combine(fecha_py, hi_py)
+        if fecha_hora_reserva < ahora:
+            QMessageBox.warning(self, "Error", "La reserva no puede ser anterior a la fecha y hora actual")
+            return
 
         try:
             actualizar_reserva(id_reserva=id_reserva, id_socio=id_socio, id_pista=id_pista, fecha=fecha_py, hora_inicio=hi_py, hora_fin=hf_py)
@@ -397,6 +457,27 @@ class ReservaPage(QWidget, Ui_reserva_page):
         if r is None:
             QMessageBox.warning(self, "Error", "Reserva no encontrada")
             return
+        
+        # Validar que la reserva no esté cancelada
+        from models.orm_models import ReservaEstado
+        if r.estado == ReservaEstado.CANCELADA:
+            QMessageBox.warning(self, "Error", "No se puede pagar una reserva cancelada")
+            return
+        
+        # Validar que la reserva no esté ya pagada
+        from models import orm
+        session = orm.SessionLocal()
+        try:
+            from models.orm_models import PagoReserva, Pago, PagoEstado
+            pago_reserva = session.query(PagoReserva).filter(PagoReserva.id_reserva == id_reserva).first()
+            if pago_reserva is not None:
+                # Verificar el estado del pago
+                pago = session.query(Pago).filter(Pago.id_pago == pago_reserva.id_pago).first()
+                if pago is not None and pago.estado == PagoEstado.PAGADO:
+                    QMessageBox.information(self, "Información", "Esta reserva ya está pagada")
+                    return
+        finally:
+            session.close()
 
         # Obtener la ventana principal y la página de pagos
         main_win = self.window()
