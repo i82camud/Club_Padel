@@ -4,11 +4,11 @@ Funciones CRUD para `Reserva` y utilidades (p.ej. detección de solapamientos).
 Las funciones gestionan sesiones y devuelven instancias ORM.
 """
 from typing import List, Optional
-from datetime import date, time
+from datetime import date, time, datetime, timedelta
 
 from models import orm
 from models.orm_models import Reserva as ReservaORM, ReservaEstado
-from utils.settings import get_opening_hours, get_max_reservas_simultaneas
+from utils.settings import get_opening_hours, get_max_reservas_simultaneas, get_antelacion_minima, get_antelacion_maxima
 
 
 def _to_reserva_estado(value) -> Optional[ReservaEstado]:
@@ -30,12 +30,12 @@ def _to_reserva_estado(value) -> Optional[ReservaEstado]:
 
 
 def insertar_reserva(id_socio: int, id_pista: int, fecha: date, hora_inicio: time, hora_fin: time, estado=ReservaEstado.ACTIVA) -> ReservaORM:
-    """Inserta una nueva reserva verificando solapamientos y validaciones de horario.
+    """Inserta una nueva reserva verificando solapamientos, antelación y validaciones de horario.
     
     Comprueba que el horario solicitado esté dentro del horario de apertura del club,
-    que la duración sea al menos la mínima configurada, que el socio no haya excedido
-    el máximo de reservas simultáneas activas. Lanza ValueError si existe solapamiento
-    con otra reserva activa.
+    que la duración sea al menos la mínima configurada, que se respeten los tiempos
+    de antelación mínima y máxima, que el socio no haya excedido el máximo de reservas
+    simultáneas activas. Lanza ValueError si existe solapamiento con otra reserva activa.
     
     Args:
         id_socio (int): Identificador del socio que realiza la reserva.
@@ -50,8 +50,8 @@ def insertar_reserva(id_socio: int, id_pista: int, fecha: date, hora_inicio: tim
     
     Raises:
         ValueError: Si el horario está fuera de apertura, la duración es insuficiente,
-                    el socio ha excedido el máximo de reservas simultáneas, o existe 
-                    solapamiento con otra reserva activa.
+                    no se respeta la antelación, el socio ha excedido el máximo de 
+                    reservas simultáneas, o existe solapamiento con otra reserva activa.
     """
     session = orm.SessionLocal()
     try:
@@ -69,6 +69,23 @@ def insertar_reserva(id_socio: int, id_pista: int, fecha: date, hora_inicio: tim
             horas = duracion_minima // 60
             minutos = duracion_minima % 60
             raise ValueError(f"La duración de la reserva debe ser de al menos {horas:02d}:{minutos:02d}")
+
+        # Validar antelación: calcular fecha y hora actual
+        ahora = datetime.now()
+        fecha_hora_reserva = datetime.combine(fecha, hora_inicio)
+        diferencia = fecha_hora_reserva - ahora
+        
+        # Validar antelación mínima
+        antel_min_minutos = get_antelacion_minima()
+        if diferencia < timedelta(minutes=antel_min_minutos):
+            horas = antel_min_minutos // 60
+            minutos = antel_min_minutos % 60
+            raise ValueError(f"La reserva debe hacerse con una antelación mínima de {horas:02d}:{minutos:02d}")
+        
+        # Validar antelación máxima
+        antel_max_dias = get_antelacion_maxima()
+        if diferencia > timedelta(days=antel_max_dias):
+            raise ValueError(f"La reserva no puede hacerse con más de {antel_max_dias} días de antelación")
 
         # Validar máximo de reservas simultáneas activas que no se hayan cumplido
         max_reservas = get_max_reservas_simultaneas()

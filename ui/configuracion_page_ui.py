@@ -44,7 +44,7 @@ class Ui_configuracion_page(object):
         self.btn_restaurar.setGeometry(QRect(510, 0, 141, 41))
         self.gridLayoutWidget = QWidget(configuracion_page)
         self.gridLayoutWidget.setObjectName(u"gridLayoutWidget")
-        self.gridLayoutWidget.setGeometry(QRect(20, 110, 751, 100))
+        self.gridLayoutWidget.setGeometry(QRect(20, 110, 751, 131))
         self.gridLayout = QGridLayout(self.gridLayoutWidget)
         self.gridLayout.setObjectName(u"gridLayout")
         self.gridLayout.setContentsMargins(0, 0, 0, 0)
