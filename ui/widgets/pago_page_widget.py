@@ -97,6 +97,9 @@ class PagoPage(QWidget, Ui_pago_page):
         self.btn_modificar.clicked.connect(self.modificar)
         self.btn_baja.clicked.connect(self.anular)
         self.btn_listar.clicked.connect(self.generar_listado)
+        
+        # Conectar tabla para que actualice los campos al seleccionar fila
+        self.tabla_pagos.itemSelectionChanged.connect(self.actualizar_campos)
 
         # cargar tabla
         self.cargar_pagos()
@@ -170,7 +173,7 @@ class PagoPage(QWidget, Ui_pago_page):
             hora = r.hora_inicio.strftime('%H:%M') if hasattr(r.hora_inicio, 'strftime') else ''
         except Exception:
             hora = ''
-        descripcion = f"Reserva Pista {pista_nombre} — {r.fecha.isoformat()} {hora}"
+        descripcion = f"Reserva {pista_nombre} — {format_date(r.fecha)} {hora}"
         self.txt_concepto.setText(descripcion)
         # guardar la referencia interna y bloquear edición del concepto
         self._linked_reserva_id = id_reserva
@@ -258,6 +261,80 @@ class PagoPage(QWidget, Ui_pago_page):
             header.setSectionResizeMode(col, QHeaderView.Fixed)
             self.tabla_pagos.setColumnWidth(col, 120) 
 
+    def actualizar_campos(self) -> None:
+        """Carga los datos de la fila seleccionada en los campos del formulario.
+        
+        Lee la fila actualmente seleccionada en la tabla y rellena los campos de entrada
+        con los datos del pago seleccionado.
+        """
+        fila = self.tabla_pagos.currentRow()
+        if fila < 0:
+            return
+        
+        # Obtener el id del pago de la primera columna
+        item0 = self.tabla_pagos.item(fila, 0)
+        if item0 is None:
+            return
+        
+        try:
+            id_pago = int(item0.text())
+            
+            # Usar sesión para cargar relaciones lazy
+            from models import orm
+            from models.orm_models import Pago
+            session = orm.SessionLocal()
+            try:
+                pago = session.query(Pago).filter(Pago.id_pago == id_pago).first()
+                if pago is None:
+                    return
+                
+                # Rellenar los campos con los datos del pago
+                # Socio: mostrar nombre y apellido con email
+                socios = listar_socios()
+                mapa_socios = {s.id_socio: f"{s.nombre} {s.apellido1} ({s.email})" for s in socios}
+                self.txt_socio.setText(mapa_socios.get(pago.id_socio, str(pago.id_socio)))
+                
+                # Importe
+                self.txt_importe.setText(f"{pago.importe:.2f}")
+                
+                # Fecha
+                if hasattr(pago.fecha_pago, 'year'):
+                    self.dateEdit.setDate(pago.fecha_pago)
+                
+                # Tipo de pago
+                tipo_text = pago.tipo.name.capitalize() if hasattr(pago.tipo, 'name') else str(pago.tipo)
+                idx = self.comboBox.findText(tipo_text, Qt.MatchFixedString)
+                if idx >= 0:
+                    self.comboBox.setCurrentIndex(idx)
+                
+                # Concepto (depende del tipo de pago)
+                concepto = ""
+                if pago.pago_cuota:
+                    concepto = pago.pago_cuota.periodo
+                elif pago.pago_reserva:
+                    # Para reserva: mostrar el mismo concepto que en cargar_para_reserva
+                    reserva = pago.pago_reserva.reserva if hasattr(pago.pago_reserva, 'reserva') else None
+                    if reserva:
+                        pistas = listar_pistas()
+                        mapa_pistas = {p.id_pista: p.nombre for p in pistas}
+                        pista_nombre = mapa_pistas.get(reserva.id_pista, str(reserva.id_pista))
+                        hora = ''
+                        try:
+                            hora = reserva.hora_inicio.strftime('%H:%M') if hasattr(reserva.hora_inicio, 'strftime') else ''
+                        except Exception:
+                            hora = ''
+                        concepto = f"Reserva {pista_nombre} — {format_date(reserva.fecha)} {hora}"
+                    else:
+                        concepto = str(pago.pago_reserva.id_reserva)
+                elif pago.pago_extra:
+                    concepto = pago.pago_extra.concepto
+                self.txt_concepto.setText(concepto)
+            finally:
+                session.close()
+            
+        except Exception:
+            pass
+
     def insertar(self) -> None:
         """Inserta un nuevo pago en la base de datos.
         
@@ -270,6 +347,11 @@ class PagoPage(QWidget, Ui_pago_page):
             importe = float(self.txt_importe.text())
         except Exception:
             QMessageBox.warning(self, "Error", "Importe inválido")
+            return
+        
+        # Validar que el importe no sea negativo
+        if importe < 0:
+            QMessageBox.warning(self, "Error", "El importe no puede ser negativo")
             return
 
         fecha_q = self.dateEdit.date()
@@ -319,12 +401,53 @@ class PagoPage(QWidget, Ui_pago_page):
             QMessageBox.warning(self, "Error", str(e))
 
     def modificar(self) -> None:
-        """Modificación de pagos (no implementado).
+        """Modifica los datos del pago seleccionado en la base de datos.
         
-        Actualmente muestra un mensaje informativo indicando que esta funcionalidad
-        no está disponible.
+        Valida los campos, lee los valores del formulario y actualiza el registro del pago.
+        Luego recarga la tabla de pagos.
         """
-        QMessageBox.information(self, "Info", "Modificar pagos no implementado")
+        fila = self.tabla_pagos.currentRow()
+        if fila < 0:
+            QMessageBox.warning(self, "Error", "Selecciona un pago para modificar")
+            return
+        
+        item0 = self.tabla_pagos.item(fila, 0)
+        if item0 is None:
+            QMessageBox.warning(self, "Error", "Fila inválida")
+            return
+        
+        id_pago = int(item0.text())
+        
+        # Validaciones mínimas
+        try:
+            importe = float(self.txt_importe.text())
+        except Exception:
+            QMessageBox.warning(self, "Error", "Importe inválido")
+            return
+        
+        # Validar que el importe no sea negativo
+        if importe < 0:
+            QMessageBox.warning(self, "Error", "El importe no puede ser negativo")
+            return
+        
+        fecha_q = self.dateEdit.date()
+        fecha_py = date(fecha_q.year(), fecha_q.month(), fecha_q.day())
+        
+        # resolver socio
+        socio_text = self.txt_socio.text().strip()
+        sid = self.selected_socio_id if self.selected_socio_id and socio_text in self.mapa_socios else self.mapa_socios.get(socio_text)
+        if not sid:
+            QMessageBox.warning(self, "Error", "Selecciona un socio válido")
+            return
+        
+        try:
+            from services.pago_service import modificar_pago
+            modificar_pago(id_pago=id_pago, id_socio=sid, importe=importe, fecha_pago=fecha_py)
+            QMessageBox.information(self, "Éxito", "Pago modificado correctamente")
+            self.vaciar_campos()
+            self.cargar_pagos()
+        except Exception as e:
+            QMessageBox.warning(self, "Error", str(e))
 
     def anular(self) -> None:
         """Marca el pago seleccionado como anulado.

@@ -16,7 +16,8 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QApplication, QGridLayout, QGroupBox, QLabel,
-    QPushButton, QSizePolicy, QTimeEdit, QWidget)
+    QLineEdit, QPushButton, QSizePolicy, QTimeEdit,
+    QWidget)
 
 class Ui_configuracion_page(object):
     def setupUi(self, configuracion_page):
@@ -43,7 +44,7 @@ class Ui_configuracion_page(object):
         self.btn_restaurar.setGeometry(QRect(510, 0, 141, 41))
         self.gridLayoutWidget = QWidget(configuracion_page)
         self.gridLayoutWidget.setObjectName(u"gridLayoutWidget")
-        self.gridLayoutWidget.setGeometry(QRect(20, 110, 631, 91))
+        self.gridLayoutWidget.setGeometry(QRect(20, 110, 751, 131))
         self.gridLayout = QGridLayout(self.gridLayoutWidget)
         self.gridLayout.setObjectName(u"gridLayout")
         self.gridLayout.setContentsMargins(0, 0, 0, 0)
@@ -76,6 +77,24 @@ class Ui_configuracion_page(object):
 
         self.gridLayout.addWidget(self.label_4, 0, 0, 1, 1)
 
+        self.txt_reservas = QLineEdit(self.gridLayoutWidget)
+        self.txt_reservas.setObjectName(u"txt_reservas")
+        sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
+        sizePolicy1.setHorizontalStretch(0)
+        sizePolicy1.setVerticalStretch(0)
+        sizePolicy1.setHeightForWidth(self.txt_reservas.sizePolicy().hasHeightForWidth())
+        self.txt_reservas.setSizePolicy(sizePolicy1)
+
+        self.gridLayout.addWidget(self.txt_reservas, 2, 1, 1, 1)
+
+        self.label_9 = QLabel(self.gridLayoutWidget)
+        self.label_9.setObjectName(u"label_9")
+        sizePolicy.setHeightForWidth(self.label_9.sizePolicy().hasHeightForWidth())
+        self.label_9.setSizePolicy(sizePolicy)
+        self.label_9.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+
+        self.gridLayout.addWidget(self.label_9, 2, 0, 1, 1)
+
         self.label_8 = QLabel(self.gridLayoutWidget)
         self.label_8.setObjectName(u"label_8")
         sizePolicy.setHeightForWidth(self.label_8.sizePolicy().hasHeightForWidth())
@@ -89,6 +108,35 @@ class Ui_configuracion_page(object):
         self.timeReserva.setTime(QTime(1, 30, 0))
 
         self.gridLayout.addWidget(self.timeReserva, 1, 1, 1, 1)
+
+        self.label_6 = QLabel(self.gridLayoutWidget)
+        self.label_6.setObjectName(u"label_6")
+        sizePolicy.setHeightForWidth(self.label_6.sizePolicy().hasHeightForWidth())
+        self.label_6.setSizePolicy(sizePolicy)
+        self.label_6.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+
+        self.gridLayout.addWidget(self.label_6, 3, 0, 1, 1)
+
+        self.timeAntelacionMin = QTimeEdit(self.gridLayoutWidget)
+        self.timeAntelacionMin.setObjectName(u"timeAntelacionMin")
+        self.timeAntelacionMin.setTime(QTime(1, 0, 0))
+
+        self.gridLayout.addWidget(self.timeAntelacionMin, 3, 1, 1, 1)
+
+        self.label_7 = QLabel(self.gridLayoutWidget)
+        self.label_7.setObjectName(u"label_7")
+        sizePolicy.setHeightForWidth(self.label_7.sizePolicy().hasHeightForWidth())
+        self.label_7.setSizePolicy(sizePolicy)
+        self.label_7.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+
+        self.gridLayout.addWidget(self.label_7, 3, 2, 1, 1)
+
+        self.txt_antelacion_max = QLineEdit(self.gridLayoutWidget)
+        self.txt_antelacion_max.setObjectName(u"txt_antelacion_max")
+        sizePolicy1.setHeightForWidth(self.txt_antelacion_max.sizePolicy().hasHeightForWidth())
+        self.txt_antelacion_max.setSizePolicy(sizePolicy1)
+
+        self.gridLayout.addWidget(self.txt_antelacion_max, 3, 3, 1, 1)
 
 
         self.retranslateUi(configuracion_page)
@@ -108,7 +156,11 @@ class Ui_configuracion_page(object):
         self.label_5.setText(QCoreApplication.translate("configuracion_page", u"Hora Cierre", None))
         self.timeCierre.setDisplayFormat(QCoreApplication.translate("configuracion_page", u"HH:mm", None))
         self.label_4.setText(QCoreApplication.translate("configuracion_page", u"Hora Apertura", None))
+        self.label_9.setText(QCoreApplication.translate("configuracion_page", u"N\u00ba Reservas Simult\u00e1neas", None))
         self.label_8.setText(QCoreApplication.translate("configuracion_page", u"Duraci\u00f3n Reserva", None))
         self.timeReserva.setDisplayFormat(QCoreApplication.translate("configuracion_page", u"HH:mm", None))
+        self.label_6.setText(QCoreApplication.translate("configuracion_page", u"Antelaci\u00f3n m\u00ednima", None))
+        self.timeAntelacionMin.setDisplayFormat(QCoreApplication.translate("configuracion_page", u"HH:mm", None))
+        self.label_7.setText(QCoreApplication.translate("configuracion_page", u"Antelaci\u00f3n m\u00e1xima", None))
     # retranslateUi
 

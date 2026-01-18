@@ -127,6 +127,7 @@ class Reserva(Base):
 
     socio = relationship("Socio", back_populates="reservas")
     pista = relationship("Pista", back_populates="reservas")
+    pago_reserva = relationship("PagoReserva", back_populates="reserva", uselist=False)
 
 
 class Pago(Base):
@@ -161,6 +162,7 @@ class PagoReserva(Base):
     id_reserva = Column(Integer, ForeignKey("Reservas.id_reserva"), nullable=False)
 
     pago = relationship("Pago", back_populates="pago_reserva")
+    reserva = relationship("Reserva", back_populates="pago_reserva")
 
 
 class PagoExtra(Base):

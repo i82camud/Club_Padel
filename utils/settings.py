@@ -13,7 +13,10 @@ def _ensure_config_exists() -> None:
         default = {
             "timeApertura": "09:00",
             "timeCierre": "22:00",
-            "timeReserva": "01:30"
+            "timeReserva": "01:30",
+            "maxReservasSimultaneas": 10,
+            "timeAntelacionMin": "01:00",
+            "timeAntelacionMax": 30
         }
         CONFIG_PATH.write_text(json.dumps(default, ensure_ascii=False, indent=2), encoding="utf-8")
 
@@ -102,3 +105,50 @@ def get_reservation_duration() -> int:
         return h * 60 + m
     except Exception:
         return 90  # 1h 30min por defecto
+
+
+def get_max_reservas_simultaneas() -> int:
+    """Devuelve el máximo número de reservas activas simultáneas que puede tener un socio.
+    
+    El valor se almacena como entero. Si no existe, se usa el valor por defecto (10).
+    
+    Returns:
+        int: Número máximo de reservas simultáneas permitidas.
+    """
+    max_reservas = get_config("maxReservasSimultaneas", 10)
+    try:
+        return int(max_reservas)
+    except (ValueError, TypeError):
+        return 10  # 10 reservas por defecto
+
+
+def get_antelacion_minima() -> int:
+    """Devuelve la antelación mínima para hacer una reserva en minutos.
+    
+    El valor se almacena en formato 'HH:MM'. Si no existe, se usa el valor por defecto (01:00 = 60 minutos).
+    
+    Returns:
+        int: Número mínimo de minutos de antelación requeridos.
+    """
+    s_antel_min = get_config("timeAntelacionMin", "01:00")
+    try:
+        h, m = [int(x) for x in s_antel_min.split(":")]
+        return h * 60 + m
+    except Exception:
+        return 60  # 1 hora por defecto
+
+
+def get_antelacion_maxima() -> int:
+    """Devuelve la antelación máxima para hacer una reserva en días.
+    
+    El valor se almacena como entero (días). Si no existe, se usa el valor por defecto (30).
+    
+    Returns:
+        int: Número máximo de días de antelación permitidos.
+    """
+    antel_max = get_config("timeAntelacionMax", 30)
+    try:
+        return int(antel_max)
+    except (ValueError, TypeError):
+        return 30  # 30 días por defecto
+

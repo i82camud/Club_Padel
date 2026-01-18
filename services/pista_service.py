@@ -31,7 +31,15 @@ def insertar_pista(nombre: str, pared: str, tipo: str, estado=PistaEstado.ACTIVA
     
     Returns:
         PistaORM: Instancia de la pista creada con su ID asignado.
+    
+    Raises:
+        ValueError: Si ya existe una pista con el mismo nombre.
     """
+    # Validar que no exista una pista con el mismo nombre
+    pista_existente = obtener_pista_por_nombre(nombre)
+    if pista_existente is not None:
+        raise ValueError(f"Ya existe una pista con el nombre '{nombre}'")
+    
     session = orm.SessionLocal()
     try:
         estado_enum = _to_pista_estado(estado)
@@ -79,6 +87,22 @@ def obtener_pista_por_id(id_pista: int) -> Optional[PistaORM]:
         session.close()
 
 
+def obtener_pista_por_nombre(nombre: str) -> Optional[PistaORM]:
+    """Obtiene una pista por su nombre.
+    
+    Args:
+        nombre (str): Nombre de la pista a buscar.
+    
+    Returns:
+        Optional[PistaORM]: Instancia ORM de la pista o None si no existe.
+    """
+    session = orm.SessionLocal()
+    try:
+        return session.query(PistaORM).filter(PistaORM.nombre == nombre).first()
+    finally:
+        session.close()
+
+
 def modificar_pista(id_pista: int, nombre: str, pared: str, tipo: str) -> Optional[PistaORM]:
     """Modifica los datos de una pista existente.
     
@@ -90,7 +114,15 @@ def modificar_pista(id_pista: int, nombre: str, pared: str, tipo: str) -> Option
     
     Returns:
         Optional[PistaORM]: Pista actualizada o None si no existe.
+    
+    Raises:
+        ValueError: Si ya existe otra pista con el mismo nombre.
     """
+    # Validar que no exista otra pista con el mismo nombre
+    pista_existente = obtener_pista_por_nombre(nombre)
+    if pista_existente is not None and pista_existente.id_pista != id_pista:
+        raise ValueError(f"Ya existe otra pista con el nombre '{nombre}'")
+    
     session = orm.SessionLocal()
     try:
         p = session.get(PistaORM, id_pista)
@@ -186,5 +218,5 @@ def desactivar_pista(id_pista: int) -> Optional[PistaORM]:
 
 
 __all__ = [
-    'insertar_pista', 'listar_pistas', 'modificar_pista', 'activar_pista', 'desactivar_pista', 'obtener_pista_por_id', 'actualizar_pista'
+    'insertar_pista', 'listar_pistas', 'modificar_pista', 'activar_pista', 'desactivar_pista', 'obtener_pista_por_id', 'obtener_pista_por_nombre', 'actualizar_pista'
 ]
