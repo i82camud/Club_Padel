@@ -67,7 +67,14 @@ def insertar_pago(id_socio: int, importe: float, fecha_pago: date, tipo, estado=
     
     Returns:
         PagoORM: Instancia del pago creado con su ID asignado.
+    
+    Raises:
+        ValueError: Si el importe es negativo.
     """
+    # Validar que el importe no sea negativo
+    if importe < 0:
+        raise ValueError("El importe no puede ser negativo")
+    
     session = orm.SessionLocal()
     try:
         estado_enum = _to_pago_estado(estado)

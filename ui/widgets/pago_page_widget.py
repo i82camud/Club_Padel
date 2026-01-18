@@ -271,6 +271,11 @@ class PagoPage(QWidget, Ui_pago_page):
         except Exception:
             QMessageBox.warning(self, "Error", "Importe inválido")
             return
+        
+        # Validar que el importe no sea negativo
+        if importe < 0:
+            QMessageBox.warning(self, "Error", "El importe no puede ser negativo")
+            return
 
         fecha_q = self.dateEdit.date()
         fecha_py = date(fecha_q.year(), fecha_q.month(), fecha_q.day())
