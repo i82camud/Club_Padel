@@ -90,6 +90,19 @@
      <string>Listar Pistas</string>
     </property>
    </widget>
+   <widget class="QPushButton" name="btn_listar_reservas">
+    <property name="geometry">
+     <rect>
+      <x>750</x>
+      <y>0</y>
+      <width>121</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Listar Reservas</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QTableWidget" name="tabla_pistas">
    <property name="geometry">
