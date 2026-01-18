@@ -219,7 +219,41 @@ def anular_pago(id_pago: int) -> Optional[PagoORM]:
         session.close()
 
 
+def modificar_pago(id_pago: int, id_socio: int, importe: float, fecha_pago: date) -> Optional[PagoORM]:
+    """Modifica los datos de un pago existente.
+    
+    Args:
+        id_pago (int): Identificador del pago a modificar.
+        id_socio (int): Nuevo identificador del socio.
+        importe (float): Nuevo importe del pago.
+        fecha_pago (date): Nueva fecha del pago.
+    
+    Returns:
+        Optional[PagoORM]: Instancia del pago modificado o None si no existe.
+    
+    Raises:
+        ValueError: Si el importe es negativo.
+    """
+    # Validar que el importe no sea negativo
+    if importe < 0:
+        raise ValueError("El importe no puede ser negativo")
+    
+    session = orm.SessionLocal()
+    try:
+        p = session.get(PagoORM, id_pago)
+        if p is None:
+            return None
+        p.id_socio = id_socio
+        p.importe = importe
+        p.fecha_pago = fecha_pago
+        session.commit()
+        session.refresh(p)
+        return p
+    finally:
+        session.close()
+
+
 __all__ = [
     'insertar_pago', 'insertar_pago_cuota', 'insertar_pago_reserva', 'insertar_pago_extra',
-    'listar_pagos', 'listar_pagos_por_socio', 'obtener_pago_por_id', 'anular_pago'
+    'listar_pagos', 'listar_pagos_por_socio', 'obtener_pago_por_id', 'anular_pago', 'modificar_pago'
 ]
