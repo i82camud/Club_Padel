@@ -133,7 +133,7 @@ class PistaPage(QWidget, Ui_PistaPage):
         Returns:
             tuple: (nombre, pared, tipo) normalizados.
         """
-        nombre = self.txt_nombre.text().strip()
+        nombre = self.txt_nombre.text().strip().title()  # .title() para poner la primera letra en mayúscula
         pared = self.cmb_pared.currentText()
         tipo = self.cmb_tipo.currentText()
         return nombre, pared, tipo
@@ -151,11 +151,14 @@ class PistaPage(QWidget, Ui_PistaPage):
             return
 
         nombre, pared, tipo = self.normalizar_campos()
-        pista_service.insertar_pista(nombre, pared, tipo)
-        QMessageBox.information(self, "Éxito", "Pista insertada correctamente")
-        self.vaciar_campos()
-        self.cargar_pistas()
-        bus.pistas_changed.emit()
+        try:
+            pista_service.insertar_pista(nombre, pared, tipo)
+            QMessageBox.information(self, "Éxito", "Pista insertada correctamente")
+            self.vaciar_campos()
+            self.cargar_pistas()
+            bus.pistas_changed.emit()
+        except ValueError as e:
+            QMessageBox.warning(self, "Error", str(e))
 
     def modificar(self) -> None:
         """Actualiza los datos de la pista seleccionada.
@@ -175,10 +178,14 @@ class PistaPage(QWidget, Ui_PistaPage):
             return
 
         nombre, pared, tipo = self.normalizar_campos()
-        pista_service.modificar_pista(id_pista, nombre, pared, tipo)
-        self.vaciar_campos()
-        self.cargar_pistas()
-        bus.pistas_changed.emit()
+        try:
+            pista_service.modificar_pista(id_pista, nombre, pared, tipo)
+            QMessageBox.information(self, "Éxito", "Pista modificada correctamente")
+            self.vaciar_campos()
+            self.cargar_pistas()
+            bus.pistas_changed.emit()
+        except ValueError as e:
+            QMessageBox.warning(self, "Error", str(e))
 
     def baja_pista(self) -> None:
         """Marca la pista seleccionada como inactiva (baja).
