@@ -8,7 +8,7 @@ from datetime import date, time
 
 from models import orm
 from models.orm_models import Reserva as ReservaORM, ReservaEstado
-from utils.settings import get_opening_hours
+from utils.settings import get_opening_hours, get_max_reservas_simultaneas
 
 
 def _to_reserva_estado(value) -> Optional[ReservaEstado]:
@@ -32,9 +32,10 @@ def _to_reserva_estado(value) -> Optional[ReservaEstado]:
 def insertar_reserva(id_socio: int, id_pista: int, fecha: date, hora_inicio: time, hora_fin: time, estado=ReservaEstado.ACTIVA) -> ReservaORM:
     """Inserta una nueva reserva verificando solapamientos y validaciones de horario.
     
-    Comprueba que el horario solicitado esté dentro del horario de apertura del club
-    y que la duración sea al menos la mínima configurada. Lanza ValueError si existe
-    solapamiento con otra reserva activa.
+    Comprueba que el horario solicitado esté dentro del horario de apertura del club,
+    que la duración sea al menos la mínima configurada, que el socio no haya excedido
+    el máximo de reservas simultáneas activas. Lanza ValueError si existe solapamiento
+    con otra reserva activa.
     
     Args:
         id_socio (int): Identificador del socio que realiza la reserva.
@@ -48,8 +49,9 @@ def insertar_reserva(id_socio: int, id_pista: int, fecha: date, hora_inicio: tim
         ReservaORM: Instancia de la reserva creada con su ID asignado.
     
     Raises:
-        ValueError: Si el horario está fuera de apertura, la duración es insuficiente
-                    o existe solapamiento con otra reserva activa.
+        ValueError: Si el horario está fuera de apertura, la duración es insuficiente,
+                    el socio ha excedido el máximo de reservas simultáneas, o existe 
+                    solapamiento con otra reserva activa.
     """
     session = orm.SessionLocal()
     try:
@@ -67,6 +69,17 @@ def insertar_reserva(id_socio: int, id_pista: int, fecha: date, hora_inicio: tim
             horas = duracion_minima // 60
             minutos = duracion_minima % 60
             raise ValueError(f"La duración de la reserva debe ser de al menos {horas:02d}:{minutos:02d}")
+
+        # Validar máximo de reservas simultáneas activas que no se hayan cumplido
+        max_reservas = get_max_reservas_simultaneas()
+        reservas_activas = session.query(ReservaORM).filter(
+            ReservaORM.id_socio == id_socio,
+            ReservaORM.estado == ReservaEstado.ACTIVA,
+            ReservaORM.fecha >= date.today()  # Solo reservas futuras o de hoy
+        ).count()
+        
+        if reservas_activas >= max_reservas:
+            raise ValueError(f"El socio ha alcanzado el máximo de {max_reservas} reservas simultáneas.")
 
         if hay_solapamiento(id_pista, fecha, hora_inicio, hora_fin):
             raise ValueError("La pista ya está reservada en ese horario.")

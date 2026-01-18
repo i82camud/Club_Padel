@@ -13,7 +13,8 @@ def _ensure_config_exists() -> None:
         default = {
             "timeApertura": "09:00",
             "timeCierre": "22:00",
-            "timeReserva": "01:30"
+            "timeReserva": "01:30",
+            "maxReservasSimultaneas": 10
         }
         CONFIG_PATH.write_text(json.dumps(default, ensure_ascii=False, indent=2), encoding="utf-8")
 
@@ -102,3 +103,18 @@ def get_reservation_duration() -> int:
         return h * 60 + m
     except Exception:
         return 90  # 1h 30min por defecto
+
+
+def get_max_reservas_simultaneas() -> int:
+    """Devuelve el máximo número de reservas activas simultáneas que puede tener un socio.
+    
+    El valor se almacena como entero. Si no existe, se usa el valor por defecto (10).
+    
+    Returns:
+        int: Número máximo de reservas simultáneas permitidas.
+    """
+    max_reservas = get_config("maxReservasSimultaneas", 10)
+    try:
+        return int(max_reservas)
+    except (ValueError, TypeError):
+        return 10  # 10 reservas por defecto

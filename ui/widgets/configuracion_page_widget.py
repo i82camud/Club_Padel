@@ -41,6 +41,10 @@ class ConfiguracionPage(QWidget):
         s_duration = get_config("timeReserva", "01:30")
         h, m = [int(x) for x in s_duration.split(":")]
         self.ui.timeReserva.setTime(QTime(h, m))
+        
+        # Cargar máximo de reservas simultáneas
+        max_reservas = get_config("maxReservasSimultaneas", "10")
+        self.ui.txt_reservas.setText(str(max_reservas))
 
     def _open_change_password(self) -> None:
         """Abre el diálogo para cambiar la contraseña del administrador."""
@@ -52,10 +56,11 @@ class ConfiguracionPage(QWidget):
         self._open_change_password()
 
     def _on_guardar(self) -> None:
-        """Guarda los valores de configuración (horarios y duración de reservas).
+        """Guarda los valores de configuración (horarios, duración de reservas y máximo de reservas simultáneas).
         
         Valida que la hora de apertura sea anterior a la de cierre,
-        y que la duración de reserva sea mayor a 0, antes de guardar.
+        que la duración de reserva sea mayor a 0, y que el máximo de reservas
+        sea un número positivo, antes de guardar.
         """
         try:
             t1 = self.ui.timeApertura.time()
@@ -69,6 +74,14 @@ class ConfiguracionPage(QWidget):
             # Validar que la duración de reserva no sea cero
             if t3.hour() == 0 and t3.minute() == 0:
                 raise ValueError('La duración de la reserva debe ser mayor a 0.')
+            
+            # Validar máximo de reservas simultáneas
+            try:
+                max_reservas = int(self.ui.txt_reservas.text())
+                if max_reservas <= 0:
+                    raise ValueError('El máximo de reservas simultáneas debe ser un número positivo.')
+            except ValueError:
+                raise ValueError('El máximo de reservas simultáneas debe ser un número entero válido.')
 
             s1 = f"{t1.hour():02d}:{t1.minute():02d}"
             s2 = f"{t2.hour():02d}:{t2.minute():02d}"
@@ -77,6 +90,7 @@ class ConfiguracionPage(QWidget):
             set_config('timeApertura', s1)
             set_config('timeCierre', s2)
             set_config('timeReserva', s3)
+            set_config('maxReservasSimultaneas', str(max_reservas))
             
             QMessageBox.information(self, 'Configuración', 'Se ha guardado la configuración.')
         except Exception as e:
