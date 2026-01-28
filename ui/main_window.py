@@ -35,12 +35,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.stackedWidget.insertWidget(5, self.configuracion_page)         
 
         # Conectar botones a páginas del QStackedWidget
-        self.btn_inicio.clicked.connect(lambda: self.stackedWidget.setCurrentIndex(0))
-        self.btn_socios.clicked.connect(lambda: self.stackedWidget.setCurrentIndex(1))
-        self.btn_pistas.clicked.connect(lambda: self.stackedWidget.setCurrentIndex(2))
-        self.btn_pagos.clicked.connect(lambda: self.stackedWidget.setCurrentIndex(3))
-        self.btn_reservas.clicked.connect(lambda: self.stackedWidget.setCurrentIndex(4))
-        self.btn_configuracion.clicked.connect(lambda: self.stackedWidget.setCurrentIndex(5))
+        self.btn_inicio.clicked.connect(lambda: self._cambiar_pagina(0))
+        self.btn_socios.clicked.connect(lambda: self._cambiar_pagina(1))
+        self.btn_pistas.clicked.connect(lambda: self._cambiar_pagina(2))
+        self.btn_pagos.clicked.connect(lambda: self._cambiar_pagina(3))
+        self.btn_reservas.clicked.connect(lambda: self._cambiar_pagina(4))
+        self.btn_configuracion.clicked.connect(lambda: self._cambiar_pagina(5))
         self.btn_salir.clicked.connect(QApplication.quit)
 
         # Configuración inicial
@@ -57,6 +57,31 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.lbl_imagen.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         else:
             self.lbl_imagen.setText("[Imagen no encontrada]")
+
+    def _cambiar_pagina(self, indice: int) -> None:
+        """Cambia a la página indicada y limpia los campos de formularios.
+        
+        Args:
+            indice (int): Índice de la página en el stackedWidget.
+        """
+        # Limpiar campos de la página anterior
+        self._limpiar_pagina_actual()
+        
+        # Cambiar a la nueva página
+        self.stackedWidget.setCurrentIndex(indice)
+
+    def _limpiar_pagina_actual(self) -> None:
+        """Limpia los campos de la página actual si tiene un método vaciar_campos."""
+        indice_actual = self.stackedWidget.currentIndex()
+        
+        if indice_actual == 1:  # Página de Socios
+            self.socio_page.vaciar_campos()
+        elif indice_actual == 2:  # Página de Pistas
+            self.pista_page.vaciar_campos()
+        elif indice_actual == 3:  # Página de Pagos
+            self.pago_page.vaciar_campos()
+        elif indice_actual == 4:  # Página de Reservas
+            self.reserva_page.vaciar_campos()
 
 
 def main():
