@@ -231,8 +231,8 @@ class PagoPage(QWidget, Ui_pago_page):
         """
         pagos = listar_pagos()
         self.tabla_pagos.setRowCount(len(pagos))
-        self.tabla_pagos.setColumnCount(6)
-        self.tabla_pagos.setHorizontalHeaderLabels(["ID", "Socio", "Importe", "Fecha", "Tipo", "Estado"])
+        self.tabla_pagos.setColumnCount(5)
+        self.tabla_pagos.setHorizontalHeaderLabels(["Socio", "Importe", "Fecha", "Tipo", "Estado"])
 
         # crear mapa id->display para evitar lazy load
         socios = listar_socios()
@@ -242,7 +242,6 @@ class PagoPage(QWidget, Ui_pago_page):
             tipo_display = p.tipo.name.capitalize() if hasattr(p.tipo, 'name') else str(p.tipo)
             estado_display = p.estado.name.capitalize() if hasattr(p.estado, 'name') else str(p.estado)
             values = [
-                p.id_pago,
                 mapa.get(p.id_socio, str(p.id_socio)),
                 f"{p.importe:.2f}",
                 format_date(p.fecha_pago),
@@ -250,14 +249,16 @@ class PagoPage(QWidget, Ui_pago_page):
                 estado_display,
             ]
             for col, dato in enumerate(values):
-                self.tabla_pagos.setItem(fila, col, QTableWidgetItem(str(dato)))
+                item = QTableWidgetItem(str(dato))
+                # Almacenar el ID del pago en el primer item como dato oculto
+                if col == 0:
+                    item.setData(Qt.UserRole, p.id_pago)
+                self.tabla_pagos.setItem(fila, col, item)
 
         # ajustar tamaño de columnas
         header = self.tabla_pagos.horizontalHeader()
-        header.setSectionResizeMode(0, QHeaderView.Fixed)
-        self.tabla_pagos.setColumnWidth(0, 60)
-        header.setSectionResizeMode(1, QHeaderView.Stretch)
-        for col in range(2, 5):
+        header.setSectionResizeMode(0, QHeaderView.Stretch)
+        for col in range(1, 5):
             header.setSectionResizeMode(col, QHeaderView.Fixed)
             self.tabla_pagos.setColumnWidth(col, 120) 
 
@@ -271,13 +272,18 @@ class PagoPage(QWidget, Ui_pago_page):
         if fila < 0:
             return
         
-        # Obtener el id del pago de la primera columna
+        # Obtener el ID del pago almacenado en el atributo del widget de la tabla
         item0 = self.tabla_pagos.item(fila, 0)
         if item0 is None:
             return
         
+        # El ID está almacenado en los datos del item
+        id_pago_data = item0.data(Qt.UserRole)
+        if id_pago_data is None:
+            return
+        
         try:
-            id_pago = int(item0.text())
+            id_pago = int(id_pago_data)
             
             # Usar sesión para cargar relaciones lazy
             from models import orm
@@ -416,7 +422,12 @@ class PagoPage(QWidget, Ui_pago_page):
             QMessageBox.warning(self, "Error", "Fila inválida")
             return
         
-        id_pago = int(item0.text())
+        # Obtener el ID del pago almacenado en Qt.UserRole
+        id_pago_data = item0.data(Qt.UserRole)
+        if id_pago_data is None:
+            QMessageBox.warning(self, "Error", "No se pudo obtener el ID del pago")
+            return
+        id_pago = int(id_pago_data)
         
         # Validaciones mínimas
         try:
@@ -462,7 +473,12 @@ class PagoPage(QWidget, Ui_pago_page):
         if item0 is None:
             QMessageBox.warning(self, "Error", "Fila inválida")
             return
-        id_pago = int(item0.text())
+        # Obtener el ID del pago almacenado en Qt.UserRole
+        id_pago_data = item0.data(Qt.UserRole)
+        if id_pago_data is None:
+            QMessageBox.warning(self, "Error", "No se pudo obtener el ID del pago")
+            return
+        id_pago = int(id_pago_data)
         # recuperar y cambiar estado
         p = obtener_pago_por_id(id_pago)
         if p is None:
@@ -554,7 +570,7 @@ class PagoPage(QWidget, Ui_pago_page):
         ws.title = "Pagos"
         
         # Cabecera con estilo
-        cabecera = ["ID", "Socio", "Fecha", "Importe (€)", "Tipo", "Estado", "Concepto"]
+        cabecera = ["Socio", "Fecha", "Importe (€)", "Tipo", "Estado", "Concepto"]
         ws.append(cabecera)
         
         # Aplicar estilos a la cabecera
@@ -594,7 +610,6 @@ class PagoPage(QWidget, Ui_pago_page):
                 nombre_socio = f"{socio.nombre} {socio.apellido1}" if socio else ""
                 
                 fila = [
-                    pago.id_pago,
                     nombre_socio,
                     format_date(pago.fecha_pago),
                     f"{pago.importe:.2f}",
@@ -607,7 +622,7 @@ class PagoPage(QWidget, Ui_pago_page):
             session.close()
         
         # Ajustar ancho de columnas
-        anchos = [10, 20, 12, 15, 12, 12, 35]
+        anchos = [20, 12, 15, 12, 12, 35]
         for i, ancho in enumerate(anchos, start=1):
             col_letter = get_column_letter(i)
             ws.column_dimensions[col_letter].width = ancho

@@ -70,15 +70,14 @@ class PistaPage(QWidget, Ui_PistaPage):
         """
         pistas = pista_service.listar_pistas()
         self.tabla_pistas.setRowCount(len(pistas))
-        self.tabla_pistas.setColumnCount(5)
+        self.tabla_pistas.setColumnCount(4)
         self.tabla_pistas.setHorizontalHeaderLabels([
-            "ID", "Nombre", "Pared", "Tipo", "Estado"
+            "Nombre", "Pared", "Tipo", "Estado"
         ])
 
         for fila, pista in enumerate(pistas):
             # Asumimos objetos ORM: acceder a atributos directamente
             values = [
-                pista.id_pista,
                 pista.nombre,
                 pista.pared,
                 pista.tipo,
@@ -122,9 +121,9 @@ class PistaPage(QWidget, Ui_PistaPage):
         """
         fila = self.tabla_pistas.currentRow()
         if fila >= 0:
-            self.txt_nombre.setText(self.tabla_pistas.item(fila, 1).text())
-            self.cmb_pared.setCurrentText(self.tabla_pistas.item(fila, 2).text())
-            self.cmb_tipo.setCurrentText(self.tabla_pistas.item(fila, 3).text())
+            self.txt_nombre.setText(self.tabla_pistas.item(fila, 0).text())
+            self.cmb_pared.setCurrentText(self.tabla_pistas.item(fila, 1).text())
+            self.cmb_tipo.setCurrentText(self.tabla_pistas.item(fila, 2).text())
 
     def normalizar_campos(self) -> tuple:
         """Normaliza el formato de los datos ingresados en los campos del formulario.
@@ -281,7 +280,7 @@ class PistaPage(QWidget, Ui_PistaPage):
         ws.title = "Pistas"
         
         # Cabecera con estilo
-        cabecera = ["ID", "Nombre", "Pared", "Tipo", "Estado"]
+        cabecera = ["Nombre", "Pared", "Tipo", "Estado"]
         ws.append(cabecera)
         
         # Aplicar estilos a la cabecera
@@ -294,7 +293,6 @@ class PistaPage(QWidget, Ui_PistaPage):
         for pista in pistas:
             estado_display = pista.estado.name.capitalize() if hasattr(pista.estado, 'name') else str(pista.estado)
             fila = [
-                pista.id_pista,
                 pista.nombre,
                 pista.pared,
                 pista.tipo,
@@ -303,7 +301,7 @@ class PistaPage(QWidget, Ui_PistaPage):
             ws.append(fila)
         
         # Ajustar ancho de columnas
-        anchos = [8, 20, 15, 15, 12]
+        anchos = [20, 15, 15, 12]
         for i, ancho in enumerate(anchos, start=1):
             col_letter = get_column_letter(i)
             ws.column_dimensions[col_letter].width = ancho

@@ -122,12 +122,11 @@ class ReservaPage(QWidget, Ui_reserva_page):
         reservas = listar_reservas()
         self.tabla_reservas.setRowCount(len(reservas))
         # Definir siempre las columnas y las cabeceras para que se muestren aun sin filas
-        self.tabla_reservas.setColumnCount(7)
-        self.tabla_reservas.setHorizontalHeaderLabels(["ID", "Socio", "Pista", "Fecha", "Hora Inicio", "Hora Fin", "Estado"])
+        self.tabla_reservas.setColumnCount(6)
+        self.tabla_reservas.setHorizontalHeaderLabels(["Socio", "Pista", "Fecha", "Hora Inicio", "Hora Fin", "Estado"])
 
         for fila, r in enumerate(reservas):
             values = [
-                r.id_reserva,
                 # usar mapas para evitar lazy load: mostrar texto del socio (nombre + email)
                 self.mapa_socios_id_to_display.get(r.id_socio, str(r.id_socio)),
                 self.mapa_pistas.get(r.id_pista, str(r.id_pista)),
@@ -139,14 +138,16 @@ class ReservaPage(QWidget, Ui_reserva_page):
             ]
 
             for col, dato in enumerate(values):
-                self.tabla_reservas.setItem(fila, col, QTableWidgetItem(str(dato)))
+                item = QTableWidgetItem(str(dato))
+                # Almacenar el ID de la reserva en el primer item como dato oculto
+                if col == 0:
+                    item.setData(Qt.UserRole, r.id_reserva)
+                self.tabla_reservas.setItem(fila, col, item)
 
         # ajustar tamaño de columnas
         header = self.tabla_reservas.horizontalHeader()
-        header.setSectionResizeMode(0, QHeaderView.Fixed)
-        self.tabla_reservas.setColumnWidth(0, 60)
-        header.setSectionResizeMode(1, QHeaderView.Stretch)
-        for col in range(2, 7):
+        header.setSectionResizeMode(0, QHeaderView.Stretch)
+        for col in range(1, 6):
             header.setSectionResizeMode(col, QHeaderView.Fixed)
             self.tabla_reservas.setColumnWidth(col, 120)    
     
@@ -160,11 +161,18 @@ class ReservaPage(QWidget, Ui_reserva_page):
         if fila < 0:
             return
 
-        # rellenar campos desde la fila seleccionada
+        # Obtener el ID de la reserva almacenado en el atributo del widget de la tabla
         item0 = self.tabla_reservas.item(fila, 0)
         if item0 is None:
             return
-        id_reserva = int(item0.text())
+        # El ID está almacenado en los datos del item
+        id_reserva_data = item0.data(Qt.UserRole)
+        if id_reserva_data is not None:
+            id_reserva = int(id_reserva_data)
+        else:
+            # Si no está en UserRole, intentar obtenerlo de otra forma
+            return
+        
         r = obtener_reserva_por_id(id_reserva)
         if r is None:
             return
@@ -365,7 +373,12 @@ class ReservaPage(QWidget, Ui_reserva_page):
         if item0 is None:
             QMessageBox.warning(self, "Error", "Fila seleccionada inválida")
             return
-        id_reserva = int(item0.text())
+        # Obtener el ID de la reserva almacenado en Qt.UserRole
+        id_reserva_data = item0.data(Qt.UserRole)
+        if id_reserva_data is None:
+            QMessageBox.warning(self, "Error", "No se pudo obtener el ID de la reserva")
+            return
+        id_reserva = int(id_reserva_data)
         ok, msg = self.validar_campos()
         if not ok:
             QMessageBox.warning(self, "Error", msg)
@@ -432,7 +445,12 @@ class ReservaPage(QWidget, Ui_reserva_page):
         if item0 is None:
             QMessageBox.warning(self, "Error", "Fila seleccionada inválida")
             return
-        id_reserva = int(item0.text())
+        # Obtener el ID de la reserva almacenado en Qt.UserRole
+        id_reserva_data = item0.data(Qt.UserRole)
+        if id_reserva_data is None:
+            QMessageBox.warning(self, "Error", "No se pudo obtener el ID de la reserva")
+            return
+        id_reserva = int(id_reserva_data)
         cancelar_reserva(id_reserva)
         QMessageBox.information(self, "Éxito", "Reserva cancelada")
         self.cargar_reservas()
@@ -452,7 +470,14 @@ class ReservaPage(QWidget, Ui_reserva_page):
         if item0 is None:
             QMessageBox.warning(self, "Error", "Fila seleccionada inválida")
             return
-        id_reserva = int(item0.text())
+        
+        # Obtener el ID de la reserva almacenado en Qt.UserRole
+        id_reserva_data = item0.data(Qt.UserRole)
+        if id_reserva_data is None:
+            QMessageBox.warning(self, "Error", "No se pudo obtener el ID de la reserva")
+            return
+        id_reserva = int(id_reserva_data)
+        
         r = obtener_reserva_por_id(id_reserva)
         if r is None:
             QMessageBox.warning(self, "Error", "Reserva no encontrada")
@@ -567,7 +592,7 @@ class ReservaPage(QWidget, Ui_reserva_page):
         ws.title = "Reservas"
         
         # Definir encabezados
-        headers = ["ID", "Socio", "Pista", "Fecha", "Hora Inicio", "Hora Fin", "Estado"]
+        headers = ["Socio", "Pista", "Fecha", "Hora Inicio", "Hora Fin", "Estado"]
         ws.append(headers)
         
         # Estilos para encabezado
@@ -590,27 +615,25 @@ class ReservaPage(QWidget, Ui_reserva_page):
             
             # Agregar datos
             for fila, r in enumerate(reservas_session, 2):
-                ws.cell(row=fila, column=1, value=r.id_reserva)
-                ws.cell(row=fila, column=2, value=f"{r.socio.nombre} {r.socio.apellido1}")
-                ws.cell(row=fila, column=3, value=r.pista.nombre)
-                ws.cell(row=fila, column=4, value=format_date(r.fecha))
-                ws.cell(row=fila, column=5, value=format_time(r.hora_inicio))
-                ws.cell(row=fila, column=6, value=format_time(r.hora_fin))
-                ws.cell(row=fila, column=7, value=r.estado.name.capitalize())
+                ws.cell(row=fila, column=1, value=f"{r.socio.nombre} {r.socio.apellido1}")
+                ws.cell(row=fila, column=2, value=r.pista.nombre)
+                ws.cell(row=fila, column=3, value=format_date(r.fecha))
+                ws.cell(row=fila, column=4, value=format_time(r.hora_inicio))
+                ws.cell(row=fila, column=5, value=format_time(r.hora_fin))
+                ws.cell(row=fila, column=6, value=r.estado.name.capitalize())
                 
                 # Centrar celdas
-                for col in range(1, 8):
+                for col in range(1, 7):
                     ws.cell(row=fila, column=col).alignment = Alignment(horizontal="center", vertical="center")
         finally:
             session.close()
         
         # Ajustar ancho de columnas
-        ws.column_dimensions['A'].width = 8
-        ws.column_dimensions['B'].width = 25
-        ws.column_dimensions['C'].width = 15
+        ws.column_dimensions['A'].width = 25
+        ws.column_dimensions['B'].width = 15
+        ws.column_dimensions['C'].width = 12
         ws.column_dimensions['D'].width = 12
         ws.column_dimensions['E'].width = 12
         ws.column_dimensions['F'].width = 12
-        ws.column_dimensions['G'].width = 12
         
         wb.save(archivo)
