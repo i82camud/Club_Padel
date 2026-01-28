@@ -49,10 +49,17 @@ class SocioPage(QWidget, Ui_SocioPage):
         self.btn_listar.clicked.connect(self.generar_listado)
         self.btn_listar_reservas.clicked.connect(self.generar_listado_reservas)
         self.btn_listar_pagos.clicked.connect(self.generar_listado_pagos)
+        self.btn_limpiar.clicked.connect(self.vaciar_campos)
 
         # Conectar tabla para que actualice los campos al seleccionar fila
         self.tabla_socios.itemSelectionChanged.connect(self.actualizar_campos)
         self.tabla_socios.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+
+        # Conectar barra de búsqueda para filtrar en tiempo real
+        self.txt_buscar.textChanged.connect(self.filtrar_tabla)
+
+        # Guardar lista de socios original para filtrado
+        self.socios_originales = []
 
         # Cargar tabla al inicio
         self.cargar_socios()
@@ -64,6 +71,7 @@ class SocioPage(QWidget, Ui_SocioPage):
         Muestra el estado de forma legible (Activo/Inactivo).
         """
         socios = socio_service.listar_socios()
+        self.socios_originales = socios  # Guardar para filtrado
         self.tabla_socios.setRowCount(len(socios))
         self.tabla_socios.setColumnCount(7)
         self.tabla_socios.setHorizontalHeaderLabels(
@@ -154,6 +162,60 @@ class SocioPage(QWidget, Ui_SocioPage):
         self.txt_apellido2.clear()
         self.txt_email.clear()
         self.txt_telefono.clear()
+        self.txt_buscar.clear()
+
+    def filtrar_tabla(self) -> None:
+        """Filtra la tabla de socios según el texto ingresado en la barra de búsqueda.
+        
+        Busca el texto en las columnas de nombre, apellidos, correo y teléfono.
+        La búsqueda es case-insensitive.
+        """
+        texto_busqueda = self.txt_buscar.text().lower().strip()
+        
+        if not texto_busqueda:
+            # Si el campo de búsqueda está vacío, mostrar todos los socios
+            self.cargar_socios()
+            return
+        
+        # Filtrar socios según el texto de búsqueda
+        socios_filtrados = []
+        for socio in self.socios_originales:
+            # Convertir a strings para buscar
+            nombre = socio.nombre.lower()
+            apellido1 = socio.apellido1.lower()
+            apellido2 = (socio.apellido2 or "").lower()
+            email = socio.email.lower()
+            telefono = socio.telefono.lower()
+            
+            # Buscar en cualquiera de los campos
+            if (texto_busqueda in nombre or
+                texto_busqueda in apellido1 or
+                texto_busqueda in apellido2 or
+                texto_busqueda in email or
+                texto_busqueda in telefono):
+                socios_filtrados.append(socio)
+        
+        # Actualizar tabla con socios filtrados
+        self.tabla_socios.setRowCount(len(socios_filtrados))
+        self.tabla_socios.setColumnCount(7)
+        self.tabla_socios.setHorizontalHeaderLabels(
+            ["ID", "Nombre", "Apellido1", "Apellido2", "Correo", "Teléfono", "Estado"]
+        )
+
+        for fila, socio in enumerate(socios_filtrados):
+            estado_display = socio.estado.name.capitalize() if hasattr(socio.estado, 'name') else str(socio.estado)
+            values = [
+                socio.id_socio,
+                socio.nombre,
+                socio.apellido1,
+                socio.apellido2,
+                socio.email,
+                socio.telefono,
+                estado_display,
+            ]
+
+            for col, dato in enumerate(values):
+                self.tabla_socios.setItem(fila, col, QTableWidgetItem(str(dato)))
 
     def actualizar_campos(self) -> None:
         """Carga los datos de la fila seleccionada en los campos del formulario.
