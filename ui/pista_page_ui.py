@@ -48,7 +48,7 @@ class Ui_PistaPage(object):
         self.btn_listar_reservas.setGeometry(QRect(750, 0, 121, 41))
         self.tabla_pistas = QTableWidget(PistaPage)
         self.tabla_pistas.setObjectName(u"tabla_pistas")
-        self.tabla_pistas.setGeometry(QRect(20, 190, 1041, 561))
+        self.tabla_pistas.setGeometry(QRect(20, 240, 1041, 511))
         self.tabla_pistas.setAlternatingRowColors(True)
         self.tabla_pistas.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.label_socios = QLabel(PistaPage)
@@ -120,6 +120,28 @@ class Ui_PistaPage(object):
         self.cmb_tipo.raise_()
         self.cmb_pared.raise_()
         self.txt_nombre.raise_()
+        self.btn_limpiar = QPushButton(PistaPage)
+        self.btn_limpiar.setObjectName(u"btn_limpiar")
+        self.btn_limpiar.setGeometry(QRect(20, 200, 71, 31))
+        self.gridLayoutWidget_3 = QWidget(PistaPage)
+        self.gridLayoutWidget_3.setObjectName(u"gridLayoutWidget_3")
+        self.gridLayoutWidget_3.setGeometry(QRect(110, 190, 411, 51))
+        self.gridLayout_3 = QGridLayout(self.gridLayoutWidget_3)
+        self.gridLayout_3.setObjectName(u"gridLayout_3")
+        self.gridLayout_3.setContentsMargins(0, 0, 0, 0)
+        self.label_7 = QLabel(self.gridLayoutWidget_3)
+        self.label_7.setObjectName(u"label_7")
+        sizePolicy.setHeightForWidth(self.label_7.sizePolicy().hasHeightForWidth())
+        self.label_7.setSizePolicy(sizePolicy)
+        self.label_7.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+
+        self.gridLayout_3.addWidget(self.label_7, 0, 0, 1, 1)
+
+        self.txt_buscar = QLineEdit(self.gridLayoutWidget_3)
+        self.txt_buscar.setObjectName(u"txt_buscar")
+
+        self.gridLayout_3.addWidget(self.txt_buscar, 0, 1, 1, 1)
+
 
         self.retranslateUi(PistaPage)
 
@@ -145,5 +167,7 @@ class Ui_PistaPage(object):
         self.cmb_pared.setItemText(0, QCoreApplication.translate("PistaPage", u"cristal", None))
         self.cmb_pared.setItemText(1, QCoreApplication.translate("PistaPage", u"muro", None))
 
+        self.btn_limpiar.setText(QCoreApplication.translate("PistaPage", u"Limpiar", None))
+        self.label_7.setText(QCoreApplication.translate("PistaPage", u"Buscar", None))
     # retranslateUi
 

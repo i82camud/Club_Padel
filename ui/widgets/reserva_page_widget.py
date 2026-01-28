@@ -56,9 +56,16 @@ class ReservaPage(QWidget, Ui_reserva_page):
         self.btn_baja.clicked.connect(self.cancelar)
         self.btn_pagar.clicked.connect(self.ir_a_pagos)
         self.btn_listar.clicked.connect(self.generar_listado)
+        self.btn_limpiar.clicked.connect(self.vaciar_campos)
 
         # Conectar tabla
         self.tabla_reservas.itemSelectionChanged.connect(self.actualizar_campos)
+
+        # Conectar barra de búsqueda para filtrar en tiempo real
+        self.txt_buscar.textChanged.connect(self.filtrar_tabla)
+
+        # Guardar lista de reservas original para filtrado
+        self.reservas_originales = []
 
         # Inicializar campos
         self.cargar_pistas()
@@ -120,6 +127,7 @@ class ReservaPage(QWidget, Ui_reserva_page):
         Utiliza mapeos internos para evitar acceso lazy loading a relaciones.
         """
         reservas = listar_reservas()
+        self.reservas_originales = reservas
         self.tabla_reservas.setRowCount(len(reservas))
         # Definir siempre las columnas y las cabeceras para que se muestren aun sin filas
         self.tabla_reservas.setColumnCount(6)
@@ -296,6 +304,54 @@ class ReservaPage(QWidget, Ui_reserva_page):
         # Horas a 00:00
         self.timeEdit.setTime(QTime(0, 0))
         self.timeEdit_2.setTime(QTime(0, 0))
+        self.txt_buscar.clear()
+
+    def filtrar_tabla(self) -> None:
+        """Filtra la tabla de reservas según el texto del campo de búsqueda.
+        
+        Busca en la columna Socio (nombre + apellido + email) de forma case-insensitive.
+        Si el campo está vacío, muestra todas las reservas.
+        """
+        texto_busqueda = self.txt_buscar.text().strip().lower()
+        
+        if not texto_busqueda:
+            # Si no hay búsqueda, mostrar todas las reservas
+            self.cargar_reservas()
+            return
+        
+        # Filtrar reservas por el texto de búsqueda en la columna Socio
+        reservas_filtradas = [
+            r for r in self.reservas_originales
+            if texto_busqueda in self.mapa_socios_id_to_display.get(r.id_socio, "").lower()
+        ]
+        
+        # Actualizar tabla con resultados filtrados
+        self.tabla_reservas.setRowCount(len(reservas_filtradas))
+        self.tabla_reservas.setColumnCount(6)
+        self.tabla_reservas.setHorizontalHeaderLabels(["Socio", "Pista", "Fecha", "Hora Inicio", "Hora Fin", "Estado"])
+        
+        for fila, r in enumerate(reservas_filtradas):
+            values = [
+                self.mapa_socios_id_to_display.get(r.id_socio, str(r.id_socio)),
+                self.mapa_pistas.get(r.id_pista, str(r.id_pista)),
+                format_date(r.fecha),
+                format_time(r.hora_inicio),
+                format_time(r.hora_fin),
+                (r.estado.name.capitalize() if hasattr(r.estado, 'name') else str(r.estado))
+            ]
+            
+            for col, dato in enumerate(values):
+                item = QTableWidgetItem(str(dato))
+                if col == 0:
+                    item.setData(Qt.UserRole, r.id_reserva)
+                self.tabla_reservas.setItem(fila, col, item)
+        
+        # ajustar tamaño de columnas
+        header = self.tabla_reservas.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.Stretch)
+        for col in range(1, 6):
+            header.setSectionResizeMode(col, QHeaderView.Fixed)
+            self.tabla_reservas.setColumnWidth(col, 120)
 
     def insertar(self) -> None:
         """Inserta una nueva reserva en la base de datos.

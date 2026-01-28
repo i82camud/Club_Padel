@@ -97,9 +97,16 @@ class PagoPage(QWidget, Ui_pago_page):
         self.btn_modificar.clicked.connect(self.modificar)
         self.btn_baja.clicked.connect(self.anular)
         self.btn_listar.clicked.connect(self.generar_listado)
+        self.btn_limpiar.clicked.connect(self.vaciar_campos)
         
         # Conectar tabla para que actualice los campos al seleccionar fila
         self.tabla_pagos.itemSelectionChanged.connect(self.actualizar_campos)
+
+        # Conectar barra de búsqueda para filtrar en tiempo real
+        self.txt_buscar.textChanged.connect(self.filtrar_tabla)
+
+        # Guardar lista de pagos original para filtrado
+        self.pagos_originales = []
 
         # cargar tabla
         self.cargar_pagos()
@@ -230,6 +237,7 @@ class PagoPage(QWidget, Ui_pago_page):
         Utiliza mapeos internos para evitar acceso lazy loading a relaciones.
         """
         pagos = listar_pagos()
+        self.pagos_originales = pagos  # Guardar para filtrado
         self.tabla_pagos.setRowCount(len(pagos))
         self.tabla_pagos.setColumnCount(5)
         self.tabla_pagos.setHorizontalHeaderLabels(["Socio", "Importe", "Fecha", "Tipo", "Estado"])
@@ -642,5 +650,63 @@ class PagoPage(QWidget, Ui_pago_page):
         self._linked_reserva_id = None
         self.txt_concepto.setReadOnly(False)
         self.dateEdit.setDate(QDate.currentDate())
+        self.txt_buscar.clear()
 
-__all__ = ['PagoPage']
+    def filtrar_tabla(self) -> None:
+        """Filtra la tabla de pagos según el texto ingresado en la barra de búsqueda.
+        
+        Busca el texto en la columna de Socio (nombre completo y email).
+        La búsqueda es case-insensitive.
+        """
+        texto_busqueda = self.txt_buscar.text().lower().strip()
+        
+        if not texto_busqueda:
+            # Si el campo de búsqueda está vacío, mostrar todos los pagos
+            self.cargar_pagos()
+            return
+        
+        # Crear mapa de socios para búsqueda
+        socios = listar_socios()
+        mapa_socios = {s.id_socio: f"{s.nombre} {s.apellido1} ({s.email})".lower() for s in socios}
+        
+        # Filtrar pagos según el texto de búsqueda en la columna de socio
+        pagos_filtrados = []
+        for pago in self.pagos_originales:
+            nombre_socio = mapa_socios.get(pago.id_socio, "").lower()
+            
+            # Buscar en el nombre del socio
+            if texto_busqueda in nombre_socio:
+                pagos_filtrados.append(pago)
+        
+        # Actualizar tabla con pagos filtrados
+        self.tabla_pagos.setRowCount(len(pagos_filtrados))
+        self.tabla_pagos.setColumnCount(5)
+        self.tabla_pagos.setHorizontalHeaderLabels(["Socio", "Importe", "Fecha", "Tipo", "Estado"])
+
+        # crear mapa id->display para evitar lazy load
+        socios = listar_socios()
+        mapa = {s.id_socio: f"{s.nombre} {s.apellido1} ({s.email})" for s in socios}
+
+        for fila, p in enumerate(pagos_filtrados):
+            tipo_display = p.tipo.name.capitalize() if hasattr(p.tipo, 'name') else str(p.tipo)
+            estado_display = p.estado.name.capitalize() if hasattr(p.estado, 'name') else str(p.estado)
+            values = [
+                mapa.get(p.id_socio, str(p.id_socio)),
+                f"{p.importe:.2f}",
+                format_date(p.fecha_pago),
+                tipo_display,
+                estado_display,
+            ]
+
+            for col, dato in enumerate(values):
+                item = QTableWidgetItem(str(dato))
+                # Almacenar el ID del pago en el primer item como dato oculto
+                if col == 0:
+                    item.setData(Qt.UserRole, p.id_pago)
+                self.tabla_pagos.setItem(fila, col, item)
+
+        # ajustar tamaño de columnas
+        header = self.tabla_pagos.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.Stretch)
+        for col in range(1, 5):
+            header.setSectionResizeMode(col, QHeaderView.Fixed)

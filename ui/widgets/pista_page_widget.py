@@ -54,10 +54,15 @@ class PistaPage(QWidget, Ui_PistaPage):
         self.btn_activar.clicked.connect(self.activa_pista)
         self.btn_listar.clicked.connect(self.generar_listado)
         self.btn_listar_reservas.clicked.connect(self.generar_listado_reservas)
+        self.btn_limpiar.clicked.connect(self.vaciar_campos)
+        self.txt_buscar.textChanged.connect(self.filtrar_tabla)
 
         # Conectar tabla para que actualice los campos al seleccionar fila
         self.tabla_pistas.itemSelectionChanged.connect(self.actualizar_campos)
         self.tabla_pistas.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+
+        # Lista para almacenar las pistas originales para filtrado
+        self.pistas_originales = []
 
         # Cargar tabla al inicio
         self.cargar_pistas()
@@ -69,6 +74,7 @@ class PistaPage(QWidget, Ui_PistaPage):
         Muestra el estado de forma legible (Activa/Inactiva).
         """
         pistas = pista_service.listar_pistas()
+        self.pistas_originales = pistas
         self.tabla_pistas.setRowCount(len(pistas))
         self.tabla_pistas.setColumnCount(4)
         self.tabla_pistas.setHorizontalHeaderLabels([
@@ -112,6 +118,46 @@ class PistaPage(QWidget, Ui_PistaPage):
         self.txt_nombre.clear()
         self.cmb_pared.setCurrentIndex(0)
         self.cmb_tipo.setCurrentIndex(0)
+        self.txt_buscar.clear()
+
+    def filtrar_tabla(self) -> None:
+        """Filtra la tabla de pistas según el texto del campo de búsqueda.
+        
+        Busca en las columnas Nombre, Pared y Tipo de forma case-insensitive.
+        Si el campo está vacío, muestra todas las pistas.
+        """
+        texto_busqueda = self.txt_buscar.text().strip().lower()
+        
+        if not texto_busqueda:
+            # Si no hay búsqueda, mostrar todas las pistas
+            self.cargar_pistas()
+            return
+        
+        # Filtrar pistas por el texto de búsqueda en nombre, pared y tipo
+        pistas_filtradas = [
+            p for p in self.pistas_originales
+            if texto_busqueda in p.nombre.lower() 
+            or texto_busqueda in p.pared.lower()
+            or texto_busqueda in p.tipo.lower()
+        ]
+        
+        # Actualizar tabla con resultados filtrados
+        self.tabla_pistas.setRowCount(len(pistas_filtradas))
+        self.tabla_pistas.setColumnCount(4)
+        self.tabla_pistas.setHorizontalHeaderLabels([
+            "Nombre", "Pared", "Tipo", "Estado"
+        ])
+        
+        for fila, pista in enumerate(pistas_filtradas):
+            values = [
+                pista.nombre,
+                pista.pared,
+                pista.tipo,
+                "Activa" if pista.estado == PistaEstado.ACTIVA else "Inactiva"
+            ]
+            for col, dato in enumerate(values):
+                item = QTableWidgetItem(str(dato))
+                self.tabla_pistas.setItem(fila, col, item)
 
     def actualizar_campos(self) -> None:
         """Carga los datos de la fila seleccionada en los campos del formulario.
