@@ -1,0 +1,33 @@
+# Archivos de caché de Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Archivos compilados de Python
+*.so
+
+# Base de datos
+*.db
+data/*.db
+data/backups/*.db
+
+# Entornos virtuales
+.venv/
+venv/
+env/
+ENV/
+
+# Configuración y archivos sensibles
+data/auth.json
+data/config.json
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
