@@ -19,6 +19,7 @@ Efectos secundarios:
 import re
 from datetime import date
 from PySide6.QtWidgets import QWidget, QTableWidgetItem, QMessageBox, QHeaderView, QInputDialog, QFileDialog, QDialog
+from PySide6.QtCore import Qt
 from ui.socio_page_ui import Ui_SocioPage  # el generado por pyside6-uic
 import services.socio_service as socio_service
 from utils.events import bus
@@ -92,7 +93,11 @@ class SocioPage(QWidget, Ui_SocioPage):
             ]
 
             for col, dato in enumerate(values):
-                self.tabla_socios.setItem(fila, col, QTableWidgetItem(str(dato)))
+                item = QTableWidgetItem(str(dato))
+                # Almacenar el ID del socio en el primer item como dato oculto
+                if col == 0:
+                    item.setData(Qt.UserRole, socio.id_socio)
+                self.tabla_socios.setItem(fila, col, item)
 
     # Validaciones
     def validar_correo(self, correo: str) -> bool:
@@ -213,7 +218,11 @@ class SocioPage(QWidget, Ui_SocioPage):
             ]
 
             for col, dato in enumerate(values):
-                self.tabla_socios.setItem(fila, col, QTableWidgetItem(str(dato)))
+                item = QTableWidgetItem(str(dato))
+                # Almacenar el ID del socio en el primer item como dato oculto
+                if col == 0:
+                    item.setData(Qt.UserRole, socio.id_socio)
+                self.tabla_socios.setItem(fila, col, item)
 
     def actualizar_campos(self) -> None:
         """Carga los datos de la fila seleccionada en los campos del formulario.
@@ -432,8 +441,16 @@ class SocioPage(QWidget, Ui_SocioPage):
             QMessageBox.warning(self, "Error", "Selecciona un socio para listar sus reservas")
             return
         
-        id_socio = int(self.tabla_socios.item(fila, 0).text())
-        nombre_socio = f"{self.tabla_socios.item(fila, 1).text()} {self.tabla_socios.item(fila, 2).text()}"
+        # Obtener el ID del socio del UserRole
+        item0 = self.tabla_socios.item(fila, 0)
+        if item0 is None:
+            return
+        id_socio = item0.data(Qt.UserRole)
+        if id_socio is None:
+            QMessageBox.warning(self, "Error", "No se pudo obtener el ID del socio")
+            return
+        
+        nombre_socio = f"{self.tabla_socios.item(fila, 0).text()} {self.tabla_socios.item(fila, 1).text()}"
         
         # Mostrar diálogo de filtros
         dialogo = FiltrosReservasDialog(self)
@@ -522,14 +539,14 @@ class SocioPage(QWidget, Ui_SocioPage):
         ws.title = "Reservas"
         
         # Título
-        ws.merge_cells('A1:G1')
+        ws.merge_cells('A1:E1')
         titulo = ws['A1']
         titulo.value = f"Reservas de {nombre_socio}"
         titulo.font = Font(bold=True, size=14)
         titulo.alignment = Alignment(horizontal="center", vertical="center")
         
         # Cabecera con estilo
-        cabecera = ["ID", "Pista", "Fecha", "Hora Inicio", "Hora Fin", "Estado", "Duración (min)"]
+        cabecera = ["Pista", "Fecha", "Hora Inicio", "Hora Fin", "Estado", "Duración (min)"]
         ws.append(cabecera)
         
         # Aplicar estilos a la cabecera
@@ -547,7 +564,6 @@ class SocioPage(QWidget, Ui_SocioPage):
             duracion_min = (reserva.hora_fin.hour * 60 + reserva.hora_fin.minute) - (reserva.hora_inicio.hour * 60 + reserva.hora_inicio.minute)
             
             fila = [
-                reserva.id_reserva,
                 pista_nombre,
                 format_date(reserva.fecha),
                 format_time(reserva.hora_inicio),
@@ -559,7 +575,7 @@ class SocioPage(QWidget, Ui_SocioPage):
         
         # Ajustar ancho de columnas
         from openpyxl.utils import get_column_letter
-        anchos = [8, 20, 15, 15, 15, 12, 15]
+        anchos = [20, 15, 15, 15, 12, 15]
         for i, ancho in enumerate(anchos, start=1):
             ws.column_dimensions[get_column_letter(i)].width = ancho
         
@@ -578,8 +594,16 @@ class SocioPage(QWidget, Ui_SocioPage):
             QMessageBox.warning(self, "Error", "Selecciona un socio para listar sus pagos")
             return
         
-        id_socio = int(self.tabla_socios.item(fila, 0).text())
-        nombre_socio = f"{self.tabla_socios.item(fila, 1).text()} {self.tabla_socios.item(fila, 2).text()}"
+        # Obtener el ID del socio del UserRole
+        item0 = self.tabla_socios.item(fila, 0)
+        if item0 is None:
+            return
+        id_socio = item0.data(Qt.UserRole)
+        if id_socio is None:
+            QMessageBox.warning(self, "Error", "No se pudo obtener el ID del socio")
+            return
+        
+        nombre_socio = f"{self.tabla_socios.item(fila, 0).text()} {self.tabla_socios.item(fila, 1).text()}"
         
         # Mostrar diálogo de filtros
         dialogo = FiltrosPagosDialog(self)
@@ -682,14 +706,14 @@ class SocioPage(QWidget, Ui_SocioPage):
         ws.title = "Pagos"
         
         # Título
-        ws.merge_cells('A1:F1')
+        ws.merge_cells('A1:E1')
         titulo = ws['A1']
         titulo.value = f"Pagos de {nombre_socio}"
         titulo.font = Font(bold=True, size=14)
         titulo.alignment = Alignment(horizontal="center", vertical="center")
         
         # Cabecera con estilo
-        cabecera = ["ID", "Fecha", "Importe (€)", "Tipo", "Estado", "Concepto"]
+        cabecera = ["Fecha", "Importe (€)", "Tipo", "Estado", "Concepto"]
         ws.append(cabecera)
         
         # Aplicar estilos a la cabecera
@@ -734,7 +758,6 @@ class SocioPage(QWidget, Ui_SocioPage):
                 total += pago.importe
             
             fila = [
-                pago.id_pago,
                 format_date(pago.fecha_pago),
                 f"{pago.importe:.2f}",
                 tipo_display,
@@ -745,14 +768,14 @@ class SocioPage(QWidget, Ui_SocioPage):
         
         # Añadir fila de total (separada por una línea en blanco)
         ws.append([])
-        ws.append(["TOTAL PAGADO:", "", f"{total:.2f}"])
+        ws.append(["TOTAL PAGADO:", f"{total:.2f}"])
         fila_total = ws.max_row
         ws[f'A{fila_total}'].font = Font(bold=True)
-        ws[f'C{fila_total}'].font = Font(bold=True)
+        ws[f'B{fila_total}'].font = Font(bold=True)
         
         # Ajustar ancho de columnas
         from openpyxl.utils import get_column_letter
-        anchos = [15, 15, 15, 12, 12, 35]
+        anchos = [15, 15, 12, 12, 35]
         for i, ancho in enumerate(anchos, start=1):
             ws.column_dimensions[get_column_letter(i)].width = ancho
         

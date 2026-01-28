@@ -19,7 +19,7 @@ Notas:
 """
 
 from PySide6.QtWidgets import QWidget, QTableWidgetItem, QMessageBox, QHeaderView, QFileDialog, QDialog
-from PySide6.QtCore import QDate
+from PySide6.QtCore import QDate, Qt
 from ui.pista_page_ui import Ui_PistaPage  # el generado por pyside6-uic
 import services.pista_service as pista_service
 from utils.events import bus
@@ -91,7 +91,11 @@ class PistaPage(QWidget, Ui_PistaPage):
             ]
 
             for col, dato in enumerate(values):
-                self.tabla_pistas.setItem(fila, col, QTableWidgetItem(str(dato)))
+                item = QTableWidgetItem(str(dato))
+                # Almacenar el ID de la pista en el primer item como dato oculto
+                if col == 0:
+                    item.setData(Qt.UserRole, pista.id_pista)
+                self.tabla_pistas.setItem(fila, col, item)
 
     # validaciones
     def validar_campos(self) -> tuple:
@@ -157,6 +161,9 @@ class PistaPage(QWidget, Ui_PistaPage):
             ]
             for col, dato in enumerate(values):
                 item = QTableWidgetItem(str(dato))
+                # Almacenar el ID de la pista en el primer item como dato oculto
+                if col == 0:
+                    item.setData(Qt.UserRole, pista.id_pista)
                 self.tabla_pistas.setItem(fila, col, item)
 
     def actualizar_campos(self) -> None:
@@ -366,8 +373,16 @@ class PistaPage(QWidget, Ui_PistaPage):
             QMessageBox.warning(self, "Error", "Selecciona una pista para listar sus reservas")
             return
         
-        id_pista = int(self.tabla_pistas.item(fila, 0).text())
-        nombre_pista = self.tabla_pistas.item(fila, 1).text()
+        # Obtener el ID de la pista del UserRole
+        item0 = self.tabla_pistas.item(fila, 0)
+        if item0 is None:
+            return
+        id_pista = item0.data(Qt.UserRole)
+        if id_pista is None:
+            QMessageBox.warning(self, "Error", "No se pudo obtener el ID de la pista")
+            return
+        
+        nombre_pista = self.tabla_pistas.item(fila, 0).text()
         
         # Mostrar diálogo de filtros
         dialogo = FiltrosReservasDialog(self)
@@ -456,14 +471,14 @@ class PistaPage(QWidget, Ui_PistaPage):
         ws.title = "Reservas"
         
         # Título
-        ws.merge_cells('A1:G1')
+        ws.merge_cells('A1:F1')
         titulo = ws['A1']
         titulo.value = f"Reservas de {nombre_pista}"
         titulo.font = Font(bold=True, size=14)
         titulo.alignment = Alignment(horizontal="center", vertical="center")
         
         # Cabecera con estilo
-        cabecera = ["ID", "Socio", "Fecha", "Hora Inicio", "Hora Fin", "Estado", "Duración (min)"]
+        cabecera = ["Socio", "Fecha", "Hora Inicio", "Hora Fin", "Estado", "Duración (min)"]
         ws.append(cabecera)
         
         # Aplicar estilos a la cabecera
@@ -481,7 +496,6 @@ class PistaPage(QWidget, Ui_PistaPage):
             duracion_min = (reserva.hora_fin.hour * 60 + reserva.hora_fin.minute) - (reserva.hora_inicio.hour * 60 + reserva.hora_inicio.minute)
             
             fila = [
-                reserva.id_reserva,
                 socio_nombre,
                 format_date(reserva.fecha),
                 format_time(reserva.hora_inicio),
@@ -492,7 +506,7 @@ class PistaPage(QWidget, Ui_PistaPage):
             ws.append(fila)
         
         # Ajustar ancho de columnas
-        anchos = [8, 25, 15, 15, 15, 12, 15]
+        anchos = [25, 15, 15, 15, 12, 15]
         for i, ancho in enumerate(anchos, start=1):
             ws.column_dimensions[get_column_letter(i)].width = ancho
         
