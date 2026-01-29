@@ -51,18 +51,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.lbl_bienvenido.setText("Bienvenido al Club de Pádel")
         
         # Cargar imagen de inicio
-        pixmap = QPixmap("ui/icons/ImangenInicio.png")
-        if not pixmap.isNull():
-            # Escalar la imagen manteniendo la proporción
-            scaled_pixmap = pixmap.scaledToHeight(600)
-            self.lbl_imagen.setPixmap(scaled_pixmap)
+        self.pixmap_original = QPixmap("ui/icons/ImangenInicio.png")
+        self.ultimo_ancho_imagen = 0  # Para controlar rescalados
+        if not self.pixmap_original.isNull():
+            self.lbl_imagen.setScaledContents(False)
             self.lbl_imagen.setAlignment(Qt.AlignCenter)
-            self.lbl_imagen.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         else:
             self.lbl_imagen.setText("[Imagen no encontrada]")
         
         # Configurar responsividad
         self._configurar_responsive()
+        
+        # Ajustar imagen después de que se configure la UI
+        from PySide6.QtCore import QTimer
+        QTimer.singleShot(100, self._ajustar_imagen_inicio)
     
     def _configurar_responsive(self) -> None:
         """Configura la ventana y sus widgets para ser responsive."""
@@ -112,6 +114,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
         # Botón salir al final, con el mismo espacio que el de inicio
         self.btn_salir.setGeometry(btn_x, height - btn_height - 30, btn_width, btn_height)
+        
+        # Si estamos en la página de inicio, ajustar la imagen
+        if self.stackedWidget.currentIndex() == 0:
+            self._ajustar_imagen_inicio()
 
     def _cambiar_pagina(self, indice: int) -> None:
         """Cambia a la página indicada y limpia los campos de formularios.
@@ -124,6 +130,63 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
         # Cambiar a la nueva página
         self.stackedWidget.setCurrentIndex(indice)
+        
+        # Si vamos a la página de inicio, escalar la imagen para que no tenga zoom
+        if indice == 0 and hasattr(self, 'pixmap_original'):
+            self._ajustar_imagen_inicio()
+
+    def _ajustar_imagen_inicio(self) -> None:
+        """Escala la imagen dinámicamente según el tamaño disponible."""
+        if not hasattr(self, 'pixmap_original') or self.pixmap_original.isNull():
+            return
+        
+        # Obtener tamaño disponible del stackedWidget
+        stacked_width = self.stackedWidget.width()
+        stacked_height = self.stackedWidget.height()
+        
+        # Evitar rescalar si el tamaño no ha cambiado significativamente
+        if abs(stacked_width - self.ultimo_ancho_imagen) < 10:
+            return
+        
+        self.ultimo_ancho_imagen = stacked_width
+        
+        # Dejar margen
+        max_width = stacked_width - 80
+        max_height = stacked_height - 80
+        
+        if max_width <= 0 or max_height <= 0:
+            return
+        
+        # Obtener dimensiones originales
+        orig_width = self.pixmap_original.width()
+        orig_height = self.pixmap_original.height()
+        
+        # Calcular factor de escala
+        scale_w = max_width / orig_width
+        scale_h = max_height / orig_height
+        
+        # Usar el menor para que encaje completamente
+        scale = min(scale_w, scale_h)
+        
+        # Nunca amplificar (máximo 1.0)
+        scale = min(scale, 1.0)
+        
+        if scale < 0.1:
+            return
+        
+        # Calcular nuevas dimensiones
+        new_width = int(orig_width * scale)
+        new_height = int(orig_height * scale)
+        
+        # Escalar la imagen
+        scaled_pixmap = self.pixmap_original.scaled(
+            new_width,
+            new_height,
+            Qt.KeepAspectRatio,
+            Qt.SmoothTransformation
+        )
+        
+        self.lbl_imagen.setPixmap(scaled_pixmap)
 
     def _limpiar_pagina_actual(self) -> None:
         """Limpia los campos de la página actual si tiene un método vaciar_campos."""
