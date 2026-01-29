@@ -19,10 +19,11 @@ API pública:
 
 from PySide6.QtWidgets import QWidget, QTableWidgetItem, QMessageBox, QCompleter, QHeaderView, QFileDialog
 from PySide6.QtCore import Qt, QDate, QTime
+from PySide6.QtGui import QColor
 from datetime import date, time
 from utils.helpers import format_date, format_time
 from ui.reserva_page_ui import Ui_reserva_page
-from services.reserva_service import insertar_reserva, listar_reservas, obtener_reserva_por_id, actualizar_reserva, cancelar_reserva
+from services.reserva_service import insertar_reserva, listar_reservas, obtener_reserva_por_id, actualizar_reserva, cancelar_reserva, hay_solapamiento
 from services.pista_service import listar_pistas
 from services.socio_service import listar_socios
 from utils.events import bus
@@ -49,6 +50,10 @@ class ReservaPage(QWidget, Ui_reserva_page):
         self.dateEdit.setDate(QDate.currentDate())
         # cuando se cambia la hora de inicio, ajustar hora fin
         self.timeEdit.timeChanged.connect(self.suma_tiempo)
+        # actualizar disponibilidad de pistas al cambiar fecha u horas
+        self.dateEdit.dateChanged.connect(self.actualizar_disponibilidad_pistas)
+        self.timeEdit.timeChanged.connect(self.actualizar_disponibilidad_pistas)
+        self.timeEdit_2.timeChanged.connect(self.actualizar_disponibilidad_pistas)
 
         # Conectar botones
         self.btn_agregar.clicked.connect(self.insertar)
@@ -61,16 +66,24 @@ class ReservaPage(QWidget, Ui_reserva_page):
         # Conectar tabla
         self.tabla_reservas.itemSelectionChanged.connect(self.actualizar_campos)
 
+        # Avisar si se selecciona una pista ocupada
+        self.cmb_pista.currentIndexChanged.connect(self._avisar_si_pista_ocupada)
+
         # Conectar barra de búsqueda para filtrar en tiempo real
         self.txt_buscar.textChanged.connect(self.filtrar_tabla)
 
         # Guardar lista de reservas original para filtrado
         self.reservas_originales = []
+        # Mapa de disponibilidad de pistas (id_pista -> bool)
+        self.pistas_disponibilidad = {}
 
         # Inicializar campos
         self.cargar_pistas()
         self.cargar_socios()
         self.cargar_reservas()
+
+        # Pintar disponibilidad inicial
+        self.actualizar_disponibilidad_pistas()
 
         # Suscribirse a cambios globales para mantener autocompleters/combos actualizados
         bus.socios_changed.connect(self.cargar_socios)
@@ -88,10 +101,60 @@ class ReservaPage(QWidget, Ui_reserva_page):
         for p in pistas:
             # mostrar nombre, almacenar id en data
             self.cmb_pista.addItem(p.nombre, p.id_pista)
+        # no seleccionar ninguna pista por defecto
+        self.cmb_pista.setCurrentIndex(-1)
         # mapa id -> nombre para usar en la tabla sin lazy-loading
         # Incluir todas las pistas para mostrar en la tabla aunque sean inactivas
         todas_pistas = listar_pistas()
         self.mapa_pistas = {p.id_pista: p.nombre for p in todas_pistas}
+
+        # Refrescar colores de disponibilidad
+        self.actualizar_disponibilidad_pistas()
+
+    def actualizar_disponibilidad_pistas(self) -> None:
+        """Actualiza el color de las pistas según disponibilidad.
+
+        Verde si está disponible, rojo si está ocupada para la franja seleccionada.
+        """
+        fecha_qdate = self.dateEdit.date()
+        fecha_py = date(fecha_qdate.year(), fecha_qdate.month(), fecha_qdate.day())
+
+        hi_q = self.timeEdit.time()
+        hf_q = self.timeEdit_2.time()
+        hi_py = time(hi_q.hour(), hi_q.minute())
+        hf_py = time(hf_q.hour(), hf_q.minute())
+
+        # Si no hay rango válido, limpiar colores
+        if hf_py <= hi_py:
+            for i in range(self.cmb_pista.count()):
+                self.cmb_pista.setItemData(i, None, Qt.ForegroundRole)
+            self.pistas_disponibilidad = {}
+            return
+
+        # Validar horario de apertura del club
+        from utils.settings import get_opening_hours
+        apertura, cierre = get_opening_hours()
+        fuera_horario = hi_py < apertura or hf_py > cierre
+
+        self.pistas_disponibilidad = {}
+        for i in range(self.cmb_pista.count()):
+            id_pista = self.cmb_pista.itemData(i)
+            if id_pista is None:
+                continue
+            ocupada = fuera_horario or hay_solapamiento(id_pista, fecha_py, hi_py, hf_py)
+            disponible = not ocupada
+            self.pistas_disponibilidad[id_pista] = disponible
+            color = QColor("#2E7D32") if disponible else QColor("#C62828")
+            self.cmb_pista.setItemData(i, color, Qt.ForegroundRole)
+
+    def _avisar_si_pista_ocupada(self) -> None:
+        """Muestra aviso si el usuario selecciona una pista ocupada."""
+        id_pista = self.cmb_pista.currentData()
+        if id_pista is None:
+            return
+        disponible = self.pistas_disponibilidad.get(id_pista)
+        if disponible is False:
+            QMessageBox.warning(self, "Aviso", "La pista seleccionada está ocupada en ese horario.")
 
     def cargar_socios(self) -> None:
         """Recarga la lista de socios y configura el autocompletado.
@@ -188,7 +251,10 @@ class ReservaPage(QWidget, Ui_reserva_page):
         # Seleccionar pista en cmb_pista por id
         idx = self.cmb_pista.findData(r.id_pista)
         if idx >= 0:
+            # Evitar aviso al cambiar selección desde la tabla
+            was_blocked = self.cmb_pista.blockSignals(True)
             self.cmb_pista.setCurrentIndex(idx)
+            self.cmb_pista.blockSignals(was_blocked)
 
         # Socio: mostrar el string del mapa (Nombre Apellido (email)) si lo tenemos
         display = self.mapa_socios_id_to_display.get(r.id_socio)
@@ -298,7 +364,8 @@ class ReservaPage(QWidget, Ui_reserva_page):
         """
         self.txt_socio.clear()
         self.selected_socio_id = None
-        self.cmb_pista.setCurrentIndex(0)
+        # no seleccionar pista por defecto
+        self.cmb_pista.setCurrentIndex(-1)
         # Fecha a hoy
         self.dateEdit.setDate(QDate.currentDate())
         # Horas a 00:00

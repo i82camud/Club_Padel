@@ -52,35 +52,27 @@ class Ui_reserva_page(object):
         self.gridLayout = QGridLayout(self.gridLayoutWidget)
         self.gridLayout.setObjectName(u"gridLayout")
         self.gridLayout.setContentsMargins(0, 0, 0, 0)
-        self.cmb_pista = QComboBox(self.gridLayoutWidget)
-        self.cmb_pista.setObjectName(u"cmb_pista")
+        self.label_3 = QLabel(self.gridLayoutWidget)
+        self.label_3.setObjectName(u"label_3")
+        sizePolicy = QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.label_3.sizePolicy().hasHeightForWidth())
+        self.label_3.setSizePolicy(sizePolicy)
+        self.label_3.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
 
-        self.gridLayout.addWidget(self.cmb_pista, 0, 3, 1, 1)
+        self.gridLayout.addWidget(self.label_3, 0, 0, 1, 1)
 
         self.dateEdit = QDateEdit(self.gridLayoutWidget)
         self.dateEdit.setObjectName(u"dateEdit")
         self.dateEdit.setCalendarPopup(True)
 
-        self.gridLayout.addWidget(self.dateEdit, 0, 5, 1, 1)
+        self.gridLayout.addWidget(self.dateEdit, 0, 1, 1, 1)
 
-        self.label = QLabel(self.gridLayoutWidget)
-        self.label.setObjectName(u"label")
-        sizePolicy = QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Preferred)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.label.sizePolicy().hasHeightForWidth())
-        self.label.setSizePolicy(sizePolicy)
-        self.label.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+        self.timeEdit_2 = QTimeEdit(self.gridLayoutWidget)
+        self.timeEdit_2.setObjectName(u"timeEdit_2")
 
-        self.gridLayout.addWidget(self.label, 0, 0, 1, 1)
-
-        self.label_4 = QLabel(self.gridLayoutWidget)
-        self.label_4.setObjectName(u"label_4")
-        sizePolicy.setHeightForWidth(self.label_4.sizePolicy().hasHeightForWidth())
-        self.label_4.setSizePolicy(sizePolicy)
-        self.label_4.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
-
-        self.gridLayout.addWidget(self.label_4, 1, 0, 1, 1)
+        self.gridLayout.addWidget(self.timeEdit_2, 0, 5, 1, 1)
 
         self.label_5 = QLabel(self.gridLayoutWidget)
         self.label_5.setObjectName(u"label_5")
@@ -88,7 +80,41 @@ class Ui_reserva_page(object):
         self.label_5.setSizePolicy(sizePolicy)
         self.label_5.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
 
-        self.gridLayout.addWidget(self.label_5, 1, 2, 1, 1)
+        self.gridLayout.addWidget(self.label_5, 0, 4, 1, 1)
+
+        self.label_2 = QLabel(self.gridLayoutWidget)
+        self.label_2.setObjectName(u"label_2")
+        sizePolicy.setHeightForWidth(self.label_2.sizePolicy().hasHeightForWidth())
+        self.label_2.setSizePolicy(sizePolicy)
+        self.label_2.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+
+        self.gridLayout.addWidget(self.label_2, 1, 2, 1, 1)
+
+        self.cmb_pista = QComboBox(self.gridLayoutWidget)
+        self.cmb_pista.setObjectName(u"cmb_pista")
+
+        self.gridLayout.addWidget(self.cmb_pista, 1, 3, 1, 1)
+
+        self.timeEdit = QTimeEdit(self.gridLayoutWidget)
+        self.timeEdit.setObjectName(u"timeEdit")
+
+        self.gridLayout.addWidget(self.timeEdit, 0, 3, 1, 1)
+
+        self.label_4 = QLabel(self.gridLayoutWidget)
+        self.label_4.setObjectName(u"label_4")
+        sizePolicy.setHeightForWidth(self.label_4.sizePolicy().hasHeightForWidth())
+        self.label_4.setSizePolicy(sizePolicy)
+        self.label_4.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+
+        self.gridLayout.addWidget(self.label_4, 0, 2, 1, 1)
+
+        self.label = QLabel(self.gridLayoutWidget)
+        self.label.setObjectName(u"label")
+        sizePolicy.setHeightForWidth(self.label.sizePolicy().hasHeightForWidth())
+        self.label.setSizePolicy(sizePolicy)
+        self.label.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+
+        self.gridLayout.addWidget(self.label, 1, 0, 1, 1)
 
         self.txt_socio = QLineEdit(self.gridLayoutWidget)
         self.txt_socio.setObjectName(u"txt_socio")
@@ -98,44 +124,8 @@ class Ui_reserva_page(object):
         sizePolicy1.setHeightForWidth(self.txt_socio.sizePolicy().hasHeightForWidth())
         self.txt_socio.setSizePolicy(sizePolicy1)
 
-        self.gridLayout.addWidget(self.txt_socio, 0, 1, 1, 1)
+        self.gridLayout.addWidget(self.txt_socio, 1, 1, 1, 1)
 
-        self.label_3 = QLabel(self.gridLayoutWidget)
-        self.label_3.setObjectName(u"label_3")
-        sizePolicy.setHeightForWidth(self.label_3.sizePolicy().hasHeightForWidth())
-        self.label_3.setSizePolicy(sizePolicy)
-        self.label_3.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
-
-        self.gridLayout.addWidget(self.label_3, 0, 4, 1, 1)
-
-        self.label_2 = QLabel(self.gridLayoutWidget)
-        self.label_2.setObjectName(u"label_2")
-        sizePolicy.setHeightForWidth(self.label_2.sizePolicy().hasHeightForWidth())
-        self.label_2.setSizePolicy(sizePolicy)
-        self.label_2.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
-
-        self.gridLayout.addWidget(self.label_2, 0, 2, 1, 1)
-
-        self.timeEdit = QTimeEdit(self.gridLayoutWidget)
-        self.timeEdit.setObjectName(u"timeEdit")
-
-        self.gridLayout.addWidget(self.timeEdit, 1, 1, 1, 1)
-
-        self.timeEdit_2 = QTimeEdit(self.gridLayoutWidget)
-        self.timeEdit_2.setObjectName(u"timeEdit_2")
-
-        self.gridLayout.addWidget(self.timeEdit_2, 1, 3, 1, 1)
-
-        self.txt_socio.raise_()
-        self.label.raise_()
-        self.label_2.raise_()
-        self.label_3.raise_()
-        self.label_4.raise_()
-        self.label_5.raise_()
-        self.cmb_pista.raise_()
-        self.dateEdit.raise_()
-        self.timeEdit.raise_()
-        self.timeEdit_2.raise_()
         self.tabla_reservas = QTableWidget(reserva_page)
         self.tabla_reservas.setObjectName(u"tabla_reservas")
         self.tabla_reservas.setGeometry(QRect(20, 240, 1041, 511))
@@ -178,13 +168,13 @@ class Ui_reserva_page(object):
         self.btn_baja.setText(QCoreApplication.translate("reserva_page", u"Cancelar", None))
         self.btn_pagar.setText(QCoreApplication.translate("reserva_page", u"Pagar", None))
         self.btn_listar.setText(QCoreApplication.translate("reserva_page", u"Listar Reservas", None))
-        self.label.setText(QCoreApplication.translate("reserva_page", u"Socio", None))
-        self.label_4.setText(QCoreApplication.translate("reserva_page", u"Hora Inicio", None))
-        self.label_5.setText(QCoreApplication.translate("reserva_page", u"Hora Fin", None))
         self.label_3.setText(QCoreApplication.translate("reserva_page", u"Fecha", None))
+        self.timeEdit_2.setDisplayFormat(QCoreApplication.translate("reserva_page", u"HH:mm", None))
+        self.label_5.setText(QCoreApplication.translate("reserva_page", u"Hora Fin", None))
         self.label_2.setText(QCoreApplication.translate("reserva_page", u"Pista", None))
         self.timeEdit.setDisplayFormat(QCoreApplication.translate("reserva_page", u"HH:mm", None))
-        self.timeEdit_2.setDisplayFormat(QCoreApplication.translate("reserva_page", u"HH:mm", None))
+        self.label_4.setText(QCoreApplication.translate("reserva_page", u"Hora Inicio", None))
+        self.label.setText(QCoreApplication.translate("reserva_page", u"Socio", None))
         self.btn_limpiar.setText(QCoreApplication.translate("reserva_page", u"Limpiar", None))
         self.label_6.setText(QCoreApplication.translate("reserva_page", u"Buscar", None))
     # retranslateUi
