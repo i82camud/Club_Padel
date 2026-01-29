@@ -1,7 +1,7 @@
 import sys
 from PySide6.QtWidgets import QApplication, QMainWindow, QPushButton, QSizePolicy, QHBoxLayout
 from PySide6.QtCore import QFile, Qt
-from PySide6.QtGui import QPixmap
+from PySide6.QtGui import QPixmap, QIcon
 from ui.main_window_ui import Ui_MainWindow
 from ui.widgets.configuracion_page_widget import ConfiguracionPage
 from ui.widgets.socio_page_widget import SocioPage
@@ -21,6 +21,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         style_file = QFile("ui/styles/style.qss")
         if style_file.open(QFile.ReadOnly):
             self.setStyleSheet(str(style_file.readAll(), encoding="utf-8"))
+
+        # Cargar y establecer icono de la aplicación
+        self.setWindowIcon(QIcon("ui/icons/aplicacion.ico"))
 
         # Conectar widgets a páginas del QStackedWidget
         self.socio_page = SocioPage()
