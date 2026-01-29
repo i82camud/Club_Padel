@@ -322,7 +322,15 @@ class SocioPage(QWidget, Ui_SocioPage):
             QMessageBox.warning(self, "Error", "Selecciona un socio para modificar")
             return
 
-        id_socio = int(self.tabla_socios.item(fila, 0).text())
+        # Obtener el ID del socio del UserRole
+        item0 = self.tabla_socios.item(fila, 0)
+        if item0 is None:
+            return
+        id_socio = item0.data(Qt.UserRole)
+        if id_socio is None:
+            QMessageBox.warning(self, "Error", "No se pudo obtener el ID del socio")
+            return
+
         ok, mensaje = self.validar_campos(correo_existente_id=id_socio, telefono_existente_id=id_socio)
         if not ok:
             QMessageBox.warning(self, "Error", mensaje)
@@ -346,7 +354,15 @@ class SocioPage(QWidget, Ui_SocioPage):
             QMessageBox.warning(self, "Error", "Selecciona un socio para darlo de baja")
             return
 
-        id_socio = int(self.tabla_socios.item(fila, 0).text())
+        # Obtener el ID del socio del UserRole
+        item0 = self.tabla_socios.item(fila, 0)
+        if item0 is None:
+            return
+        id_socio = item0.data(Qt.UserRole)
+        if id_socio is None:
+            QMessageBox.warning(self, "Error", "No se pudo obtener el ID del socio")
+            return
+
         socio_service.baja_socio(id_socio)
         QMessageBox.information(self, "Éxito", "Socio dado de baja correctamente")
         self.vaciar_campos()
@@ -364,7 +380,15 @@ class SocioPage(QWidget, Ui_SocioPage):
             QMessageBox.warning(self, "Error", "Selecciona un socio para activar")
             return
 
-        id_socio = int(self.tabla_socios.item(fila, 0).text())
+        # Obtener el ID del socio del UserRole
+        item0 = self.tabla_socios.item(fila, 0)
+        if item0 is None:
+            return
+        id_socio = item0.data(Qt.UserRole)
+        if id_socio is None:
+            QMessageBox.warning(self, "Error", "No se pudo obtener el ID del socio")
+            return
+
         socio_service.activa_socio(id_socio)
         QMessageBox.information(self, "Éxito", "Socio activado correctamente")
         self.vaciar_campos()

@@ -263,7 +263,15 @@ class PistaPage(QWidget, Ui_PistaPage):
             QMessageBox.warning(self, "Error", "Selecciona una pista para modificar.")
             return
 
-        id_pista = int(self.tabla_pistas.item(fila, 0).text())
+        # Obtener el ID de la pista del UserRole
+        item0 = self.tabla_pistas.item(fila, 0)
+        if item0 is None:
+            return
+        id_pista = item0.data(Qt.UserRole)
+        if id_pista is None:
+            QMessageBox.warning(self, "Error", "No se pudo obtener el ID de la pista")
+            return
+
         ok, mensaje = self.validar_campos()
         if not ok:
             QMessageBox.warning(self, "Error", mensaje)
@@ -290,7 +298,15 @@ class PistaPage(QWidget, Ui_PistaPage):
             QMessageBox.warning(self, "Error", "Selecciona una pista para dar de baja.")
             return
 
-        id_pista = int(self.tabla_pistas.item(row, 0).text())
+        # Obtener el ID de la pista del UserRole
+        item0 = self.tabla_pistas.item(row, 0)
+        if item0 is None:
+            return
+        id_pista = item0.data(Qt.UserRole)
+        if id_pista is None:
+            QMessageBox.warning(self, "Error", "No se pudo obtener el ID de la pista")
+            return
+
         pista_service.desactivar_pista(id_pista)
         QMessageBox.information(self, "Éxito", "Pista dada de baja correctamente")
         self.vaciar_campos()
@@ -308,7 +324,15 @@ class PistaPage(QWidget, Ui_PistaPage):
             QMessageBox.warning(self, "Error", "Selecciona una pista para activar.")
             return
 
-        id_pista = int(self.tabla_pistas.item(row, 0).text())
+        # Obtener el ID de la pista del UserRole
+        item0 = self.tabla_pistas.item(row, 0)
+        if item0 is None:
+            return
+        id_pista = item0.data(Qt.UserRole)
+        if id_pista is None:
+            QMessageBox.warning(self, "Error", "No se pudo obtener el ID de la pista")
+            return
+
         pista_service.activar_pista(id_pista)
         QMessageBox.information(self, "Éxito", "Pista activada correctamente")
         self.vaciar_campos()
