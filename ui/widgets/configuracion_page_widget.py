@@ -55,6 +55,19 @@ class ConfiguracionPage(QWidget):
         antelacion_max = get_config("timeAntelacionMax", "30")
         self.ui.txt_antelacion_max.setText(str(antelacion_max))
 
+        # Conectar evento de resize para responsividad
+        self.resizeEvent = self._on_page_resized
+
+    def _on_page_resized(self, event) -> None:
+        """Ajusta la geometría de widgets al redimensionar la página."""
+        width = self.width()
+        height = self.height()
+        
+        # Para Configuración, simplemente hacer que el widget principal se ajuste
+        # Los widgets internos ya tienen sizePolicy configurado
+        if hasattr(self.ui, 'centralwidget'):
+            self.ui.centralwidget.resize(width, height)
+
     def _open_change_password(self) -> None:
         """Abre el diálogo para cambiar la contraseña del administrador."""
         dlg = ChangePasswordDialog(self)

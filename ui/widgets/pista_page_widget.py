@@ -67,6 +67,44 @@ class PistaPage(QWidget, Ui_PistaPage):
         # Cargar tabla al inicio
         self.cargar_pistas()
 
+        # Conectar evento de resize para responsividad
+        self.resizeEvent = self._on_page_resized
+
+    def _on_page_resized(self, event) -> None:
+        """Ajusta la geometría de widgets al redimensionar la página."""
+        width = self.width()
+        height = self.height()
+        
+        # Margen general
+        margin = 20
+        
+        # Label "Pistas" (título)
+        self.label_socios.setGeometry(margin, margin, 200, 31)
+        
+        # GroupBox de botones: ancho completo, alto fijo
+        gb_y = margin + 35
+        gb_height = 41
+        self.groupBox.setGeometry(margin, gb_y, width - 2*margin, gb_height)
+        
+        # GridLayoutWidget_2 (campos de entrada): ancho completo, alto fijo
+        grid_y = gb_y + gb_height + 10
+        grid_height = 71
+        if hasattr(self, 'gridLayoutWidget_2'):
+            self.gridLayoutWidget_2.setGeometry(margin, grid_y, width - 2*margin, grid_height)
+        
+        # Botón Limpiar y GridLayoutWidget_3 (búsqueda)
+        search_y = grid_y + grid_height + 10
+        search_height = 35
+        if hasattr(self, 'btn_limpiar'):
+            self.btn_limpiar.setGeometry(margin, search_y, 71, search_height)
+        if hasattr(self, 'gridLayoutWidget_3'):
+            self.gridLayoutWidget_3.setGeometry(margin + 90, search_y, width - 2*margin - 90, search_height)
+        
+        # Tabla (resto del espacio disponible)
+        table_y = search_y + 51 + 10
+        table_height = height - table_y - margin
+        self.tabla_pistas.setGeometry(margin, table_y, width - 2*margin, table_height)
+
     def cargar_pistas(self) -> None:
         """Recarga la tabla de pistas desde el servicio.
         

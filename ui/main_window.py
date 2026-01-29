@@ -1,5 +1,5 @@
 import sys
-from PySide6.QtWidgets import QApplication, QMainWindow, QPushButton, QSizePolicy
+from PySide6.QtWidgets import QApplication, QMainWindow, QPushButton, QSizePolicy, QHBoxLayout
 from PySide6.QtCore import QFile, Qt
 from PySide6.QtGui import QPixmap
 from ui.main_window_ui import Ui_MainWindow
@@ -57,6 +57,58 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.lbl_imagen.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         else:
             self.lbl_imagen.setText("[Imagen no encontrada]")
+        
+        # Configurar responsividad
+        self._configurar_responsive()
+    
+    def _configurar_responsive(self) -> None:
+        """Configura la ventana y sus widgets para ser responsive."""
+        # Iniciar maximizado
+        self.showMaximized()
+        
+        # Configurar sizePolicy para que se expandan
+        self.centralwidget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.stackedWidget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.groupBox.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
+        
+        # Conectar evento de resize para ajustar geometría dinámicamente
+        self.resizeEvent = self._on_window_resized
+    
+    def _on_window_resized(self, event) -> None:
+        """Ajusta la geometría de widgets al redimensionar la ventana."""
+        if not hasattr(self, 'centralwidget'):
+            return
+        
+        width = self.centralwidget.width()
+        height = self.centralwidget.height()
+        
+        # Ancho lateral: ~12% del total (160px como mínimo)
+        sidebar_width = max(160, int(width * 0.12))
+        
+        # Posicionar sidebar
+        self.groupBox.setGeometry(10, 10, sidebar_width, height - 20)
+        
+        # Posicionar stackedWidget (resto del espacio disponible)
+        stacked_x = sidebar_width + 20
+        stacked_width = width - stacked_x - 10
+        self.stackedWidget.setGeometry(stacked_x, 10, stacked_width, height - 20)
+        
+        # Mantener tamaño de botones fijo (131 x 31)
+        btn_width = 131
+        btn_height = 31
+        
+        # Centrar botones horizontalmente en el sidebar
+        btn_x = (sidebar_width - btn_width) // 2
+        
+        # Posicionar botones de arriba hacia abajo
+        y_pos = 20
+        for btn in [self.btn_inicio, self.btn_socios, self.btn_pistas, 
+                   self.btn_pagos, self.btn_reservas, self.btn_configuracion]:
+            btn.setGeometry(btn_x, y_pos, btn_width, btn_height)
+            y_pos += btn_height + 10
+        
+        # Botón salir al final, con el mismo espacio que el de inicio
+        self.btn_salir.setGeometry(btn_x, height - btn_height - 30, btn_width, btn_height)
 
     def _cambiar_pagina(self, indice: int) -> None:
         """Cambia a la página indicada y limpia los campos de formularios.

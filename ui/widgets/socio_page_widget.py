@@ -64,7 +64,45 @@ class SocioPage(QWidget, Ui_SocioPage):
 
         # Cargar tabla al inicio
         self.cargar_socios()
-    
+
+        # Conectar evento de resize para responsividad
+        self.resizeEvent = self._on_page_resized
+
+    def _on_page_resized(self, event) -> None:
+        """Ajusta la geometría de widgets al redimensionar la página."""
+        width = self.width()
+        height = self.height()
+        
+        # Margen general
+        margin = 20
+        
+        # Label "Socios" (título)
+        self.label_socios.setGeometry(margin, margin, 200, 31)
+        
+        # GroupBox de botones: ancho completo, alto fijo
+        gb_y = margin + 35
+        gb_height = 41
+        self.groupBox.setGeometry(margin, gb_y, width - 2*margin, gb_height)
+        
+        # GridLayoutWidget (campos de entrada): ancho completo, alto fijo
+        grid1_y = gb_y + gb_height + 10
+        grid1_height = 71
+        if hasattr(self, 'gridLayoutWidget'):
+            self.gridLayoutWidget.setGeometry(margin, grid1_y, width - 2*margin, grid1_height)
+        
+        # Botón Limpiar y GridLayoutWidget_2 (búsqueda)
+        grid2_y = grid1_y + grid1_height + 10
+        search_height = 35
+        if hasattr(self, 'btn_limpiar'):
+            self.btn_limpiar.setGeometry(margin, grid2_y, 71, search_height)
+        if hasattr(self, 'gridLayoutWidget_2'):
+            self.gridLayoutWidget_2.setGeometry(margin + 90, grid2_y, width - 2*margin - 90, search_height)
+        
+        # Tabla (resto del espacio disponible)
+        table_y = grid2_y + 51 + 10
+        table_height = height - table_y - margin
+        self.tabla_socios.setGeometry(margin, table_y, width - 2*margin, table_height)
+
     def cargar_socios(self) -> None:
         """Recarga la tabla de socios desde el servicio.
         

@@ -111,6 +111,45 @@ class PagoPage(QWidget, Ui_pago_page):
         # cargar tabla
         self.cargar_pagos()
 
+        # Conectar evento de resize para responsividad
+        self.resizeEvent = self._on_page_resized
+
+    def _on_page_resized(self, event) -> None:
+        """Ajusta la geometría de widgets al redimensionar la página."""
+        width = self.width()
+        height = self.height()
+        
+        # Margen general
+        margin = 20
+        
+        # Label "Pagos" (título)
+        self.label_pagos.setGeometry(margin, margin, 200, 31)
+        
+        # GroupBox de botones: ancho completo, alto fijo
+        gb_y = margin + 35
+        gb_height = 41
+        self.groupBox.setGeometry(margin, gb_y, width - 2*margin, gb_height)
+        
+        # GridLayoutWidget (campos de entrada): ancho completo, alto fijo
+        grid_y = gb_y + gb_height + 10
+        grid_height = 71
+        if hasattr(self, 'gridLayoutWidget'):
+            self.gridLayoutWidget.setGeometry(margin, grid_y, width - 2*margin, grid_height)
+        
+        # Botón Limpiar y GridLayoutWidget_2 (búsqueda)
+        search_y = grid_y + grid_height + 10
+        search_height = 35
+        if hasattr(self, 'btn_limpiar'):
+            self.btn_limpiar.setGeometry(margin, search_y, 71, search_height)
+        if hasattr(self, 'gridLayoutWidget_2'):
+            self.gridLayoutWidget_2.setGeometry(margin + 90, search_y, width - 2*margin - 90, search_height)
+        
+        # Tabla (resto del espacio disponible)
+        table_y = search_y + 51 + 10
+        table_height = height - table_y - margin
+        if hasattr(self, 'tabla_pagos'):
+            self.tabla_pagos.setGeometry(margin, table_y, width - 2*margin, table_height)
+
     def _cargar_socios(self) -> None:
         """Carga el autocompletado de socios desde el servicio.
         
