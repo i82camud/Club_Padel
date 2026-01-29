@@ -97,12 +97,58 @@ class PagoPage(QWidget, Ui_pago_page):
         self.btn_modificar.clicked.connect(self.modificar)
         self.btn_baja.clicked.connect(self.anular)
         self.btn_listar.clicked.connect(self.generar_listado)
+        self.btn_limpiar.clicked.connect(self.vaciar_campos)
         
         # Conectar tabla para que actualice los campos al seleccionar fila
         self.tabla_pagos.itemSelectionChanged.connect(self.actualizar_campos)
 
+        # Conectar barra de búsqueda para filtrar en tiempo real
+        self.txt_buscar.textChanged.connect(self.filtrar_tabla)
+
+        # Guardar lista de pagos original para filtrado
+        self.pagos_originales = []
+
         # cargar tabla
         self.cargar_pagos()
+
+        # Conectar evento de resize para responsividad
+        self.resizeEvent = self._on_page_resized
+
+    def _on_page_resized(self, event) -> None:
+        """Ajusta la geometría de widgets al redimensionar la página."""
+        width = self.width()
+        height = self.height()
+        
+        # Margen general
+        margin = 20
+        
+        # Label "Pagos" (título)
+        self.label_pagos.setGeometry(margin, margin, 200, 31)
+        
+        # GroupBox de botones: ancho completo, alto fijo
+        gb_y = margin + 35
+        gb_height = 41
+        self.groupBox.setGeometry(margin, gb_y, width - 2*margin, gb_height)
+        
+        # GridLayoutWidget (campos de entrada): ancho completo, alto fijo
+        grid_y = gb_y + gb_height + 10
+        grid_height = 71
+        if hasattr(self, 'gridLayoutWidget'):
+            self.gridLayoutWidget.setGeometry(margin, grid_y, width - 2*margin, grid_height)
+        
+        # Botón Limpiar y GridLayoutWidget_2 (búsqueda)
+        search_y = grid_y + grid_height + 10
+        search_height = 35
+        if hasattr(self, 'btn_limpiar'):
+            self.btn_limpiar.setGeometry(margin, search_y, 71, search_height)
+        if hasattr(self, 'gridLayoutWidget_2'):
+            self.gridLayoutWidget_2.setGeometry(margin + 90, search_y, width - 2*margin - 90, search_height)
+        
+        # Tabla (resto del espacio disponible)
+        table_y = search_y + 51 + 10
+        table_height = height - table_y - margin
+        if hasattr(self, 'tabla_pagos'):
+            self.tabla_pagos.setGeometry(margin, table_y, width - 2*margin, table_height)
 
     def _cargar_socios(self) -> None:
         """Carga el autocompletado de socios desde el servicio.
@@ -230,9 +276,10 @@ class PagoPage(QWidget, Ui_pago_page):
         Utiliza mapeos internos para evitar acceso lazy loading a relaciones.
         """
         pagos = listar_pagos()
+        self.pagos_originales = pagos  # Guardar para filtrado
         self.tabla_pagos.setRowCount(len(pagos))
-        self.tabla_pagos.setColumnCount(6)
-        self.tabla_pagos.setHorizontalHeaderLabels(["ID", "Socio", "Importe", "Fecha", "Tipo", "Estado"])
+        self.tabla_pagos.setColumnCount(5)
+        self.tabla_pagos.setHorizontalHeaderLabels(["Socio", "Importe", "Fecha", "Tipo", "Estado"])
 
         # crear mapa id->display para evitar lazy load
         socios = listar_socios()
@@ -242,7 +289,6 @@ class PagoPage(QWidget, Ui_pago_page):
             tipo_display = p.tipo.name.capitalize() if hasattr(p.tipo, 'name') else str(p.tipo)
             estado_display = p.estado.name.capitalize() if hasattr(p.estado, 'name') else str(p.estado)
             values = [
-                p.id_pago,
                 mapa.get(p.id_socio, str(p.id_socio)),
                 f"{p.importe:.2f}",
                 format_date(p.fecha_pago),
@@ -250,14 +296,16 @@ class PagoPage(QWidget, Ui_pago_page):
                 estado_display,
             ]
             for col, dato in enumerate(values):
-                self.tabla_pagos.setItem(fila, col, QTableWidgetItem(str(dato)))
+                item = QTableWidgetItem(str(dato))
+                # Almacenar el ID del pago en el primer item como dato oculto
+                if col == 0:
+                    item.setData(Qt.UserRole, p.id_pago)
+                self.tabla_pagos.setItem(fila, col, item)
 
         # ajustar tamaño de columnas
         header = self.tabla_pagos.horizontalHeader()
-        header.setSectionResizeMode(0, QHeaderView.Fixed)
-        self.tabla_pagos.setColumnWidth(0, 60)
-        header.setSectionResizeMode(1, QHeaderView.Stretch)
-        for col in range(2, 5):
+        header.setSectionResizeMode(0, QHeaderView.Stretch)
+        for col in range(1, 5):
             header.setSectionResizeMode(col, QHeaderView.Fixed)
             self.tabla_pagos.setColumnWidth(col, 120) 
 
@@ -271,13 +319,18 @@ class PagoPage(QWidget, Ui_pago_page):
         if fila < 0:
             return
         
-        # Obtener el id del pago de la primera columna
+        # Obtener el ID del pago almacenado en el atributo del widget de la tabla
         item0 = self.tabla_pagos.item(fila, 0)
         if item0 is None:
             return
         
+        # El ID está almacenado en los datos del item
+        id_pago_data = item0.data(Qt.UserRole)
+        if id_pago_data is None:
+            return
+        
         try:
-            id_pago = int(item0.text())
+            id_pago = int(id_pago_data)
             
             # Usar sesión para cargar relaciones lazy
             from models import orm
@@ -416,7 +469,12 @@ class PagoPage(QWidget, Ui_pago_page):
             QMessageBox.warning(self, "Error", "Fila inválida")
             return
         
-        id_pago = int(item0.text())
+        # Obtener el ID del pago almacenado en Qt.UserRole
+        id_pago_data = item0.data(Qt.UserRole)
+        if id_pago_data is None:
+            QMessageBox.warning(self, "Error", "No se pudo obtener el ID del pago")
+            return
+        id_pago = int(id_pago_data)
         
         # Validaciones mínimas
         try:
@@ -462,7 +520,12 @@ class PagoPage(QWidget, Ui_pago_page):
         if item0 is None:
             QMessageBox.warning(self, "Error", "Fila inválida")
             return
-        id_pago = int(item0.text())
+        # Obtener el ID del pago almacenado en Qt.UserRole
+        id_pago_data = item0.data(Qt.UserRole)
+        if id_pago_data is None:
+            QMessageBox.warning(self, "Error", "No se pudo obtener el ID del pago")
+            return
+        id_pago = int(id_pago_data)
         # recuperar y cambiar estado
         p = obtener_pago_por_id(id_pago)
         if p is None:
@@ -554,7 +617,7 @@ class PagoPage(QWidget, Ui_pago_page):
         ws.title = "Pagos"
         
         # Cabecera con estilo
-        cabecera = ["ID", "Socio", "Fecha", "Importe (€)", "Tipo", "Estado", "Concepto"]
+        cabecera = ["Socio", "Fecha", "Importe (€)", "Tipo", "Estado", "Concepto"]
         ws.append(cabecera)
         
         # Aplicar estilos a la cabecera
@@ -594,7 +657,6 @@ class PagoPage(QWidget, Ui_pago_page):
                 nombre_socio = f"{socio.nombre} {socio.apellido1}" if socio else ""
                 
                 fila = [
-                    pago.id_pago,
                     nombre_socio,
                     format_date(pago.fecha_pago),
                     f"{pago.importe:.2f}",
@@ -607,7 +669,7 @@ class PagoPage(QWidget, Ui_pago_page):
             session.close()
         
         # Ajustar ancho de columnas
-        anchos = [10, 20, 12, 15, 12, 12, 35]
+        anchos = [20, 12, 15, 12, 12, 35]
         for i, ancho in enumerate(anchos, start=1):
             col_letter = get_column_letter(i)
             ws.column_dimensions[col_letter].width = ancho
@@ -627,5 +689,63 @@ class PagoPage(QWidget, Ui_pago_page):
         self._linked_reserva_id = None
         self.txt_concepto.setReadOnly(False)
         self.dateEdit.setDate(QDate.currentDate())
+        self.txt_buscar.clear()
 
-__all__ = ['PagoPage']
+    def filtrar_tabla(self) -> None:
+        """Filtra la tabla de pagos según el texto ingresado en la barra de búsqueda.
+        
+        Busca el texto en la columna de Socio (nombre completo y email).
+        La búsqueda es case-insensitive.
+        """
+        texto_busqueda = self.txt_buscar.text().lower().strip()
+        
+        if not texto_busqueda:
+            # Si el campo de búsqueda está vacío, mostrar todos los pagos
+            self.cargar_pagos()
+            return
+        
+        # Crear mapa de socios para búsqueda
+        socios = listar_socios()
+        mapa_socios = {s.id_socio: f"{s.nombre} {s.apellido1} ({s.email})".lower() for s in socios}
+        
+        # Filtrar pagos según el texto de búsqueda en la columna de socio
+        pagos_filtrados = []
+        for pago in self.pagos_originales:
+            nombre_socio = mapa_socios.get(pago.id_socio, "").lower()
+            
+            # Buscar en el nombre del socio
+            if texto_busqueda in nombre_socio:
+                pagos_filtrados.append(pago)
+        
+        # Actualizar tabla con pagos filtrados
+        self.tabla_pagos.setRowCount(len(pagos_filtrados))
+        self.tabla_pagos.setColumnCount(5)
+        self.tabla_pagos.setHorizontalHeaderLabels(["Socio", "Importe", "Fecha", "Tipo", "Estado"])
+
+        # crear mapa id->display para evitar lazy load
+        socios = listar_socios()
+        mapa = {s.id_socio: f"{s.nombre} {s.apellido1} ({s.email})" for s in socios}
+
+        for fila, p in enumerate(pagos_filtrados):
+            tipo_display = p.tipo.name.capitalize() if hasattr(p.tipo, 'name') else str(p.tipo)
+            estado_display = p.estado.name.capitalize() if hasattr(p.estado, 'name') else str(p.estado)
+            values = [
+                mapa.get(p.id_socio, str(p.id_socio)),
+                f"{p.importe:.2f}",
+                format_date(p.fecha_pago),
+                tipo_display,
+                estado_display,
+            ]
+
+            for col, dato in enumerate(values):
+                item = QTableWidgetItem(str(dato))
+                # Almacenar el ID del pago en el primer item como dato oculto
+                if col == 0:
+                    item.setData(Qt.UserRole, p.id_pago)
+                self.tabla_pagos.setItem(fila, col, item)
+
+        # ajustar tamaño de columnas
+        header = self.tabla_pagos.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.Stretch)
+        for col in range(1, 5):
+            header.setSectionResizeMode(col, QHeaderView.Fixed)

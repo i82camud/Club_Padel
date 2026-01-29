@@ -19,7 +19,7 @@ Notas:
 """
 
 from PySide6.QtWidgets import QWidget, QTableWidgetItem, QMessageBox, QHeaderView, QFileDialog, QDialog
-from PySide6.QtCore import QDate
+from PySide6.QtCore import QDate, Qt
 from ui.pista_page_ui import Ui_PistaPage  # el generado por pyside6-uic
 import services.pista_service as pista_service
 from utils.events import bus
@@ -54,13 +54,56 @@ class PistaPage(QWidget, Ui_PistaPage):
         self.btn_activar.clicked.connect(self.activa_pista)
         self.btn_listar.clicked.connect(self.generar_listado)
         self.btn_listar_reservas.clicked.connect(self.generar_listado_reservas)
+        self.btn_limpiar.clicked.connect(self.vaciar_campos)
+        self.txt_buscar.textChanged.connect(self.filtrar_tabla)
 
         # Conectar tabla para que actualice los campos al seleccionar fila
         self.tabla_pistas.itemSelectionChanged.connect(self.actualizar_campos)
         self.tabla_pistas.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
+        # Lista para almacenar las pistas originales para filtrado
+        self.pistas_originales = []
+
         # Cargar tabla al inicio
         self.cargar_pistas()
+
+        # Conectar evento de resize para responsividad
+        self.resizeEvent = self._on_page_resized
+
+    def _on_page_resized(self, event) -> None:
+        """Ajusta la geometría de widgets al redimensionar la página."""
+        width = self.width()
+        height = self.height()
+        
+        # Margen general
+        margin = 20
+        
+        # Label "Pistas" (título)
+        self.label_socios.setGeometry(margin, margin, 200, 31)
+        
+        # GroupBox de botones: ancho completo, alto fijo
+        gb_y = margin + 35
+        gb_height = 41
+        self.groupBox.setGeometry(margin, gb_y, width - 2*margin, gb_height)
+        
+        # GridLayoutWidget_2 (campos de entrada): ancho completo, alto fijo
+        grid_y = gb_y + gb_height + 10
+        grid_height = 71
+        if hasattr(self, 'gridLayoutWidget_2'):
+            self.gridLayoutWidget_2.setGeometry(margin, grid_y, width - 2*margin, grid_height)
+        
+        # Botón Limpiar y GridLayoutWidget_3 (búsqueda)
+        search_y = grid_y + grid_height + 10
+        search_height = 35
+        if hasattr(self, 'btn_limpiar'):
+            self.btn_limpiar.setGeometry(margin, search_y, 71, search_height)
+        if hasattr(self, 'gridLayoutWidget_3'):
+            self.gridLayoutWidget_3.setGeometry(margin + 90, search_y, width - 2*margin - 90, search_height)
+        
+        # Tabla (resto del espacio disponible)
+        table_y = search_y + 51 + 10
+        table_height = height - table_y - margin
+        self.tabla_pistas.setGeometry(margin, table_y, width - 2*margin, table_height)
 
     def cargar_pistas(self) -> None:
         """Recarga la tabla de pistas desde el servicio.
@@ -69,16 +112,16 @@ class PistaPage(QWidget, Ui_PistaPage):
         Muestra el estado de forma legible (Activa/Inactiva).
         """
         pistas = pista_service.listar_pistas()
+        self.pistas_originales = pistas
         self.tabla_pistas.setRowCount(len(pistas))
-        self.tabla_pistas.setColumnCount(5)
+        self.tabla_pistas.setColumnCount(4)
         self.tabla_pistas.setHorizontalHeaderLabels([
-            "ID", "Nombre", "Pared", "Tipo", "Estado"
+            "Nombre", "Pared", "Tipo", "Estado"
         ])
 
         for fila, pista in enumerate(pistas):
             # Asumimos objetos ORM: acceder a atributos directamente
             values = [
-                pista.id_pista,
                 pista.nombre,
                 pista.pared,
                 pista.tipo,
@@ -86,7 +129,11 @@ class PistaPage(QWidget, Ui_PistaPage):
             ]
 
             for col, dato in enumerate(values):
-                self.tabla_pistas.setItem(fila, col, QTableWidgetItem(str(dato)))
+                item = QTableWidgetItem(str(dato))
+                # Almacenar el ID de la pista en el primer item como dato oculto
+                if col == 0:
+                    item.setData(Qt.UserRole, pista.id_pista)
+                self.tabla_pistas.setItem(fila, col, item)
 
     # validaciones
     def validar_campos(self) -> tuple:
@@ -113,6 +160,49 @@ class PistaPage(QWidget, Ui_PistaPage):
         self.txt_nombre.clear()
         self.cmb_pared.setCurrentIndex(0)
         self.cmb_tipo.setCurrentIndex(0)
+        self.txt_buscar.clear()
+
+    def filtrar_tabla(self) -> None:
+        """Filtra la tabla de pistas según el texto del campo de búsqueda.
+        
+        Busca en las columnas Nombre, Pared y Tipo de forma case-insensitive.
+        Si el campo está vacío, muestra todas las pistas.
+        """
+        texto_busqueda = self.txt_buscar.text().strip().lower()
+        
+        if not texto_busqueda:
+            # Si no hay búsqueda, mostrar todas las pistas
+            self.cargar_pistas()
+            return
+        
+        # Filtrar pistas por el texto de búsqueda en nombre, pared y tipo
+        pistas_filtradas = [
+            p for p in self.pistas_originales
+            if texto_busqueda in p.nombre.lower() 
+            or texto_busqueda in p.pared.lower()
+            or texto_busqueda in p.tipo.lower()
+        ]
+        
+        # Actualizar tabla con resultados filtrados
+        self.tabla_pistas.setRowCount(len(pistas_filtradas))
+        self.tabla_pistas.setColumnCount(4)
+        self.tabla_pistas.setHorizontalHeaderLabels([
+            "Nombre", "Pared", "Tipo", "Estado"
+        ])
+        
+        for fila, pista in enumerate(pistas_filtradas):
+            values = [
+                pista.nombre,
+                pista.pared,
+                pista.tipo,
+                "Activa" if pista.estado == PistaEstado.ACTIVA else "Inactiva"
+            ]
+            for col, dato in enumerate(values):
+                item = QTableWidgetItem(str(dato))
+                # Almacenar el ID de la pista en el primer item como dato oculto
+                if col == 0:
+                    item.setData(Qt.UserRole, pista.id_pista)
+                self.tabla_pistas.setItem(fila, col, item)
 
     def actualizar_campos(self) -> None:
         """Carga los datos de la fila seleccionada en los campos del formulario.
@@ -122,9 +212,9 @@ class PistaPage(QWidget, Ui_PistaPage):
         """
         fila = self.tabla_pistas.currentRow()
         if fila >= 0:
-            self.txt_nombre.setText(self.tabla_pistas.item(fila, 1).text())
-            self.cmb_pared.setCurrentText(self.tabla_pistas.item(fila, 2).text())
-            self.cmb_tipo.setCurrentText(self.tabla_pistas.item(fila, 3).text())
+            self.txt_nombre.setText(self.tabla_pistas.item(fila, 0).text())
+            self.cmb_pared.setCurrentText(self.tabla_pistas.item(fila, 1).text())
+            self.cmb_tipo.setCurrentText(self.tabla_pistas.item(fila, 2).text())
 
     def normalizar_campos(self) -> tuple:
         """Normaliza el formato de los datos ingresados en los campos del formulario.
@@ -173,7 +263,15 @@ class PistaPage(QWidget, Ui_PistaPage):
             QMessageBox.warning(self, "Error", "Selecciona una pista para modificar.")
             return
 
-        id_pista = int(self.tabla_pistas.item(fila, 0).text())
+        # Obtener el ID de la pista del UserRole
+        item0 = self.tabla_pistas.item(fila, 0)
+        if item0 is None:
+            return
+        id_pista = item0.data(Qt.UserRole)
+        if id_pista is None:
+            QMessageBox.warning(self, "Error", "No se pudo obtener el ID de la pista")
+            return
+
         ok, mensaje = self.validar_campos()
         if not ok:
             QMessageBox.warning(self, "Error", mensaje)
@@ -200,7 +298,15 @@ class PistaPage(QWidget, Ui_PistaPage):
             QMessageBox.warning(self, "Error", "Selecciona una pista para dar de baja.")
             return
 
-        id_pista = int(self.tabla_pistas.item(row, 0).text())
+        # Obtener el ID de la pista del UserRole
+        item0 = self.tabla_pistas.item(row, 0)
+        if item0 is None:
+            return
+        id_pista = item0.data(Qt.UserRole)
+        if id_pista is None:
+            QMessageBox.warning(self, "Error", "No se pudo obtener el ID de la pista")
+            return
+
         pista_service.desactivar_pista(id_pista)
         QMessageBox.information(self, "Éxito", "Pista dada de baja correctamente")
         self.vaciar_campos()
@@ -218,7 +324,15 @@ class PistaPage(QWidget, Ui_PistaPage):
             QMessageBox.warning(self, "Error", "Selecciona una pista para activar.")
             return
 
-        id_pista = int(self.tabla_pistas.item(row, 0).text())
+        # Obtener el ID de la pista del UserRole
+        item0 = self.tabla_pistas.item(row, 0)
+        if item0 is None:
+            return
+        id_pista = item0.data(Qt.UserRole)
+        if id_pista is None:
+            QMessageBox.warning(self, "Error", "No se pudo obtener el ID de la pista")
+            return
+
         pista_service.activar_pista(id_pista)
         QMessageBox.information(self, "Éxito", "Pista activada correctamente")
         self.vaciar_campos()
@@ -281,7 +395,7 @@ class PistaPage(QWidget, Ui_PistaPage):
         ws.title = "Pistas"
         
         # Cabecera con estilo
-        cabecera = ["ID", "Nombre", "Pared", "Tipo", "Estado"]
+        cabecera = ["Nombre", "Pared", "Tipo", "Estado"]
         ws.append(cabecera)
         
         # Aplicar estilos a la cabecera
@@ -294,7 +408,6 @@ class PistaPage(QWidget, Ui_PistaPage):
         for pista in pistas:
             estado_display = pista.estado.name.capitalize() if hasattr(pista.estado, 'name') else str(pista.estado)
             fila = [
-                pista.id_pista,
                 pista.nombre,
                 pista.pared,
                 pista.tipo,
@@ -303,7 +416,7 @@ class PistaPage(QWidget, Ui_PistaPage):
             ws.append(fila)
         
         # Ajustar ancho de columnas
-        anchos = [8, 20, 15, 15, 12]
+        anchos = [20, 15, 15, 12]
         for i, ancho in enumerate(anchos, start=1):
             col_letter = get_column_letter(i)
             ws.column_dimensions[col_letter].width = ancho
@@ -322,8 +435,16 @@ class PistaPage(QWidget, Ui_PistaPage):
             QMessageBox.warning(self, "Error", "Selecciona una pista para listar sus reservas")
             return
         
-        id_pista = int(self.tabla_pistas.item(fila, 0).text())
-        nombre_pista = self.tabla_pistas.item(fila, 1).text()
+        # Obtener el ID de la pista del UserRole
+        item0 = self.tabla_pistas.item(fila, 0)
+        if item0 is None:
+            return
+        id_pista = item0.data(Qt.UserRole)
+        if id_pista is None:
+            QMessageBox.warning(self, "Error", "No se pudo obtener el ID de la pista")
+            return
+        
+        nombre_pista = self.tabla_pistas.item(fila, 0).text()
         
         # Mostrar diálogo de filtros
         dialogo = FiltrosReservasDialog(self)
@@ -412,14 +533,14 @@ class PistaPage(QWidget, Ui_PistaPage):
         ws.title = "Reservas"
         
         # Título
-        ws.merge_cells('A1:G1')
+        ws.merge_cells('A1:F1')
         titulo = ws['A1']
         titulo.value = f"Reservas de {nombre_pista}"
         titulo.font = Font(bold=True, size=14)
         titulo.alignment = Alignment(horizontal="center", vertical="center")
         
         # Cabecera con estilo
-        cabecera = ["ID", "Socio", "Fecha", "Hora Inicio", "Hora Fin", "Estado", "Duración (min)"]
+        cabecera = ["Socio", "Fecha", "Hora Inicio", "Hora Fin", "Estado", "Duración (min)"]
         ws.append(cabecera)
         
         # Aplicar estilos a la cabecera
@@ -437,7 +558,6 @@ class PistaPage(QWidget, Ui_PistaPage):
             duracion_min = (reserva.hora_fin.hour * 60 + reserva.hora_fin.minute) - (reserva.hora_inicio.hour * 60 + reserva.hora_inicio.minute)
             
             fila = [
-                reserva.id_reserva,
                 socio_nombre,
                 format_date(reserva.fecha),
                 format_time(reserva.hora_inicio),
@@ -448,7 +568,7 @@ class PistaPage(QWidget, Ui_PistaPage):
             ws.append(fila)
         
         # Ajustar ancho de columnas
-        anchos = [8, 25, 15, 15, 15, 12, 15]
+        anchos = [25, 15, 15, 15, 12, 15]
         for i, ancho in enumerate(anchos, start=1):
             ws.column_dimensions[get_column_letter(i)].width = ancho
         

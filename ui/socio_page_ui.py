@@ -26,7 +26,7 @@ class Ui_SocioPage(object):
         SocioPage.resize(1080, 770)
         self.tabla_socios = QTableWidget(SocioPage)
         self.tabla_socios.setObjectName(u"tabla_socios")
-        self.tabla_socios.setGeometry(QRect(20, 190, 1041, 561))
+        self.tabla_socios.setGeometry(QRect(20, 240, 1041, 511))
         self.tabla_socios.setAlternatingRowColors(True)
         self.tabla_socios.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.groupBox = QGroupBox(SocioPage)
@@ -140,6 +140,28 @@ class Ui_SocioPage(object):
         self.label_socios = QLabel(SocioPage)
         self.label_socios.setObjectName(u"label_socios")
         self.label_socios.setGeometry(QRect(20, 20, 221, 31))
+        self.btn_limpiar = QPushButton(SocioPage)
+        self.btn_limpiar.setObjectName(u"btn_limpiar")
+        self.btn_limpiar.setGeometry(QRect(20, 200, 71, 31))
+        self.gridLayoutWidget_2 = QWidget(SocioPage)
+        self.gridLayoutWidget_2.setObjectName(u"gridLayoutWidget_2")
+        self.gridLayoutWidget_2.setGeometry(QRect(110, 190, 411, 51))
+        self.gridLayout_2 = QGridLayout(self.gridLayoutWidget_2)
+        self.gridLayout_2.setObjectName(u"gridLayout_2")
+        self.gridLayout_2.setContentsMargins(0, 0, 0, 0)
+        self.label_6 = QLabel(self.gridLayoutWidget_2)
+        self.label_6.setObjectName(u"label_6")
+        sizePolicy.setHeightForWidth(self.label_6.sizePolicy().hasHeightForWidth())
+        self.label_6.setSizePolicy(sizePolicy)
+        self.label_6.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+
+        self.gridLayout_2.addWidget(self.label_6, 0, 0, 1, 1)
+
+        self.txt_buscar = QLineEdit(self.gridLayoutWidget_2)
+        self.txt_buscar.setObjectName(u"txt_buscar")
+
+        self.gridLayout_2.addWidget(self.txt_buscar, 0, 1, 1, 1)
+
 
         self.retranslateUi(SocioPage)
 
@@ -162,5 +184,7 @@ class Ui_SocioPage(object):
         self.label_5.setText(QCoreApplication.translate("SocioPage", u"Tel\u00e9fono", None))
         self.label_3.setText(QCoreApplication.translate("SocioPage", u"2\u00ba Apellido", None))
         self.label_socios.setText(QCoreApplication.translate("SocioPage", u"Socios", None))
+        self.btn_limpiar.setText(QCoreApplication.translate("SocioPage", u"Limpiar", None))
+        self.label_6.setText(QCoreApplication.translate("SocioPage", u"Buscar", None))
     # retranslateUi
 

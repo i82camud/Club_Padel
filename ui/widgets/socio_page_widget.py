@@ -19,6 +19,7 @@ Efectos secundarios:
 import re
 from datetime import date
 from PySide6.QtWidgets import QWidget, QTableWidgetItem, QMessageBox, QHeaderView, QInputDialog, QFileDialog, QDialog
+from PySide6.QtCore import Qt
 from ui.socio_page_ui import Ui_SocioPage  # el generado por pyside6-uic
 import services.socio_service as socio_service
 from utils.events import bus
@@ -49,14 +50,59 @@ class SocioPage(QWidget, Ui_SocioPage):
         self.btn_listar.clicked.connect(self.generar_listado)
         self.btn_listar_reservas.clicked.connect(self.generar_listado_reservas)
         self.btn_listar_pagos.clicked.connect(self.generar_listado_pagos)
+        self.btn_limpiar.clicked.connect(self.vaciar_campos)
 
         # Conectar tabla para que actualice los campos al seleccionar fila
         self.tabla_socios.itemSelectionChanged.connect(self.actualizar_campos)
         self.tabla_socios.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
+        # Conectar barra de búsqueda para filtrar en tiempo real
+        self.txt_buscar.textChanged.connect(self.filtrar_tabla)
+
+        # Guardar lista de socios original para filtrado
+        self.socios_originales = []
+
         # Cargar tabla al inicio
         self.cargar_socios()
-    
+
+        # Conectar evento de resize para responsividad
+        self.resizeEvent = self._on_page_resized
+
+    def _on_page_resized(self, event) -> None:
+        """Ajusta la geometría de widgets al redimensionar la página."""
+        width = self.width()
+        height = self.height()
+        
+        # Margen general
+        margin = 20
+        
+        # Label "Socios" (título)
+        self.label_socios.setGeometry(margin, margin, 200, 31)
+        
+        # GroupBox de botones: ancho completo, alto fijo
+        gb_y = margin + 35
+        gb_height = 41
+        self.groupBox.setGeometry(margin, gb_y, width - 2*margin, gb_height)
+        
+        # GridLayoutWidget (campos de entrada): ancho completo, alto fijo
+        grid1_y = gb_y + gb_height + 10
+        grid1_height = 71
+        if hasattr(self, 'gridLayoutWidget'):
+            self.gridLayoutWidget.setGeometry(margin, grid1_y, width - 2*margin, grid1_height)
+        
+        # Botón Limpiar y GridLayoutWidget_2 (búsqueda)
+        grid2_y = grid1_y + grid1_height + 10
+        search_height = 35
+        if hasattr(self, 'btn_limpiar'):
+            self.btn_limpiar.setGeometry(margin, grid2_y, 71, search_height)
+        if hasattr(self, 'gridLayoutWidget_2'):
+            self.gridLayoutWidget_2.setGeometry(margin + 90, grid2_y, width - 2*margin - 90, search_height)
+        
+        # Tabla (resto del espacio disponible)
+        table_y = grid2_y + 51 + 10
+        table_height = height - table_y - margin
+        self.tabla_socios.setGeometry(margin, table_y, width - 2*margin, table_height)
+
     def cargar_socios(self) -> None:
         """Recarga la tabla de socios desde el servicio.
         
@@ -64,10 +110,11 @@ class SocioPage(QWidget, Ui_SocioPage):
         Muestra el estado de forma legible (Activo/Inactivo).
         """
         socios = socio_service.listar_socios()
+        self.socios_originales = socios  # Guardar para filtrado
         self.tabla_socios.setRowCount(len(socios))
-        self.tabla_socios.setColumnCount(7)
+        self.tabla_socios.setColumnCount(6)
         self.tabla_socios.setHorizontalHeaderLabels(
-            ["ID", "Nombre", "Apellido1", "Apellido2", "Correo", "Teléfono", "Estado"]
+            ["Nombre", "Apellido1", "Apellido2", "Correo", "Teléfono", "Estado"]
         )
 
         for fila, socio in enumerate(socios):
@@ -75,7 +122,6 @@ class SocioPage(QWidget, Ui_SocioPage):
             # mostrar estado legible
             estado_display = socio.estado.name.capitalize() if hasattr(socio.estado, 'name') else str(socio.estado)
             values = [
-                socio.id_socio,
                 socio.nombre,
                 socio.apellido1,
                 socio.apellido2,
@@ -85,7 +131,11 @@ class SocioPage(QWidget, Ui_SocioPage):
             ]
 
             for col, dato in enumerate(values):
-                self.tabla_socios.setItem(fila, col, QTableWidgetItem(str(dato)))
+                item = QTableWidgetItem(str(dato))
+                # Almacenar el ID del socio en el primer item como dato oculto
+                if col == 0:
+                    item.setData(Qt.UserRole, socio.id_socio)
+                self.tabla_socios.setItem(fila, col, item)
 
     # Validaciones
     def validar_correo(self, correo: str) -> bool:
@@ -154,6 +204,63 @@ class SocioPage(QWidget, Ui_SocioPage):
         self.txt_apellido2.clear()
         self.txt_email.clear()
         self.txt_telefono.clear()
+        self.txt_buscar.clear()
+
+    def filtrar_tabla(self) -> None:
+        """Filtra la tabla de socios según el texto ingresado en la barra de búsqueda.
+        
+        Busca el texto en las columnas de nombre, apellidos, correo y teléfono.
+        La búsqueda es case-insensitive.
+        """
+        texto_busqueda = self.txt_buscar.text().lower().strip()
+        
+        if not texto_busqueda:
+            # Si el campo de búsqueda está vacío, mostrar todos los socios
+            self.cargar_socios()
+            return
+        
+        # Filtrar socios según el texto de búsqueda
+        socios_filtrados = []
+        for socio in self.socios_originales:
+            # Convertir a strings para buscar
+            nombre = socio.nombre.lower()
+            apellido1 = socio.apellido1.lower()
+            apellido2 = (socio.apellido2 or "").lower()
+            email = socio.email.lower()
+            telefono = socio.telefono.lower()
+            
+            # Buscar en cualquiera de los campos
+            if (texto_busqueda in nombre or
+                texto_busqueda in apellido1 or
+                texto_busqueda in apellido2 or
+                texto_busqueda in email or
+                texto_busqueda in telefono):
+                socios_filtrados.append(socio)
+        
+        # Actualizar tabla con socios filtrados
+        self.tabla_socios.setRowCount(len(socios_filtrados))
+        self.tabla_socios.setColumnCount(6)
+        self.tabla_socios.setHorizontalHeaderLabels(
+            ["Nombre", "Apellido1", "Apellido2", "Correo", "Teléfono", "Estado"]
+        )
+
+        for fila, socio in enumerate(socios_filtrados):
+            estado_display = socio.estado.name.capitalize() if hasattr(socio.estado, 'name') else str(socio.estado)
+            values = [
+                socio.nombre,
+                socio.apellido1,
+                socio.apellido2,
+                socio.email,
+                socio.telefono,
+                estado_display,
+            ]
+
+            for col, dato in enumerate(values):
+                item = QTableWidgetItem(str(dato))
+                # Almacenar el ID del socio en el primer item como dato oculto
+                if col == 0:
+                    item.setData(Qt.UserRole, socio.id_socio)
+                self.tabla_socios.setItem(fila, col, item)
 
     def actualizar_campos(self) -> None:
         """Carga los datos de la fila seleccionada en los campos del formulario.
@@ -163,11 +270,11 @@ class SocioPage(QWidget, Ui_SocioPage):
         """
         fila = self.tabla_socios.currentRow()
         if fila >= 0:
-            self.txt_nombre.setText(self.tabla_socios.item(fila, 1).text())
-            self.txt_apellido1.setText(self.tabla_socios.item(fila, 2).text())
-            self.txt_apellido2.setText(self.tabla_socios.item(fila, 3).text())
-            self.txt_email.setText(self.tabla_socios.item(fila, 4).text())
-            self.txt_telefono.setText(self.tabla_socios.item(fila, 5).text())
+            self.txt_nombre.setText(self.tabla_socios.item(fila, 0).text())
+            self.txt_apellido1.setText(self.tabla_socios.item(fila, 1).text())
+            self.txt_apellido2.setText(self.tabla_socios.item(fila, 2).text())
+            self.txt_email.setText(self.tabla_socios.item(fila, 3).text())
+            self.txt_telefono.setText(self.tabla_socios.item(fila, 4).text())
     
     def normalizar_campos(self) -> tuple:
         """Normaliza el formato de los datos ingresados en los campos del formulario.
@@ -215,7 +322,15 @@ class SocioPage(QWidget, Ui_SocioPage):
             QMessageBox.warning(self, "Error", "Selecciona un socio para modificar")
             return
 
-        id_socio = int(self.tabla_socios.item(fila, 0).text())
+        # Obtener el ID del socio del UserRole
+        item0 = self.tabla_socios.item(fila, 0)
+        if item0 is None:
+            return
+        id_socio = item0.data(Qt.UserRole)
+        if id_socio is None:
+            QMessageBox.warning(self, "Error", "No se pudo obtener el ID del socio")
+            return
+
         ok, mensaje = self.validar_campos(correo_existente_id=id_socio, telefono_existente_id=id_socio)
         if not ok:
             QMessageBox.warning(self, "Error", mensaje)
@@ -239,7 +354,15 @@ class SocioPage(QWidget, Ui_SocioPage):
             QMessageBox.warning(self, "Error", "Selecciona un socio para darlo de baja")
             return
 
-        id_socio = int(self.tabla_socios.item(fila, 0).text())
+        # Obtener el ID del socio del UserRole
+        item0 = self.tabla_socios.item(fila, 0)
+        if item0 is None:
+            return
+        id_socio = item0.data(Qt.UserRole)
+        if id_socio is None:
+            QMessageBox.warning(self, "Error", "No se pudo obtener el ID del socio")
+            return
+
         socio_service.baja_socio(id_socio)
         QMessageBox.information(self, "Éxito", "Socio dado de baja correctamente")
         self.vaciar_campos()
@@ -257,7 +380,15 @@ class SocioPage(QWidget, Ui_SocioPage):
             QMessageBox.warning(self, "Error", "Selecciona un socio para activar")
             return
 
-        id_socio = int(self.tabla_socios.item(fila, 0).text())
+        # Obtener el ID del socio del UserRole
+        item0 = self.tabla_socios.item(fila, 0)
+        if item0 is None:
+            return
+        id_socio = item0.data(Qt.UserRole)
+        if id_socio is None:
+            QMessageBox.warning(self, "Error", "No se pudo obtener el ID del socio")
+            return
+
         socio_service.activa_socio(id_socio)
         QMessageBox.information(self, "Éxito", "Socio activado correctamente")
         self.vaciar_campos()
@@ -329,7 +460,7 @@ class SocioPage(QWidget, Ui_SocioPage):
         ws.title = "Socios"
         
         # Cabecera con estilo
-        cabecera = ["ID", "Nombre", "Apellido 1", "Apellido 2", "Email", "Teléfono", "Estado"]
+        cabecera = ["Nombre", "Apellido 1", "Apellido 2", "Email", "Teléfono", "Estado"]
         ws.append(cabecera)
         
         # Aplicar estilos a la cabecera
@@ -342,7 +473,6 @@ class SocioPage(QWidget, Ui_SocioPage):
         for socio in socios:
             estado_display = socio.estado.name.capitalize() if hasattr(socio.estado, 'name') else str(socio.estado)
             fila = [
-                socio.id_socio,
                 socio.nombre,
                 socio.apellido1,
                 socio.apellido2,
@@ -354,7 +484,7 @@ class SocioPage(QWidget, Ui_SocioPage):
         
         # Ajustar ancho de columnas
         from openpyxl.utils import get_column_letter
-        anchos = [8, 20, 20, 20, 30, 15, 12]
+        anchos = [20, 20, 20, 30, 15, 12]
         for i, ancho in enumerate(anchos, start=1):
             ws.column_dimensions[get_column_letter(i)].width = ancho
         
@@ -373,8 +503,16 @@ class SocioPage(QWidget, Ui_SocioPage):
             QMessageBox.warning(self, "Error", "Selecciona un socio para listar sus reservas")
             return
         
-        id_socio = int(self.tabla_socios.item(fila, 0).text())
-        nombre_socio = f"{self.tabla_socios.item(fila, 1).text()} {self.tabla_socios.item(fila, 2).text()}"
+        # Obtener el ID del socio del UserRole
+        item0 = self.tabla_socios.item(fila, 0)
+        if item0 is None:
+            return
+        id_socio = item0.data(Qt.UserRole)
+        if id_socio is None:
+            QMessageBox.warning(self, "Error", "No se pudo obtener el ID del socio")
+            return
+        
+        nombre_socio = f"{self.tabla_socios.item(fila, 0).text()} {self.tabla_socios.item(fila, 1).text()}"
         
         # Mostrar diálogo de filtros
         dialogo = FiltrosReservasDialog(self)
@@ -463,14 +601,14 @@ class SocioPage(QWidget, Ui_SocioPage):
         ws.title = "Reservas"
         
         # Título
-        ws.merge_cells('A1:G1')
+        ws.merge_cells('A1:E1')
         titulo = ws['A1']
         titulo.value = f"Reservas de {nombre_socio}"
         titulo.font = Font(bold=True, size=14)
         titulo.alignment = Alignment(horizontal="center", vertical="center")
         
         # Cabecera con estilo
-        cabecera = ["ID", "Pista", "Fecha", "Hora Inicio", "Hora Fin", "Estado", "Duración (min)"]
+        cabecera = ["Pista", "Fecha", "Hora Inicio", "Hora Fin", "Estado", "Duración (min)"]
         ws.append(cabecera)
         
         # Aplicar estilos a la cabecera
@@ -488,7 +626,6 @@ class SocioPage(QWidget, Ui_SocioPage):
             duracion_min = (reserva.hora_fin.hour * 60 + reserva.hora_fin.minute) - (reserva.hora_inicio.hour * 60 + reserva.hora_inicio.minute)
             
             fila = [
-                reserva.id_reserva,
                 pista_nombre,
                 format_date(reserva.fecha),
                 format_time(reserva.hora_inicio),
@@ -500,7 +637,7 @@ class SocioPage(QWidget, Ui_SocioPage):
         
         # Ajustar ancho de columnas
         from openpyxl.utils import get_column_letter
-        anchos = [8, 20, 15, 15, 15, 12, 15]
+        anchos = [20, 15, 15, 15, 12, 15]
         for i, ancho in enumerate(anchos, start=1):
             ws.column_dimensions[get_column_letter(i)].width = ancho
         
@@ -519,8 +656,16 @@ class SocioPage(QWidget, Ui_SocioPage):
             QMessageBox.warning(self, "Error", "Selecciona un socio para listar sus pagos")
             return
         
-        id_socio = int(self.tabla_socios.item(fila, 0).text())
-        nombre_socio = f"{self.tabla_socios.item(fila, 1).text()} {self.tabla_socios.item(fila, 2).text()}"
+        # Obtener el ID del socio del UserRole
+        item0 = self.tabla_socios.item(fila, 0)
+        if item0 is None:
+            return
+        id_socio = item0.data(Qt.UserRole)
+        if id_socio is None:
+            QMessageBox.warning(self, "Error", "No se pudo obtener el ID del socio")
+            return
+        
+        nombre_socio = f"{self.tabla_socios.item(fila, 0).text()} {self.tabla_socios.item(fila, 1).text()}"
         
         # Mostrar diálogo de filtros
         dialogo = FiltrosPagosDialog(self)
@@ -623,14 +768,14 @@ class SocioPage(QWidget, Ui_SocioPage):
         ws.title = "Pagos"
         
         # Título
-        ws.merge_cells('A1:F1')
+        ws.merge_cells('A1:E1')
         titulo = ws['A1']
         titulo.value = f"Pagos de {nombre_socio}"
         titulo.font = Font(bold=True, size=14)
         titulo.alignment = Alignment(horizontal="center", vertical="center")
         
         # Cabecera con estilo
-        cabecera = ["ID", "Fecha", "Importe (€)", "Tipo", "Estado", "Concepto"]
+        cabecera = ["Fecha", "Importe (€)", "Tipo", "Estado", "Concepto"]
         ws.append(cabecera)
         
         # Aplicar estilos a la cabecera
@@ -675,7 +820,6 @@ class SocioPage(QWidget, Ui_SocioPage):
                 total += pago.importe
             
             fila = [
-                pago.id_pago,
                 format_date(pago.fecha_pago),
                 f"{pago.importe:.2f}",
                 tipo_display,
@@ -686,14 +830,14 @@ class SocioPage(QWidget, Ui_SocioPage):
         
         # Añadir fila de total (separada por una línea en blanco)
         ws.append([])
-        ws.append(["TOTAL PAGADO:", "", f"{total:.2f}"])
+        ws.append(["TOTAL PAGADO:", f"{total:.2f}"])
         fila_total = ws.max_row
         ws[f'A{fila_total}'].font = Font(bold=True)
-        ws[f'C{fila_total}'].font = Font(bold=True)
+        ws[f'B{fila_total}'].font = Font(bold=True)
         
         # Ajustar ancho de columnas
         from openpyxl.utils import get_column_letter
-        anchos = [15, 15, 15, 12, 12, 35]
+        anchos = [15, 15, 12, 12, 35]
         for i, ancho in enumerate(anchos, start=1):
             ws.column_dimensions[get_column_letter(i)].width = ancho
         

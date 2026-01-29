@@ -137,9 +137,31 @@ class Ui_pago_page(object):
         self.txt_concepto.raise_()
         self.tabla_pagos = QTableWidget(pago_page)
         self.tabla_pagos.setObjectName(u"tabla_pagos")
-        self.tabla_pagos.setGeometry(QRect(20, 190, 1041, 561))
+        self.tabla_pagos.setGeometry(QRect(20, 240, 1041, 511))
         self.tabla_pagos.setAlternatingRowColors(True)
         self.tabla_pagos.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.btn_limpiar = QPushButton(pago_page)
+        self.btn_limpiar.setObjectName(u"btn_limpiar")
+        self.btn_limpiar.setGeometry(QRect(20, 200, 71, 31))
+        self.gridLayoutWidget_2 = QWidget(pago_page)
+        self.gridLayoutWidget_2.setObjectName(u"gridLayoutWidget_2")
+        self.gridLayoutWidget_2.setGeometry(QRect(110, 190, 411, 51))
+        self.gridLayout_2 = QGridLayout(self.gridLayoutWidget_2)
+        self.gridLayout_2.setObjectName(u"gridLayout_2")
+        self.gridLayout_2.setContentsMargins(0, 0, 0, 0)
+        self.label_6 = QLabel(self.gridLayoutWidget_2)
+        self.label_6.setObjectName(u"label_6")
+        sizePolicy1.setHeightForWidth(self.label_6.sizePolicy().hasHeightForWidth())
+        self.label_6.setSizePolicy(sizePolicy1)
+        self.label_6.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+
+        self.gridLayout_2.addWidget(self.label_6, 0, 0, 1, 1)
+
+        self.txt_buscar = QLineEdit(self.gridLayoutWidget_2)
+        self.txt_buscar.setObjectName(u"txt_buscar")
+
+        self.gridLayout_2.addWidget(self.txt_buscar, 0, 1, 1, 1)
+
 
         self.retranslateUi(pago_page)
 
@@ -163,5 +185,7 @@ class Ui_pago_page(object):
         self.comboBox.setItemText(2, QCoreApplication.translate("pago_page", u"Extra", None))
 
         self.label_5.setText(QCoreApplication.translate("pago_page", u"Concepto", None))
+        self.btn_limpiar.setText(QCoreApplication.translate("pago_page", u"Limpiar", None))
+        self.label_6.setText(QCoreApplication.translate("pago_page", u"Buscar", None))
     # retranslateUi
 

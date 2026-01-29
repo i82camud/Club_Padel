@@ -19,10 +19,11 @@ API pública:
 
 from PySide6.QtWidgets import QWidget, QTableWidgetItem, QMessageBox, QCompleter, QHeaderView, QFileDialog
 from PySide6.QtCore import Qt, QDate, QTime
+from PySide6.QtGui import QColor
 from datetime import date, time
 from utils.helpers import format_date, format_time
 from ui.reserva_page_ui import Ui_reserva_page
-from services.reserva_service import insertar_reserva, listar_reservas, obtener_reserva_por_id, actualizar_reserva, cancelar_reserva
+from services.reserva_service import insertar_reserva, listar_reservas, obtener_reserva_por_id, actualizar_reserva, cancelar_reserva, hay_solapamiento
 from services.pista_service import listar_pistas
 from services.socio_service import listar_socios
 from utils.events import bus
@@ -49,6 +50,10 @@ class ReservaPage(QWidget, Ui_reserva_page):
         self.dateEdit.setDate(QDate.currentDate())
         # cuando se cambia la hora de inicio, ajustar hora fin
         self.timeEdit.timeChanged.connect(self.suma_tiempo)
+        # actualizar disponibilidad de pistas al cambiar fecha u horas
+        self.dateEdit.dateChanged.connect(self.actualizar_disponibilidad_pistas)
+        self.timeEdit.timeChanged.connect(self.actualizar_disponibilidad_pistas)
+        self.timeEdit_2.timeChanged.connect(self.actualizar_disponibilidad_pistas)
 
         # Conectar botones
         self.btn_agregar.clicked.connect(self.insertar)
@@ -56,18 +61,71 @@ class ReservaPage(QWidget, Ui_reserva_page):
         self.btn_baja.clicked.connect(self.cancelar)
         self.btn_pagar.clicked.connect(self.ir_a_pagos)
         self.btn_listar.clicked.connect(self.generar_listado)
+        self.btn_limpiar.clicked.connect(self.vaciar_campos)
 
         # Conectar tabla
         self.tabla_reservas.itemSelectionChanged.connect(self.actualizar_campos)
+
+        # Avisar si se selecciona una pista ocupada
+        self.cmb_pista.currentIndexChanged.connect(self._avisar_si_pista_ocupada)
+
+        # Conectar barra de búsqueda para filtrar en tiempo real
+        self.txt_buscar.textChanged.connect(self.filtrar_tabla)
+
+        # Guardar lista de reservas original para filtrado
+        self.reservas_originales = []
+        # Mapa de disponibilidad de pistas (id_pista -> bool)
+        self.pistas_disponibilidad = {}
 
         # Inicializar campos
         self.cargar_pistas()
         self.cargar_socios()
         self.cargar_reservas()
 
+        # Pintar disponibilidad inicial
+        self.actualizar_disponibilidad_pistas()
+
         # Suscribirse a cambios globales para mantener autocompleters/combos actualizados
         bus.socios_changed.connect(self.cargar_socios)
         bus.pistas_changed.connect(self.cargar_pistas)
+
+        # Conectar evento de resize para responsividad
+        self.resizeEvent = self._on_page_resized
+
+    def _on_page_resized(self, event) -> None:
+        """Ajusta la geometría de widgets al redimensionar la página."""
+        width = self.width()
+        height = self.height()
+        
+        # Margen general
+        margin = 20
+        
+        # Label "Reservas" (título)
+        self.label_pistas.setGeometry(margin, margin, 200, 31)
+        
+        # GroupBox de botones: ancho completo, alto fijo
+        gb_y = margin + 35
+        gb_height = 41
+        self.groupBox.setGeometry(margin, gb_y, width - 2*margin, gb_height)
+        
+        # GridLayoutWidget (campos de entrada): ancho completo, alto fijo
+        grid_y = gb_y + gb_height + 10
+        grid_height = 71
+        if hasattr(self, 'gridLayoutWidget'):
+            self.gridLayoutWidget.setGeometry(margin, grid_y, width - 2*margin, grid_height)
+        
+        # Botón Limpiar y GridLayoutWidget_2 (búsqueda)
+        search_y = grid_y + grid_height + 10
+        search_height = 35
+        if hasattr(self, 'btn_limpiar'):
+            self.btn_limpiar.setGeometry(margin, search_y, 71, search_height)
+        if hasattr(self, 'gridLayoutWidget_2'):
+            self.gridLayoutWidget_2.setGeometry(margin + 90, search_y, width - 2*margin - 90, search_height)
+        
+        # Tabla (resto del espacio disponible)
+        table_y = search_y + 51 + 10
+        table_height = height - table_y - margin
+        self.tabla_reservas.setGeometry(margin, table_y, width - 2*margin, table_height)
 
     def cargar_pistas(self) -> None:
         """Recarga la lista de pistas en el combo y crea mapeos internos.
@@ -81,10 +139,60 @@ class ReservaPage(QWidget, Ui_reserva_page):
         for p in pistas:
             # mostrar nombre, almacenar id en data
             self.cmb_pista.addItem(p.nombre, p.id_pista)
+        # no seleccionar ninguna pista por defecto
+        self.cmb_pista.setCurrentIndex(-1)
         # mapa id -> nombre para usar en la tabla sin lazy-loading
         # Incluir todas las pistas para mostrar en la tabla aunque sean inactivas
         todas_pistas = listar_pistas()
         self.mapa_pistas = {p.id_pista: p.nombre for p in todas_pistas}
+
+        # Refrescar colores de disponibilidad
+        self.actualizar_disponibilidad_pistas()
+
+    def actualizar_disponibilidad_pistas(self) -> None:
+        """Actualiza el color de las pistas según disponibilidad.
+
+        Verde si está disponible, rojo si está ocupada para la franja seleccionada.
+        """
+        fecha_qdate = self.dateEdit.date()
+        fecha_py = date(fecha_qdate.year(), fecha_qdate.month(), fecha_qdate.day())
+
+        hi_q = self.timeEdit.time()
+        hf_q = self.timeEdit_2.time()
+        hi_py = time(hi_q.hour(), hi_q.minute())
+        hf_py = time(hf_q.hour(), hf_q.minute())
+
+        # Si no hay rango válido, limpiar colores
+        if hf_py <= hi_py:
+            for i in range(self.cmb_pista.count()):
+                self.cmb_pista.setItemData(i, None, Qt.ForegroundRole)
+            self.pistas_disponibilidad = {}
+            return
+
+        # Validar horario de apertura del club
+        from utils.settings import get_opening_hours
+        apertura, cierre = get_opening_hours()
+        fuera_horario = hi_py < apertura or hf_py > cierre
+
+        self.pistas_disponibilidad = {}
+        for i in range(self.cmb_pista.count()):
+            id_pista = self.cmb_pista.itemData(i)
+            if id_pista is None:
+                continue
+            ocupada = fuera_horario or hay_solapamiento(id_pista, fecha_py, hi_py, hf_py)
+            disponible = not ocupada
+            self.pistas_disponibilidad[id_pista] = disponible
+            color = QColor("#2E7D32") if disponible else QColor("#C62828")
+            self.cmb_pista.setItemData(i, color, Qt.ForegroundRole)
+
+    def _avisar_si_pista_ocupada(self) -> None:
+        """Muestra aviso si el usuario selecciona una pista ocupada."""
+        id_pista = self.cmb_pista.currentData()
+        if id_pista is None:
+            return
+        disponible = self.pistas_disponibilidad.get(id_pista)
+        if disponible is False:
+            QMessageBox.warning(self, "Aviso", "La pista seleccionada está ocupada en ese horario.")
 
     def cargar_socios(self) -> None:
         """Recarga la lista de socios y configura el autocompletado.
@@ -120,14 +228,14 @@ class ReservaPage(QWidget, Ui_reserva_page):
         Utiliza mapeos internos para evitar acceso lazy loading a relaciones.
         """
         reservas = listar_reservas()
+        self.reservas_originales = reservas
         self.tabla_reservas.setRowCount(len(reservas))
         # Definir siempre las columnas y las cabeceras para que se muestren aun sin filas
-        self.tabla_reservas.setColumnCount(7)
-        self.tabla_reservas.setHorizontalHeaderLabels(["ID", "Socio", "Pista", "Fecha", "Hora Inicio", "Hora Fin", "Estado"])
+        self.tabla_reservas.setColumnCount(6)
+        self.tabla_reservas.setHorizontalHeaderLabels(["Socio", "Pista", "Fecha", "Hora Inicio", "Hora Fin", "Estado"])
 
         for fila, r in enumerate(reservas):
             values = [
-                r.id_reserva,
                 # usar mapas para evitar lazy load: mostrar texto del socio (nombre + email)
                 self.mapa_socios_id_to_display.get(r.id_socio, str(r.id_socio)),
                 self.mapa_pistas.get(r.id_pista, str(r.id_pista)),
@@ -139,14 +247,16 @@ class ReservaPage(QWidget, Ui_reserva_page):
             ]
 
             for col, dato in enumerate(values):
-                self.tabla_reservas.setItem(fila, col, QTableWidgetItem(str(dato)))
+                item = QTableWidgetItem(str(dato))
+                # Almacenar el ID de la reserva en el primer item como dato oculto
+                if col == 0:
+                    item.setData(Qt.UserRole, r.id_reserva)
+                self.tabla_reservas.setItem(fila, col, item)
 
         # ajustar tamaño de columnas
         header = self.tabla_reservas.horizontalHeader()
-        header.setSectionResizeMode(0, QHeaderView.Fixed)
-        self.tabla_reservas.setColumnWidth(0, 60)
-        header.setSectionResizeMode(1, QHeaderView.Stretch)
-        for col in range(2, 7):
+        header.setSectionResizeMode(0, QHeaderView.Stretch)
+        for col in range(1, 6):
             header.setSectionResizeMode(col, QHeaderView.Fixed)
             self.tabla_reservas.setColumnWidth(col, 120)    
     
@@ -160,11 +270,18 @@ class ReservaPage(QWidget, Ui_reserva_page):
         if fila < 0:
             return
 
-        # rellenar campos desde la fila seleccionada
+        # Obtener el ID de la reserva almacenado en el atributo del widget de la tabla
         item0 = self.tabla_reservas.item(fila, 0)
         if item0 is None:
             return
-        id_reserva = int(item0.text())
+        # El ID está almacenado en los datos del item
+        id_reserva_data = item0.data(Qt.UserRole)
+        if id_reserva_data is not None:
+            id_reserva = int(id_reserva_data)
+        else:
+            # Si no está en UserRole, intentar obtenerlo de otra forma
+            return
+        
         r = obtener_reserva_por_id(id_reserva)
         if r is None:
             return
@@ -172,7 +289,10 @@ class ReservaPage(QWidget, Ui_reserva_page):
         # Seleccionar pista en cmb_pista por id
         idx = self.cmb_pista.findData(r.id_pista)
         if idx >= 0:
+            # Evitar aviso al cambiar selección desde la tabla
+            was_blocked = self.cmb_pista.blockSignals(True)
             self.cmb_pista.setCurrentIndex(idx)
+            self.cmb_pista.blockSignals(was_blocked)
 
         # Socio: mostrar el string del mapa (Nombre Apellido (email)) si lo tenemos
         display = self.mapa_socios_id_to_display.get(r.id_socio)
@@ -282,12 +402,61 @@ class ReservaPage(QWidget, Ui_reserva_page):
         """
         self.txt_socio.clear()
         self.selected_socio_id = None
-        self.cmb_pista.setCurrentIndex(0)
+        # no seleccionar pista por defecto
+        self.cmb_pista.setCurrentIndex(-1)
         # Fecha a hoy
         self.dateEdit.setDate(QDate.currentDate())
         # Horas a 00:00
         self.timeEdit.setTime(QTime(0, 0))
         self.timeEdit_2.setTime(QTime(0, 0))
+        self.txt_buscar.clear()
+
+    def filtrar_tabla(self) -> None:
+        """Filtra la tabla de reservas según el texto del campo de búsqueda.
+        
+        Busca en la columna Socio (nombre + apellido + email) de forma case-insensitive.
+        Si el campo está vacío, muestra todas las reservas.
+        """
+        texto_busqueda = self.txt_buscar.text().strip().lower()
+        
+        if not texto_busqueda:
+            # Si no hay búsqueda, mostrar todas las reservas
+            self.cargar_reservas()
+            return
+        
+        # Filtrar reservas por el texto de búsqueda en la columna Socio
+        reservas_filtradas = [
+            r for r in self.reservas_originales
+            if texto_busqueda in self.mapa_socios_id_to_display.get(r.id_socio, "").lower()
+        ]
+        
+        # Actualizar tabla con resultados filtrados
+        self.tabla_reservas.setRowCount(len(reservas_filtradas))
+        self.tabla_reservas.setColumnCount(6)
+        self.tabla_reservas.setHorizontalHeaderLabels(["Socio", "Pista", "Fecha", "Hora Inicio", "Hora Fin", "Estado"])
+        
+        for fila, r in enumerate(reservas_filtradas):
+            values = [
+                self.mapa_socios_id_to_display.get(r.id_socio, str(r.id_socio)),
+                self.mapa_pistas.get(r.id_pista, str(r.id_pista)),
+                format_date(r.fecha),
+                format_time(r.hora_inicio),
+                format_time(r.hora_fin),
+                (r.estado.name.capitalize() if hasattr(r.estado, 'name') else str(r.estado))
+            ]
+            
+            for col, dato in enumerate(values):
+                item = QTableWidgetItem(str(dato))
+                if col == 0:
+                    item.setData(Qt.UserRole, r.id_reserva)
+                self.tabla_reservas.setItem(fila, col, item)
+        
+        # ajustar tamaño de columnas
+        header = self.tabla_reservas.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.Stretch)
+        for col in range(1, 6):
+            header.setSectionResizeMode(col, QHeaderView.Fixed)
+            self.tabla_reservas.setColumnWidth(col, 120)
 
     def insertar(self) -> None:
         """Inserta una nueva reserva en la base de datos.
@@ -365,7 +534,12 @@ class ReservaPage(QWidget, Ui_reserva_page):
         if item0 is None:
             QMessageBox.warning(self, "Error", "Fila seleccionada inválida")
             return
-        id_reserva = int(item0.text())
+        # Obtener el ID de la reserva almacenado en Qt.UserRole
+        id_reserva_data = item0.data(Qt.UserRole)
+        if id_reserva_data is None:
+            QMessageBox.warning(self, "Error", "No se pudo obtener el ID de la reserva")
+            return
+        id_reserva = int(id_reserva_data)
         ok, msg = self.validar_campos()
         if not ok:
             QMessageBox.warning(self, "Error", msg)
@@ -432,7 +606,12 @@ class ReservaPage(QWidget, Ui_reserva_page):
         if item0 is None:
             QMessageBox.warning(self, "Error", "Fila seleccionada inválida")
             return
-        id_reserva = int(item0.text())
+        # Obtener el ID de la reserva almacenado en Qt.UserRole
+        id_reserva_data = item0.data(Qt.UserRole)
+        if id_reserva_data is None:
+            QMessageBox.warning(self, "Error", "No se pudo obtener el ID de la reserva")
+            return
+        id_reserva = int(id_reserva_data)
         cancelar_reserva(id_reserva)
         QMessageBox.information(self, "Éxito", "Reserva cancelada")
         self.cargar_reservas()
@@ -452,7 +631,14 @@ class ReservaPage(QWidget, Ui_reserva_page):
         if item0 is None:
             QMessageBox.warning(self, "Error", "Fila seleccionada inválida")
             return
-        id_reserva = int(item0.text())
+        
+        # Obtener el ID de la reserva almacenado en Qt.UserRole
+        id_reserva_data = item0.data(Qt.UserRole)
+        if id_reserva_data is None:
+            QMessageBox.warning(self, "Error", "No se pudo obtener el ID de la reserva")
+            return
+        id_reserva = int(id_reserva_data)
+        
         r = obtener_reserva_por_id(id_reserva)
         if r is None:
             QMessageBox.warning(self, "Error", "Reserva no encontrada")
@@ -567,7 +753,7 @@ class ReservaPage(QWidget, Ui_reserva_page):
         ws.title = "Reservas"
         
         # Definir encabezados
-        headers = ["ID", "Socio", "Pista", "Fecha", "Hora Inicio", "Hora Fin", "Estado"]
+        headers = ["Socio", "Pista", "Fecha", "Hora Inicio", "Hora Fin", "Estado"]
         ws.append(headers)
         
         # Estilos para encabezado
@@ -590,27 +776,25 @@ class ReservaPage(QWidget, Ui_reserva_page):
             
             # Agregar datos
             for fila, r in enumerate(reservas_session, 2):
-                ws.cell(row=fila, column=1, value=r.id_reserva)
-                ws.cell(row=fila, column=2, value=f"{r.socio.nombre} {r.socio.apellido1}")
-                ws.cell(row=fila, column=3, value=r.pista.nombre)
-                ws.cell(row=fila, column=4, value=format_date(r.fecha))
-                ws.cell(row=fila, column=5, value=format_time(r.hora_inicio))
-                ws.cell(row=fila, column=6, value=format_time(r.hora_fin))
-                ws.cell(row=fila, column=7, value=r.estado.name.capitalize())
+                ws.cell(row=fila, column=1, value=f"{r.socio.nombre} {r.socio.apellido1}")
+                ws.cell(row=fila, column=2, value=r.pista.nombre)
+                ws.cell(row=fila, column=3, value=format_date(r.fecha))
+                ws.cell(row=fila, column=4, value=format_time(r.hora_inicio))
+                ws.cell(row=fila, column=5, value=format_time(r.hora_fin))
+                ws.cell(row=fila, column=6, value=r.estado.name.capitalize())
                 
                 # Centrar celdas
-                for col in range(1, 8):
+                for col in range(1, 7):
                     ws.cell(row=fila, column=col).alignment = Alignment(horizontal="center", vertical="center")
         finally:
             session.close()
         
         # Ajustar ancho de columnas
-        ws.column_dimensions['A'].width = 8
-        ws.column_dimensions['B'].width = 25
-        ws.column_dimensions['C'].width = 15
+        ws.column_dimensions['A'].width = 25
+        ws.column_dimensions['B'].width = 15
+        ws.column_dimensions['C'].width = 12
         ws.column_dimensions['D'].width = 12
         ws.column_dimensions['E'].width = 12
         ws.column_dimensions['F'].width = 12
-        ws.column_dimensions['G'].width = 12
         
         wb.save(archivo)

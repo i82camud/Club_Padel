@@ -1,5 +1,6 @@
 from PySide6.QtWidgets import QDialog, QVBoxLayout, QLabel, QLineEdit, QDialogButtonBox, QMessageBox
 from PySide6.QtCore import QFile
+from PySide6.QtGui import QIcon
 from utils.auth import verify_password, ensure_auth_file_exists
 
 
@@ -31,6 +32,12 @@ class LoginDialog(QDialog):
             if style_file.open(QFile.ReadOnly):
                 qss = str(style_file.readAll(), encoding='utf-8')
                 self.setStyleSheet(qss)
+        except Exception:
+            pass
+
+        # Cargar y establecer icono del diálogo
+        try:
+            self.setWindowIcon(QIcon("ui/icons/aplicacion.ico"))
         except Exception:
             pass
 
