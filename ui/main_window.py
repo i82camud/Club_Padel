@@ -87,32 +87,35 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         width = self.centralwidget.width()
         height = self.centralwidget.height()
         
-        # Ancho lateral: ~12% del total (160px como mínimo)
-        sidebar_width = max(160, int(width * 0.12))
+        # Ancho lateral: 160px
+        sidebar_width = 160
         
-        # Posicionar sidebar
+        # Posicionar sidebar (solo escala verticalmente)
         self.groupBox.setGeometry(10, 10, sidebar_width, height - 20)
         
-        # Posicionar stackedWidget (resto del espacio disponible)
+        # Posicionar stackedWidget (escala horizontalmente - ocupa todo el espacio restante)
         stacked_x = sidebar_width + 20
         stacked_width = width - stacked_x - 10
         self.stackedWidget.setGeometry(stacked_x, 10, stacked_width, height - 20)
         
-        # Mantener tamaño de botones fijo (131 x 31)
+        # Mantener tamaño de botones (131 x 31)
         btn_width = 131
         btn_height = 31
         
         # Centrar botones horizontalmente en el sidebar
         btn_x = (sidebar_width - btn_width) // 2
         
-        # Posicionar botones de arriba hacia abajo
+        # Posicionar botones principales de arriba hacia abajo
         y_pos = 20
         for btn in [self.btn_inicio, self.btn_socios, self.btn_pistas, 
-                   self.btn_pagos, self.btn_reservas, self.btn_configuracion]:
+                   self.btn_pagos, self.btn_reservas]:
             btn.setGeometry(btn_x, y_pos, btn_width, btn_height)
             y_pos += btn_height + 10
         
-        # Botón salir al final, con el mismo espacio que el de inicio
+        # Botón configuración encima de salir
+        self.btn_configuracion.setGeometry(btn_x, height - 2 * btn_height - 40, btn_width, btn_height)
+        
+        # Botón salir al final
         self.btn_salir.setGeometry(btn_x, height - btn_height - 30, btn_width, btn_height)
         
         # Si estamos en la página de inicio, ajustar la imagen
