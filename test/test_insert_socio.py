@@ -1,3 +1,7 @@
+"""Tests de funcionalidad de servicios de Socio.
+
+Prueba las operaciones CRUD básicas del módulo socio_service.
+"""
 import pytest
 
 

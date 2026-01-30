@@ -8,7 +8,7 @@ from datetime import date, time, datetime, timedelta
 
 from models import orm
 from models.orm_models import Reserva as ReservaORM, ReservaEstado
-from utils.settings import get_opening_hours, get_max_reservas_simultaneas, get_antelacion_minima, get_antelacion_maxima
+from utils.settings import get_horario_apertura, get_max_reservas_simultaneas, get_antelacion_minima, get_antelacion_maxima
 
 
 def _to_reserva_estado(value) -> Optional[ReservaEstado]:
@@ -56,13 +56,13 @@ def insertar_reserva(id_socio: int, id_pista: int, fecha: date, hora_inicio: tim
     session = orm.SessionLocal()
     try:
         # Comprobar que la reserva está dentro del horario de apertura configurado
-        apertura, cierre = get_opening_hours()
+        apertura, cierre = get_horario_apertura()
         if hora_inicio < apertura or hora_fin > cierre:
             raise ValueError(f"Horario fuera de apertura: el club abre a {apertura.strftime('%H:%M')} y cierra a {cierre.strftime('%H:%M')}")
         
         # Validar que la duración de la reserva sea al menos la configurada
-        from utils.settings import get_reservation_duration
-        duracion_minima = get_reservation_duration()
+        from utils.settings import get_duracion_reserva
+        duracion_minima = get_duracion_reserva()
         # Calcular duración en minutos
         duracion_actual = (hora_fin.hour * 60 + hora_fin.minute) - (hora_inicio.hour * 60 + hora_inicio.minute)
         if duracion_actual < duracion_minima:

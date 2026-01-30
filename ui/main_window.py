@@ -1,3 +1,9 @@
+"""Ventana principal de la aplicación Club de Pádel.
+
+Gestiona la navegación entre las diferentes páginas (Socios, Pistas,
+Reservas, Pagos, Configuración) y proporciona un diseño responsive
+que se ajusta dinámicamente al tamaño de la ventana.
+"""
 import sys
 from PySide6.QtWidgets import QApplication, QMainWindow, QPushButton, QSizePolicy, QHBoxLayout
 from PySide6.QtCore import QFile, Qt

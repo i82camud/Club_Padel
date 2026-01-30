@@ -1,8 +1,13 @@
+"""Diálogo para cambiar la contraseña de acceso.
+
+Proporciona un formulario para cambiar la contraseña del sistema,
+validando la contraseña actual antes de permitir el cambio.
+"""
 from PySide6.QtWidgets import QDialog, QVBoxLayout, QLabel, QLineEdit, QDialogButtonBox, QMessageBox
-from utils.auth import change_password, verify_password
+from utils.auth import cambiar_contrasena, verificar_contrasena
 
 
-class ChangePasswordDialog(QDialog):
+class CambiarContrasenaDialog(QDialog):
     """Diálogo para cambiar la contraseña del administrador.
     
     Permite al usuario cambiar su contraseña actual por una nueva después
@@ -44,6 +49,7 @@ class ChangePasswordDialog(QDialog):
         Verifica que todos los campos estén llenos, que las nuevas contraseñas coincidan,
         y que la contraseña actual sea correcta antes de guardar el cambio.
         """
+        cur = self.current.text()
         n1 = self.new.text()
         n2 = self.new2.text()
         if not cur or not n1:
@@ -52,10 +58,10 @@ class ChangePasswordDialog(QDialog):
         if n1 != n2:
             QMessageBox.warning(self, 'Error', 'Las contraseñas no coinciden')
             return
-        if not verify_password(cur):
+        if not verificar_contrasena(cur):
             QMessageBox.warning(self, 'Error', 'Contraseña actual incorrecta')
             return
-        ok = change_password(cur, n1)
+        ok = cambiar_contrasena(cur, n1)
         if ok:
             QMessageBox.information(self, 'Éxito', 'Contraseña cambiada')
             self.accept()

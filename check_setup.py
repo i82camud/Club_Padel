@@ -4,7 +4,7 @@
 import sys
 import os
 
-def check_python_version():
+def check_version_python():
     """Verificar versión de Python."""
     version = sys.version_info
     print(f"✓ Python {version.major}.{version.minor}.{version.micro}")
@@ -13,7 +13,7 @@ def check_python_version():
         return False
     return True
 
-def check_dependencies():
+def check_dependencias():
     """Verificar que todas las dependencias están instaladas."""
     dependencies = {
         'PySide6': 'PySide6',
@@ -33,7 +33,7 @@ def check_dependencies():
     
     return all_ok
 
-def check_database():
+def check_base_datos():
     """Verificar que la base de datos existe."""
     db_path = os.path.join(os.path.dirname(__file__), "data", "club_padel.db")
     if os.path.exists(db_path):
@@ -45,7 +45,7 @@ def check_database():
         print("  Ejecuta: python scripts/reset_db.py")
         return False
 
-def check_config_files():
+def check_archivos_config():
     """Verificar archivos de configuración."""
     config_files = [
         'data/auth.json',
@@ -70,10 +70,10 @@ def main():
     print("="*50 + "\n")
     
     checks = [
-        ("Python", check_python_version),
-        ("Dependencias", check_dependencies),
-        ("Configuración", check_config_files),
-        ("Base de datos", check_database),
+        ("Python", check_version_python),
+        ("Dependencias", check_dependencias),
+        ("Configuración", check_archivos_config),
+        ("Base de datos", check_base_datos),
     ]
     
     results = []

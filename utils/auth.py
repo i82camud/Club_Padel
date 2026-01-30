@@ -22,7 +22,7 @@ def _pbkdf2_hash(password: str, salt: bytes, iterations: int = 200_000) -> bytes
     return hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, iterations)
 
 
-def _write_auth(data: Dict) -> None:
+def _escribir_auth(data: Dict) -> None:
     """Escribe los datos de autenticación en el fichero de configuración.
     
     Args:
@@ -33,7 +33,7 @@ def _write_auth(data: Dict) -> None:
         json.dump(data, f)
 
 
-def _read_auth() -> Dict:
+def _leer_auth() -> Dict:
     """Lee los datos de autenticación del fichero de configuración.
     
     Returns:
@@ -45,13 +45,13 @@ def _read_auth() -> Dict:
         return json.load(f)
 
 
-def ensure_auth_file_exists(default_password: str = 'admin') -> None:
+def asegurar_fichero_auth_existe(default_password: str = 'admin') -> None:
     """Crea el fichero de autenticación con una contraseña por defecto si no existe.
 
     ADVERTENCIA: la contraseña por defecto debe ser cambiada por el administrador
     en el primer arranque.
     """
-    data = _read_auth()
+    data = _leer_auth()
     if data:
         return
     salt = secrets.token_bytes(16)
@@ -62,10 +62,10 @@ def ensure_auth_file_exists(default_password: str = 'admin') -> None:
         'iterations': iterations,
         'hash': h.hex()
     }
-    _write_auth(payload)
+    _escribir_auth(payload)
 
 
-def verify_password(password: str) -> bool:
+def verificar_contrasena(password: str) -> bool:
     """Verifica una contraseña contra el hash almacenado.
     
     Args:
@@ -74,7 +74,7 @@ def verify_password(password: str) -> bool:
     Returns:
         bool: True si la contraseña es correcta, False en caso contrario.
     """
-    data = _read_auth()
+    data = _leer_auth()
     if not data:
         return False
     salt = bytes.fromhex(data['salt'])
@@ -84,7 +84,7 @@ def verify_password(password: str) -> bool:
     return secrets.compare_digest(h, expected)
 
 
-def set_password(new_password: str) -> None:
+def establecer_contrasena(new_password: str) -> None:
     """Establece una nueva contraseña en el sistema de autenticación.
     
     Args:
@@ -98,10 +98,10 @@ def set_password(new_password: str) -> None:
         'iterations': iterations,
         'hash': h.hex()
     }
-    _write_auth(payload)
+    _escribir_auth(payload)
 
 
-def change_password(current_password: str, new_password: str) -> bool:
+def cambiar_contrasena(current_password: str, new_password: str) -> bool:
     """Cambia la contraseña actual por una nueva después de verificar la actual.
     
     Args:
@@ -111,7 +111,7 @@ def change_password(current_password: str, new_password: str) -> bool:
     Returns:
         bool: True si el cambio fue exitoso, False si la contraseña actual es incorrecta.
     """
-    if not verify_password(current_password):
+    if not verificar_contrasena(current_password):
         return False
-    set_password(new_password)
+    establecer_contrasena(new_password)
     return True

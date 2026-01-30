@@ -15,7 +15,7 @@ DB_PATH = Path("data") / "club_padel.db"
 BACKUP_DIR = Path("data") / "backups"
 
 
-def _ensure_backup_dir() -> None:
+def _asegurar_dir_backup() -> None:
     """Asegura que el directorio de backups existe."""
     BACKUP_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -29,7 +29,7 @@ def crear_backup() -> Tuple[bool, str]:
         Tuple[bool, str]: (éxito, ruta_archivo_o_mensaje_error)
     """
     try:
-        _ensure_backup_dir()
+        _asegurar_dir_backup()
         
         if not DB_PATH.exists():
             return False, "La base de datos no existe."
@@ -87,7 +87,7 @@ def listar_backups() -> list:
         list: Lista de rutas de archivos de backup ordenadas por fecha (más recientes primero).
     """
     try:
-        _ensure_backup_dir()
+        _asegurar_dir_backup()
         
         if not BACKUP_DIR.exists():
             return []

@@ -1,3 +1,8 @@
+"""Configuración de SQLAlchemy y gestión de sesiones.
+
+Define el motor de base de datos, la sesión y la base declarativa
+para los modelos ORM del proyecto.
+"""
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 import os
@@ -10,7 +15,7 @@ engine = create_engine(DATABASE_URL, echo=False, future=True)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True)
 Base = declarative_base()
 
-def init_db():
+def inicializar_bd():
     """Crea las tablas a partir de los modelos declarativos."""
     from . import orm_models  # import models so they are registered on Base
     Base.metadata.create_all(bind=engine)

@@ -5,14 +5,14 @@ Este módulo centraliza la creación de tablas usando SQLAlchemy.
 from .orm import init_db
 
 
-def create_tables():
+def crear_tablas():
     """Crear tablas usando SQLAlchemy declarative Base.
 
-    `init_db()` usa el engine configurado en `models.orm` para crear las tablas.
+    `inicializar_bd()` usa el engine configurado en `models.orm` para crear las tablas.
     """
-    init_db()
+    inicializar_bd()
 
 
 if __name__ == "__main__":
-    create_tables()
-    print("✅ Tablas creadas usando SQLAlchemy")
+    crear_tablas()
+    print("✅ Tablas creadas usando SQLAlchemy)

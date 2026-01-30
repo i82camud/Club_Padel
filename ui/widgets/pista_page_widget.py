@@ -28,7 +28,7 @@ from models.orm_models import PistaEstado, ReservaEstado
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
 from openpyxl.utils import get_column_letter
-from utils.helpers import format_date, format_time
+from utils.helpers import formatear_fecha, formatear_hora
 
 
 class PistaPage(QWidget, Ui_PistaPage):
@@ -559,9 +559,9 @@ class PistaPage(QWidget, Ui_PistaPage):
             
             fila = [
                 socio_nombre,
-                format_date(reserva.fecha),
-                format_time(reserva.hora_inicio),
-                format_time(reserva.hora_fin),
+                formatear_fecha(reserva.fecha),
+                formatear_hora(reserva.hora_inicio),
+                formatear_hora(reserva.hora_fin),
                 estado_display,
                 duracion_min
             ]

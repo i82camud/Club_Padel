@@ -1,3 +1,9 @@
+"""Modelos ORM para la base de datos del Club de Pádel.
+
+Define las clases ORM usando SQLAlchemy para las entidades principales:
+Socio, Pista, Reserva, Pago y sus estados/tipos asociados.
+Inclye un tipo personalizado IntEnumType para mapear enums a enteros.
+"""
 from enum import IntEnum
 
 from sqlalchemy import Column, Integer, String, Text, Float, ForeignKey, CheckConstraint, Date, Time

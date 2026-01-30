@@ -49,31 +49,39 @@ Se ha actualizado la documentación (docstrings) de todas las clases y funciones
 
 ### 📁 utils/
 - ✅ **helpers.py**
-  - `format_date()` - Formato DD/MM/YYYY documentado
-  - `format_time()` - Formato HH:MM documentado
+  - `formatear_fecha()` - Formato DD/MM/YYYY documentado
+  - `formatear_hora()` - Formato HH:MM documentado
+
+- ✅ **backup.py**: Sistema de copias de seguridad
+  - `_ensure_backup_dir()` - Crea directorio de backups
+  - `crear_backup()` - Crea copia de seguridad con timestamp
+  - `restaurar_backup()` - Restaura BD desde backup
+  - `listar_backups()` - Lista todos los backups disponibles
+  - `obtener_info_backup()` - Información de un backup (nombre, tamaño, fecha)
 
 - ✅ **auth.py**: Todos los docstrings completos
   - `_pbkdf2_hash()` - Algoritmo PBKDF2-SHA256
-  - `_write_auth()` - Escritura de datos
-  - `_read_auth()` - Lectura de datos
-  - `ensure_auth_file_exists()` - Creación con contraseña por defecto
-  - `verify_password()` - Verificación de contraseña
-  - `set_password()` - Establecer nueva contraseña
-  - `change_password()` - Cambio de contraseña con verificación
+  - `_escribir_auth()` - Escritura de datos
+  - `_leer_auth()` - Lectura de datos
+  - `asegurar_fichero_auth_existe()` - Creación con contraseña por defecto
+  - `verificar_contrasena()` - Verificación de contraseña
+  - `establecer_contrasena()` - Establecer nueva contraseña
+  - `cambiar_contrasena()` - Cambio de contraseña con verificación
 
 - ✅ **settings.py**: Todos los docstrings completos
-  - `_ensure_config_exists()` - Garantiza existencia de config
-  - `_read_raw()` - Lectura de JSON
-  - `_write_raw()` - Escritura de JSON
+  - `_asegurar_config_existe()` - Garantiza existencia de config
+  - `_leer_crudo()` - Lectura de JSON
+  - `_escribir_crudo()` - Escritura de JSON
   - `get_config()` - Obtener valor de config
   - `set_config()` - Establecer valor de config
-  - `get_opening_hours()` - Horario de apertura/cierre
-  - `get_reservation_duration()` - Duración mínima de reserva
+  - `get_horario_apertura()` - Horario de apertura/cierre
+  - `get_duracion_reserva()` - Duración mínima de reserva
 
 - ✅ **events.py**: Documentación de módulo
 - ✅ **validators.py**: Archivo (vacío actualmente)
 
 ### 📁 models/
+- ✅ **orm_models.py**: Clases ORM documentadas
 - ✅ **orm_models.py**: Clases ORM documentadas
   - `IntEnumType` - Tipo personalizado para Enum
   - `process_bind_param()` - Conversión Enum → Int
@@ -86,16 +94,18 @@ Se ha actualizado la documentación (docstrings) de todas las clases y funciones
   - Y todas las clases ORM (Socio, Pista, Reserva, Pago, etc.)
 
 - ✅ **orm.py**: Funciones de inicialización
+  - `inicializar_bd()` - Inicialización de la base de datos
 - ✅ **db.py**: Funciones SQLite (fallback)
+  - `crear_tablas()` - Crea las tablas usando SQLAlchemy
 
 ### 📁 scripts/
 - ✅ **reset_db.py**: Funciones documentadas
-  - `remove_db()` - Elimina BD existente
-  - `create_tables()` - Crea tablas
+  - `eliminar_bd()` - Elimina BD existente
+  - `crear_tablas()` - Crea tablas
   - `main()` - Punto de entrada
 
 - ✅ **seed_test_data.py**: Funciones documentadas
-  - `reset_database()` - Reset con drop/create
+  - `resetear_base_datos()` - Reset con drop/create
   - `seed_socios()` - Inserta socios de prueba
   - `seed_pistas()` - Inserta pistas de prueba
   - `seed_reservas()` - Inserta reservas de prueba
@@ -144,11 +154,61 @@ Se ha actualizado la documentación (docstrings) de todas las clases y funciones
   - `FiltrosPagosDialog` - Filtros por fechas y estado
   - Funciones auxiliares con documentación
 
+- ✅ **backup_dialog.py**: Diálogo de gestión de backups
+  - `_obtener_estilos_dialogo()` - Carga estilos CSS
+  - `RestoreBackupDialog.__init__()` - Inicialización del diálogo
+  - `_cargar_backups()` - Lista backups disponibles
+  - `_on_backup_selected()` - Muestra info del backup seleccionado
+  - `_on_restaurar()` - Restaura backup con confirmación
+  - `get_selected_backup()` - Retorna backup seleccionado
+
 - ✅ **configuracion_page_widget.py**: Widget documentado
   - `__init__()` - Inicialización
   - `_open_change_password()` - Abre diálogo de cambio
   - `on_btn_clave_clicked()` - Slot de Qt
   - `_on_guardar()` - Guarda configuración
+
+### 📁 ui/
+- ✅ **main_window.py**: Ventana principal de la aplicación
+  - `MainWindow.__init__()` - Inicialización de la ventana y widgets
+  - `_configurar_responsive()` - Configuración de diseño responsive
+  - `_on_window_resized()` - Ajuste dinámico al redimensionar ventana
+  - `_cambiar_pagina()` - Cambio entre páginas del stackedWidget
+  - `_ajustar_imagen_inicio()` - Escalado dinámico de imagen de inicio
+  - `_limpiar_pagina_actual()` - Limpia campos del formulario actual
+  - `main()` - Punto de entrada de la ventana
+
+### 📁 Raíz del proyecto
+- ✅ **main.py**: Launcher principal de la aplicación
+  - `main()` - Punto de entrada con diálogo de login y ventana principal
+
+- ✅ **check_setup.py**: Script de verificación del entorno
+  - `check_version_python()` - Verifica versión de Python >= 3.8
+  - `check_dependencias()` - Verifica instalación de librerías
+  - `check_base_datos()` - Verifica existencia de BD
+  - `check_archivos_config()` - Verifica archivos de configuración
+  - `main()` - Ejecuta todas las verificaciones
+
+### 📁 test/
+- ✅ **conftest.py**: Configuración de pytest
+  - `db_setup()` - Fixture para configurar BD de prueba
+
+- ✅ **test_insert_socio.py**: Tests de socios
+  - `test_insertar_y_listar_socio()` - Test de inserción y listado
+
+- ✅ **test_insert_pista.py**: Tests de pistas
+  - `test_insertar_y_modificar_pistas()` - Test de inserción y modificación
+
+- ✅ **test_insert_reserva.py**: Tests de reservas
+  - `test_reserva_workflow()` - Test de flujo completo de reservas
+
+- ✅ **test_insert_pago.py**: Tests de pagos
+  - `test_pagos_workflow()` - Test de flujo completo de pagos
+
+- ✅ **test_ui_widgets_smoke.py**: Tests de smoke para widgets
+  - `_make_qapp()` - Crea aplicación Qt para tests
+  - `test_cargar_socios_accepts_orm_objects()` - Test de carga de socios
+  - `test_cargar_pistas_accepts_orm_objects()` - Test de carga de pistas
 
 ## Formato de Documentación
 
@@ -182,13 +242,16 @@ def funcion(param1: tipo, param2: tipo = default) -> ReturnType:
 ## Total de Cambios
 
 - **Servicios**: ~35 funciones actualizadas
-- **Utilidades**: ~15 funciones actualizadas  
+- **Utilidades**: ~20 funciones actualizadas (incluyendo backup)
 - **Modelos**: ~30 clases/métodos actualizados
-- **Scripts**: ~6 funciones actualizadas
-- **UI Widgets**: ~80 métodos/funciones actualizadas
-- **Diálogos**: ~15 métodos actualizados
+- **Scripts**: ~11 funciones actualizadas (reset_db + seed + check_setup)
+- **UI Widgets**: ~87 métodos/funciones actualizadas (incluyendo backup_dialog)
+- **UI Main**: ~7 métodos de main_window.py
+- **Main Launcher**: 1 función principal
+- **Tests**: 6 archivos de prueba con ~8 funciones
+- **Diálogos**: ~20 métodos actualizados
 
-**Total: ~180+ funciones/métodos/clases con docstrings completos**
+**Total: ~225+ funciones/métodos/clases con docstrings completos**
 
 ## Próximos Pasos (Opcional)
 

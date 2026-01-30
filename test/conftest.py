@@ -1,3 +1,8 @@
+"""Configuración de pytest para tests del proyecto.
+
+Define fixtures comunes para configurar el entorno de pruebas,
+incluyendo la configuración de la base de datos de test.
+"""
 import os
 import sys
 import pytest

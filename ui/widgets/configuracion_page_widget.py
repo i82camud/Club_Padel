@@ -3,9 +3,9 @@
 from PySide6.QtWidgets import QWidget, QMessageBox
 from PySide6.QtCore import QTime
 from ui.configuracion_page_ui import Ui_configuracion_page
-from ui.widgets.change_password_dialog import ChangePasswordDialog
+from ui.widgets.cambiar_contrasena_dialog import CambiarContrasenaDialog
 from ui.widgets.backup_dialog import RestoreBackupDialog
-from utils.settings import get_opening_hours, set_config, get_config
+from utils.settings import get_horario_apertura, set_config, get_config
 from utils.backup import crear_backup, restaurar_backup
 
 
@@ -34,7 +34,7 @@ class ConfiguracionPage(QWidget):
         self.ui.btn_restaurar.clicked.connect(self._on_restaurar_backup)
 
         # Inicializar campos
-        apertura, cierre = get_opening_hours()
+        apertura, cierre = get_horario_apertura()
         self.ui.timeApertura.setTime(QTime(apertura.hour, apertura.minute))
         self.ui.timeCierre.setTime(QTime(cierre.hour, cierre.minute))
         
@@ -70,7 +70,7 @@ class ConfiguracionPage(QWidget):
 
     def _open_change_password(self) -> None:
         """Abre el diálogo para cambiar la contraseña del administrador."""
-        dlg = ChangePasswordDialog(self)
+        dlg = CambiarContrasenaDialog(self)
         dlg.exec()
 
     def on_btn_clave_clicked(self) -> None:

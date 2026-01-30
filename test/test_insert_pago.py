@@ -1,3 +1,7 @@
+"""Tests de funcionalidad de servicios de Pago.
+
+Prueba el flujo completo de pagos incluyendo cuotas, reservas y pagos extra.
+"""
 import pytest
 from datetime import date, time
 
