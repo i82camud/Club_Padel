@@ -17,7 +17,7 @@ API pública:
 - ir_a_pagos(): navega a la página de pagos precargando la reserva.
 """
 
-from PySide6.QtWidgets import QWidget, QTableWidgetItem, QMessageBox, QCompleter, QHeaderView, QFileDialog, QPushButton, QLabel, QHBoxLayout
+from PySide6.QtWidgets import QWidget, QTableWidgetItem, QMessageBox, QCompleter, QHeaderView, QFileDialog, QPushButton, QLabel, QHBoxLayout, QComboBox
 from PySide6.QtCore import Qt, QDate, QTime
 from PySide6.QtGui import QColor
 from datetime import date, time
@@ -54,6 +54,9 @@ class ReservaPage(QWidget, Ui_reserva_page):
         hoy = date.today()
         self.mes_actual = hoy.month
         self.anio_actual = hoy.year
+        
+        # Estado actual para filtrado
+        self.estado_actual = None
         
         # cuando se cambia la hora de inicio, ajustar hora fin
         self.timeEdit.timeChanged.connect(self.suma_tiempo)
@@ -273,6 +276,21 @@ class ReservaPage(QWidget, Ui_reserva_page):
         self.btn_hoy.setFixedWidth(60)
         self.btn_hoy.clicked.connect(self._ir_a_hoy)
         layout.addWidget(self.btn_hoy)
+        
+        # Separador
+        separador = QLabel("|", self.mes_nav_widget)
+        separador.setStyleSheet("color: #888; margin: 0 5px;")
+        layout.addWidget(separador)
+        
+        # Combo de estado
+        self.cmb_estado = QComboBox(self.mes_nav_widget)
+        self.cmb_estado.addItem("Todos", None)
+        from models.orm_models import ReservaEstado
+        self.cmb_estado.addItem("Activa", ReservaEstado.ACTIVA)
+        self.cmb_estado.addItem("Cancelada", ReservaEstado.CANCELADA)
+        self.cmb_estado.setFixedWidth(120)
+        self.cmb_estado.currentIndexChanged.connect(self._on_estado_changed)
+        layout.addWidget(self.cmb_estado)
     
     def _actualizar_label_mes(self) -> None:
         """Actualiza el label con el nombre del mes y año actual."""
@@ -310,6 +328,11 @@ class ReservaPage(QWidget, Ui_reserva_page):
         self.anio_actual = hoy.year
         self._actualizar_label_mes()
         self.cargar_reservas()
+    
+    def _on_estado_changed(self) -> None:
+        """Recarga la tabla cuando cambia el estado seleccionado."""
+        self.estado_actual = self.cmb_estado.currentData()
+        self.cargar_reservas()
 
     def cargar_reservas(self) -> None:
         """Recarga la tabla de reservas desde el servicio.
@@ -317,7 +340,7 @@ class ReservaPage(QWidget, Ui_reserva_page):
         Obtiene las reservas del mes y año actuales de la base de datos y actualiza la tabla con sus datos.
         Utiliza mapeos internos para evitar acceso lazy loading a relaciones.
         """
-        reservas = listar_reservas(mes=self.mes_actual, anio=self.anio_actual)
+        reservas = listar_reservas(mes=self.mes_actual, anio=self.anio_actual, estado=self.estado_actual)
         self.reservas_originales = reservas
         self.tabla_reservas.setRowCount(len(reservas))
         # Definir siempre las columnas y las cabeceras para que se muestren aun sin filas

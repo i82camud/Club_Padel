@@ -48,15 +48,22 @@ def insertar_socio(nombre: str, apellido1: str, apellido2: str, email: str, tele
 		session.close()
 
 
-def listar_socios() -> List[SocioORM]:
-	"""Obtiene la lista completa de socios de la base de datos.
+def listar_socios(estado: Optional[SocioEstado] = None) -> List[SocioORM]:
+	"""Obtiene la lista de socios de la base de datos con filtro opcional de estado.
+	
+	Args:
+		estado (SocioEstado, optional): Filtro por estado. Si es None, devuelve todos. Defaults to None.
 	
 	Returns:
-		List[SocioORM]: Lista de instancias ORM de todos los socios.
+		List[SocioORM]: Lista de instancias ORM de socios.
 	"""
 	session = orm.SessionLocal()
 	try:
-		return session.query(SocioORM).all()
+		query = session.query(SocioORM)
+		if estado is not None:
+			estado_enum = _to_socio_estado(estado)
+			query = query.filter(SocioORM.estado == estado_enum)
+		return query.all()
 	finally:
 		session.close()
 

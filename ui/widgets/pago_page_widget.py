@@ -28,7 +28,7 @@ Notas:
     los nombres generados por Qt Designer.
 """
 
-from PySide6.QtWidgets import QWidget, QTableWidgetItem, QMessageBox, QCompleter, QHeaderView, QFileDialog, QPushButton, QLabel, QHBoxLayout
+from PySide6.QtWidgets import QWidget, QTableWidgetItem, QMessageBox, QCompleter, QHeaderView, QFileDialog, QPushButton, QLabel, QHBoxLayout, QComboBox
 from PySide6.QtCore import Qt, QDate
 from datetime import date
 from utils.helpers import formatear_fecha
@@ -86,6 +86,9 @@ class PagoPage(QWidget, Ui_pago_page):
         hoy = date.today()
         self.mes_actual = hoy.month
         self.anio_actual = hoy.year
+        
+        # Estado actual para filtrado
+        self.estado_actual = None
 
         # si el usuario cambia el tipo o edita el concepto, rompemos la vinculación
         self.comboBox.currentIndexChanged.connect(self._on_tipo_changed)
@@ -223,6 +226,21 @@ class PagoPage(QWidget, Ui_pago_page):
         self.btn_hoy.setFixedWidth(60)
         self.btn_hoy.clicked.connect(self._ir_a_hoy)
         layout.addWidget(self.btn_hoy)
+        
+        # Separador
+        separador = QLabel("|", self.mes_nav_widget)
+        separador.setStyleSheet("color: #888; margin: 0 5px;")
+        layout.addWidget(separador)
+        
+        # Combo de estado
+        self.cmb_estado = QComboBox(self.mes_nav_widget)
+        self.cmb_estado.addItem("Todos", None)
+        from models.orm_models import PagoEstado
+        self.cmb_estado.addItem("Pagado", PagoEstado.PAGADO)
+        self.cmb_estado.addItem("Anulado", PagoEstado.ANULADO)
+        self.cmb_estado.setFixedWidth(120)
+        self.cmb_estado.currentIndexChanged.connect(self._on_estado_changed)
+        layout.addWidget(self.cmb_estado)
     
     def _actualizar_label_mes(self) -> None:
         """Actualiza el label con el nombre del mes y año actual."""
@@ -259,6 +277,11 @@ class PagoPage(QWidget, Ui_pago_page):
         self.mes_actual = hoy.month
         self.anio_actual = hoy.year
         self._actualizar_label_mes()
+        self.cargar_pagos()
+    
+    def _on_estado_changed(self) -> None:
+        """Recarga la tabla cuando cambia el estado seleccionado."""
+        self.estado_actual = self.cmb_estado.currentData()
         self.cargar_pagos()
 
     def cargar_para_reserva(self, id_reserva: int) -> None:
@@ -363,7 +386,7 @@ class PagoPage(QWidget, Ui_pago_page):
         Obtiene los pagos del mes y año actuales de la base de datos y actualiza la tabla con sus datos.
         Utiliza mapeos internos para evitar acceso lazy loading a relaciones.
         """
-        pagos = listar_pagos(mes=self.mes_actual, anio=self.anio_actual)
+        pagos = listar_pagos(mes=self.mes_actual, anio=self.anio_actual, estado=self.estado_actual)
         self.pagos_originales = pagos  # Guardar para filtrado
         self.tabla_pagos.setRowCount(len(pagos))
         self.tabla_pagos.setColumnCount(5)

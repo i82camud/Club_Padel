@@ -148,7 +148,7 @@ def insertar_pago_extra(id_pago: int, concepto: str) -> PagoExtraORM:
         session.close()
 
 
-def listar_pagos(id_socio: int = None, tipo: str = None, mes: int = None, anio: int = None) -> List[PagoORM]:
+def listar_pagos(id_socio: int = None, tipo: str = None, mes: int = None, anio: int = None, estado: str = None) -> List[PagoORM]:
     """Lista pagos con filtros opcionales.
     
     Args:
@@ -156,6 +156,7 @@ def listar_pagos(id_socio: int = None, tipo: str = None, mes: int = None, anio: 
         tipo (str): Filtro opcional por tipo de pago (PagoTipo o entero).
         mes (int): Filtro opcional por mes (1-12).
         anio (int): Filtro opcional por año.
+        estado (str): Filtro opcional por estado de pago (PagoEstado o entero).
     
     Returns:
         List[PagoORM]: Lista de instancias de pagos que cumplen los filtros, ordenados por fecha ascendente.
@@ -167,6 +168,8 @@ def listar_pagos(id_socio: int = None, tipo: str = None, mes: int = None, anio: 
             q = q.filter(PagoORM.id_socio == id_socio)
         if tipo:
             q = q.filter(PagoORM.tipo == _to_pago_tipo(tipo))
+        if estado:
+            q = q.filter(PagoORM.estado == _to_pago_estado(estado))
         if mes is not None and anio is not None:
             from sqlalchemy import extract
             q = q.filter(extract('month', PagoORM.fecha_pago) == mes)
