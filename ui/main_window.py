@@ -30,6 +30,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # Cargar y establecer icono de la aplicación
         self.setWindowIcon(QIcon("ui/icons/aplicacion.ico"))
+        
+        # Cargar logo en el menú lateral
+        logo_pixmap = QPixmap("ui/icons/aplicacion.ico")
+        if not logo_pixmap.isNull():
+            self.lbl_logo.setPixmap(logo_pixmap.scaled(100, 100, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        else:
+            self.lbl_logo.setText("[Logo]")
 
         # Conectar widgets a páginas del QStackedWidget
         self.socio_page = SocioPage()
@@ -112,7 +119,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         btn_x = (sidebar_width - btn_width) // 2
         
         # Posicionar botones principales de arriba hacia abajo
-        y_pos = 20
+        y_pos = 117
         for btn in [self.btn_inicio, self.btn_socios, self.btn_pistas, 
                    self.btn_pagos, self.btn_reservas]:
             btn.setGeometry(btn_x, y_pos, btn_width, btn_height)

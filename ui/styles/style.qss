@@ -80,7 +80,7 @@ QTableWidget {
     gridline-color: #BDC3C7;
     border: 1px solid #BDC3C7;
     border-radius: 6px;
-    selection-color: #FFFFFF;
+    selection-color: #5B9BD5;
 }
 
 /* Alternancia de filas: par = gris claro, impar = blanco */
@@ -130,9 +130,9 @@ QComboBox::down-arrow:on { /* cuando el combo está desplegado */
 
 /* Popup list for QComboBox */
 QComboBox QAbstractItemView {
-    background-color: #5B9BD5;
+    background-color: #FFFFFF;
     border: 1px solid #2E5C8A;
-    selection-background-color: #2E5C8A;
+    selection-background-color: #5B9BD5;
     selection-color: #FFFFFF;
 }
 
