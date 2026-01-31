@@ -18,7 +18,7 @@ Efectos secundarios:
 
 import re
 from datetime import date
-from PySide6.QtWidgets import QWidget, QTableWidgetItem, QMessageBox, QHeaderView, QInputDialog, QFileDialog, QDialog
+from PySide6.QtWidgets import QWidget, QTableWidgetItem, QMessageBox, QHeaderView, QInputDialog, QFileDialog, QDialog, QComboBox
 from PySide6.QtCore import Qt
 from ui.socio_page_ui import Ui_SocioPage  # el generado por pyside6-uic
 import services.socio_service as socio_service
@@ -58,9 +58,19 @@ class SocioPage(QWidget, Ui_SocioPage):
 
         # Conectar barra de búsqueda para filtrar en tiempo real
         self.txt_buscar.textChanged.connect(self.filtrar_tabla)
+        
+        # Crear combo de estado
+        self.cmb_estado = QComboBox(self)
+        self.cmb_estado.addItem("Todos", None)
+        self.cmb_estado.addItem("Activo", SocioEstado.ACTIVO)
+        self.cmb_estado.addItem("Inactivo", SocioEstado.INACTIVO)
+        self.cmb_estado.currentIndexChanged.connect(self._on_estado_changed)
 
         # Guardar lista de socios original para filtrado
         self.socios_originales = []
+        
+        # Estado actual para filtrado
+        self.estado_actual = None
 
         # Cargar tabla al inicio
         self.cargar_socios()
@@ -96,20 +106,30 @@ class SocioPage(QWidget, Ui_SocioPage):
         if hasattr(self, 'btn_limpiar'):
             self.btn_limpiar.setGeometry(margin, grid2_y, 71, search_height)
         if hasattr(self, 'gridLayoutWidget_2'):
-            self.gridLayoutWidget_2.setGeometry(margin + 90, grid2_y, width - 2*margin - 90, search_height)
+            # Reducir ancho del campo de búsqueda para dejar espacio al combo
+            self.gridLayoutWidget_2.setGeometry(margin + 90, grid2_y, width - 2*margin - 90 - 140, search_height)
+        
+        # Combo de estado en la barra de búsqueda
+        if hasattr(self, 'cmb_estado'):
+            self.cmb_estado.setGeometry(width - margin - 130, grid2_y, 120, search_height)
         
         # Tabla (resto del espacio disponible)
         table_y = grid2_y + 51 + 10
         table_height = height - table_y - margin
         self.tabla_socios.setGeometry(margin, table_y, width - 2*margin, table_height)
 
+    def _on_estado_changed(self) -> None:
+        """Recarga la tabla cuando cambia el estado seleccionado."""
+        self.estado_actual = self.cmb_estado.currentData()
+        self.cargar_socios()
+
     def cargar_socios(self) -> None:
         """Recarga la tabla de socios desde el servicio.
         
-        Obtiene todos los socios de la base de datos y actualiza la tabla con sus datos.
+        Obtiene los socios con filtro de estado de la base de datos y actualiza la tabla con sus datos.
         Muestra el estado de forma legible (Activo/Inactivo).
         """
-        socios = socio_service.listar_socios()
+        socios = socio_service.listar_socios(estado=self.estado_actual)
         self.socios_originales = socios  # Guardar para filtrado
         self.tabla_socios.setRowCount(len(socios))
         self.tabla_socios.setColumnCount(6)

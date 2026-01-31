@@ -111,16 +111,18 @@ def insertar_reserva(id_socio: int, id_pista: int, fecha: date, hora_inicio: tim
         session.close()
 
 
-def listar_reservas(id_socio: int = None, id_pista: int = None, estado: str = None) -> List[ReservaORM]:
+def listar_reservas(id_socio: int = None, id_pista: int = None, estado: str = None, mes: int = None, anio: int = None) -> List[ReservaORM]:
     """Lista reservas con filtros opcionales.
     
     Args:
         id_socio (int): Filtro opcional por identificador de socio.
         id_pista (int): Filtro opcional por identificador de pista.
         estado (str): Filtro opcional por estado de la reserva.
+        mes (int): Filtro opcional por mes (1-12).
+        anio (int): Filtro opcional por año.
     
     Returns:
-        List[ReservaORM]: Lista de instancias de reservas que cumplen los filtros.
+        List[ReservaORM]: Lista de instancias de reservas que cumplen los filtros, ordenadas por fecha y hora ascendente.
     """
     session = orm.SessionLocal()
     try:
@@ -131,6 +133,15 @@ def listar_reservas(id_socio: int = None, id_pista: int = None, estado: str = No
             q = q.filter(ReservaORM.id_pista == id_pista)
         if estado:
             q = q.filter(ReservaORM.estado == _to_reserva_estado(estado))
+        if mes is not None and anio is not None:
+            from sqlalchemy import extract
+            q = q.filter(extract('month', ReservaORM.fecha) == mes)
+            q = q.filter(extract('year', ReservaORM.fecha) == anio)
+        elif anio is not None:
+            from sqlalchemy import extract
+            q = q.filter(extract('year', ReservaORM.fecha) == anio)
+        # Ordenar por fecha y hora ascendente
+        q = q.order_by(ReservaORM.fecha.asc(), ReservaORM.hora_inicio.asc())
         return q.all()
     finally:
         session.close()

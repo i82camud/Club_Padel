@@ -28,10 +28,11 @@ Notas:
     los nombres generados por Qt Designer.
 """
 
-from PySide6.QtWidgets import QWidget, QTableWidgetItem, QMessageBox, QCompleter, QHeaderView, QFileDialog
+from PySide6.QtWidgets import QWidget, QTableWidgetItem, QMessageBox, QCompleter, QHeaderView, QFileDialog, QPushButton, QLabel, QHBoxLayout, QComboBox
 from PySide6.QtCore import Qt, QDate
 from datetime import date
 from utils.helpers import formatear_fecha
+import calendar
 
 from ui.pago_page_ui import Ui_pago_page
 from services.pago_service import (
@@ -80,6 +81,14 @@ class PagoPage(QWidget, Ui_pago_page):
 
         # internal linked reservation id when opened from a reserva
         self._linked_reserva_id = None
+        
+        # Mes y año actual para filtrado
+        hoy = date.today()
+        self.mes_actual = hoy.month
+        self.anio_actual = hoy.year
+        
+        # Estado actual para filtrado
+        self.estado_actual = None
 
         # si el usuario cambia el tipo o edita el concepto, rompemos la vinculación
         self.comboBox.currentIndexChanged.connect(self._on_tipo_changed)
@@ -107,6 +116,9 @@ class PagoPage(QWidget, Ui_pago_page):
 
         # Guardar lista de pagos original para filtrado
         self.pagos_originales = []
+        
+        # Crear controles de navegación de mes
+        self._crear_controles_navegacion_mes()
 
         # cargar tabla
         self.cargar_pagos()
@@ -144,8 +156,14 @@ class PagoPage(QWidget, Ui_pago_page):
         if hasattr(self, 'gridLayoutWidget_2'):
             self.gridLayoutWidget_2.setGeometry(margin + 90, search_y, width - 2*margin - 90, search_height)
         
+        # Controles de navegación de mes
+        nav_y = search_y + search_height + 10
+        nav_height = 35
+        if hasattr(self, 'mes_nav_widget'):
+            self.mes_nav_widget.setGeometry(margin, nav_y, width - 2*margin, nav_height)
+        
         # Tabla (resto del espacio disponible)
-        table_y = search_y + 51 + 10
+        table_y = nav_y + nav_height + 10
         table_height = height - table_y - margin
         if hasattr(self, 'tabla_pagos'):
             self.tabla_pagos.setGeometry(margin, table_y, width - 2*margin, table_height)
@@ -172,6 +190,99 @@ class PagoPage(QWidget, Ui_pago_page):
             text (str): Texto del elemento seleccionado del completer.
         """
         self.selected_socio_id = self.mapa_socios.get(text)
+    
+    def _crear_controles_navegacion_mes(self) -> None:
+        """Crea los controles de navegación de mes (botones anterior/siguiente y label)."""
+        from PySide6.QtWidgets import QWidget
+        
+        # Widget contenedor para los controles
+        self.mes_nav_widget = QWidget(self)
+        layout = QHBoxLayout(self.mes_nav_widget)
+        layout.setContentsMargins(0, 0, 0, 0)
+        
+        # Botón mes anterior
+        self.btn_mes_anterior = QPushButton("◀", self.mes_nav_widget)
+        self.btn_mes_anterior.setFixedWidth(50)
+        self.btn_mes_anterior.setStyleSheet("font-size: 30px; font-weight: bold;")
+        self.btn_mes_anterior.clicked.connect(self._mes_anterior)
+        layout.addWidget(self.btn_mes_anterior)
+        
+        # Label con el mes y año actual
+        self.lbl_mes_actual = QLabel(self.mes_nav_widget)
+        self.lbl_mes_actual.setAlignment(Qt.AlignCenter)
+        self.lbl_mes_actual.setStyleSheet("font-size: 14px; font-weight: bold;")
+        self._actualizar_label_mes()
+        layout.addWidget(self.lbl_mes_actual, 1)  # stretch=1 para que ocupe el espacio
+        
+        # Botón mes siguiente
+        self.btn_mes_siguiente = QPushButton("▶", self.mes_nav_widget)
+        self.btn_mes_siguiente.setFixedWidth(50)
+        self.btn_mes_siguiente.setStyleSheet("font-size: 30px; font-weight: bold;")
+        self.btn_mes_siguiente.clicked.connect(self._mes_siguiente)
+        layout.addWidget(self.btn_mes_siguiente)
+        
+        # Botón "Hoy" para volver al mes actual
+        self.btn_hoy = QPushButton("Hoy", self.mes_nav_widget)
+        self.btn_hoy.setFixedWidth(60)
+        self.btn_hoy.clicked.connect(self._ir_a_hoy)
+        layout.addWidget(self.btn_hoy)
+        
+        # Separador
+        separador = QLabel("|", self.mes_nav_widget)
+        separador.setStyleSheet("color: #888; margin: 0 5px;")
+        layout.addWidget(separador)
+        
+        # Combo de estado
+        self.cmb_estado = QComboBox(self.mes_nav_widget)
+        self.cmb_estado.addItem("Todos", None)
+        from models.orm_models import PagoEstado
+        self.cmb_estado.addItem("Pagado", PagoEstado.PAGADO)
+        self.cmb_estado.addItem("Anulado", PagoEstado.ANULADO)
+        self.cmb_estado.setFixedWidth(120)
+        self.cmb_estado.currentIndexChanged.connect(self._on_estado_changed)
+        layout.addWidget(self.cmb_estado)
+    
+    def _actualizar_label_mes(self) -> None:
+        """Actualiza el label con el nombre del mes y año actual."""
+        meses = [
+            "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+            "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+        ]
+        mes_nombre = meses[self.mes_actual - 1]
+        self.lbl_mes_actual.setText(f"{mes_nombre} {self.anio_actual}")
+    
+    def _mes_anterior(self) -> None:
+        """Navega al mes anterior."""
+        if self.mes_actual == 1:
+            self.mes_actual = 12
+            self.anio_actual -= 1
+        else:
+            self.mes_actual -= 1
+        self._actualizar_label_mes()
+        self.cargar_pagos()
+    
+    def _mes_siguiente(self) -> None:
+        """Navega al mes siguiente."""
+        if self.mes_actual == 12:
+            self.mes_actual = 1
+            self.anio_actual += 1
+        else:
+            self.mes_actual += 1
+        self._actualizar_label_mes()
+        self.cargar_pagos()
+    
+    def _ir_a_hoy(self) -> None:
+        """Vuelve al mes y año actuales."""
+        hoy = date.today()
+        self.mes_actual = hoy.month
+        self.anio_actual = hoy.year
+        self._actualizar_label_mes()
+        self.cargar_pagos()
+    
+    def _on_estado_changed(self) -> None:
+        """Recarga la tabla cuando cambia el estado seleccionado."""
+        self.estado_actual = self.cmb_estado.currentData()
+        self.cargar_pagos()
 
     def cargar_para_reserva(self, id_reserva: int) -> None:
         """Prefill the payment form using a reservation id.
@@ -272,10 +383,10 @@ class PagoPage(QWidget, Ui_pago_page):
     def cargar_pagos(self) -> None:
         """Recarga la tabla de pagos desde el servicio.
         
-        Obtiene todos los pagos de la base de datos y actualiza la tabla con sus datos.
+        Obtiene los pagos del mes y año actuales de la base de datos y actualiza la tabla con sus datos.
         Utiliza mapeos internos para evitar acceso lazy loading a relaciones.
         """
-        pagos = listar_pagos()
+        pagos = listar_pagos(mes=self.mes_actual, anio=self.anio_actual, estado=self.estado_actual)
         self.pagos_originales = pagos  # Guardar para filtrado
         self.tabla_pagos.setRowCount(len(pagos))
         self.tabla_pagos.setColumnCount(5)

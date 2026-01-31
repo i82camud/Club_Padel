@@ -17,11 +17,12 @@ API pública:
 - ir_a_pagos(): navega a la página de pagos precargando la reserva.
 """
 
-from PySide6.QtWidgets import QWidget, QTableWidgetItem, QMessageBox, QCompleter, QHeaderView, QFileDialog
+from PySide6.QtWidgets import QWidget, QTableWidgetItem, QMessageBox, QCompleter, QHeaderView, QFileDialog, QPushButton, QLabel, QHBoxLayout, QComboBox
 from PySide6.QtCore import Qt, QDate, QTime
 from PySide6.QtGui import QColor
 from datetime import date, time
 from utils.helpers import formatear_fecha, formatear_hora
+import calendar
 from ui.reserva_page_ui import Ui_reserva_page
 from services.reserva_service import insertar_reserva, listar_reservas, obtener_reserva_por_id, actualizar_reserva, cancelar_reserva, hay_solapamiento
 from services.pista_service import listar_pistas
@@ -48,6 +49,15 @@ class ReservaPage(QWidget, Ui_reserva_page):
         self.selected_socio_id = None
         # fecha por defecto: hoy
         self.dateEdit.setDate(QDate.currentDate())
+        
+        # Mes y año actual para filtrado
+        hoy = date.today()
+        self.mes_actual = hoy.month
+        self.anio_actual = hoy.year
+        
+        # Estado actual para filtrado
+        self.estado_actual = None
+        
         # cuando se cambia la hora de inicio, ajustar hora fin
         self.timeEdit.timeChanged.connect(self.suma_tiempo)
         # actualizar disponibilidad de pistas al cambiar fecha u horas
@@ -80,6 +90,10 @@ class ReservaPage(QWidget, Ui_reserva_page):
         # Inicializar campos
         self.cargar_pistas()
         self.cargar_socios()
+        
+        # Crear controles de navegación de mes
+        self._crear_controles_navegacion_mes()
+        
         self.cargar_reservas()
 
         # Pintar disponibilidad inicial
@@ -122,8 +136,14 @@ class ReservaPage(QWidget, Ui_reserva_page):
         if hasattr(self, 'gridLayoutWidget_2'):
             self.gridLayoutWidget_2.setGeometry(margin + 90, search_y, width - 2*margin - 90, search_height)
         
+        # Controles de navegación de mes
+        nav_y = search_y + search_height + 10
+        nav_height = 35
+        if hasattr(self, 'mes_nav_widget'):
+            self.mes_nav_widget.setGeometry(margin, nav_y, width - 2*margin, nav_height)
+        
         # Tabla (resto del espacio disponible)
-        table_y = search_y + 51 + 10
+        table_y = nav_y + nav_height + 10
         table_height = height - table_y - margin
         self.tabla_reservas.setGeometry(margin, table_y, width - 2*margin, table_height)
 
@@ -220,14 +240,107 @@ class ReservaPage(QWidget, Ui_reserva_page):
         # Incluir todos los socios para mostrar en la tabla aunque sean inactivos
         todos_socios = listar_socios()
         self.mapa_socios_id_to_display = {s.id_socio: f"{s.nombre} {s.apellido1} ({s.email})" for s in todos_socios}
+    
+    def _crear_controles_navegacion_mes(self) -> None:
+        """Crea los controles de navegación de mes (botones anterior/siguiente y label)."""
+        from PySide6.QtWidgets import QWidget
+        
+        # Widget contenedor para los controles
+        self.mes_nav_widget = QWidget(self)
+        layout = QHBoxLayout(self.mes_nav_widget)
+        layout.setContentsMargins(0, 0, 0, 0)
+        
+        # Botón mes anterior
+        self.btn_mes_anterior = QPushButton("◀", self.mes_nav_widget)
+        self.btn_mes_anterior.setFixedWidth(50)
+        self.btn_mes_anterior.setStyleSheet("font-size: 30px; font-weight: bold;")
+        self.btn_mes_anterior.clicked.connect(self._mes_anterior)
+        layout.addWidget(self.btn_mes_anterior)
+        
+        # Label con el mes y año actual
+        self.lbl_mes_actual = QLabel(self.mes_nav_widget)
+        self.lbl_mes_actual.setAlignment(Qt.AlignCenter)
+        self.lbl_mes_actual.setStyleSheet("font-size: 14px; font-weight: bold;")
+        self._actualizar_label_mes()
+        layout.addWidget(self.lbl_mes_actual, 1)  # stretch=1 para que ocupe el espacio
+        
+        # Botón mes siguiente
+        self.btn_mes_siguiente = QPushButton("▶", self.mes_nav_widget)
+        self.btn_mes_siguiente.setFixedWidth(50)
+        self.btn_mes_siguiente.setStyleSheet("font-size: 30px; font-weight: bold;")
+        self.btn_mes_siguiente.clicked.connect(self._mes_siguiente)
+        layout.addWidget(self.btn_mes_siguiente)
+        
+        # Botón "Hoy" para volver al mes actual
+        self.btn_hoy = QPushButton("Hoy", self.mes_nav_widget)
+        self.btn_hoy.setFixedWidth(60)
+        self.btn_hoy.clicked.connect(self._ir_a_hoy)
+        layout.addWidget(self.btn_hoy)
+        
+        # Separador
+        separador = QLabel("|", self.mes_nav_widget)
+        separador.setStyleSheet("color: #888; margin: 0 5px;")
+        layout.addWidget(separador)
+        
+        # Combo de estado
+        self.cmb_estado = QComboBox(self.mes_nav_widget)
+        self.cmb_estado.addItem("Todos", None)
+        from models.orm_models import ReservaEstado
+        self.cmb_estado.addItem("Activa", ReservaEstado.ACTIVA)
+        self.cmb_estado.addItem("Cancelada", ReservaEstado.CANCELADA)
+        self.cmb_estado.setFixedWidth(120)
+        self.cmb_estado.currentIndexChanged.connect(self._on_estado_changed)
+        layout.addWidget(self.cmb_estado)
+    
+    def _actualizar_label_mes(self) -> None:
+        """Actualiza el label con el nombre del mes y año actual."""
+        meses = [
+            "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+            "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+        ]
+        mes_nombre = meses[self.mes_actual - 1]
+        self.lbl_mes_actual.setText(f"{mes_nombre} {self.anio_actual}")
+    
+    def _mes_anterior(self) -> None:
+        """Navega al mes anterior."""
+        if self.mes_actual == 1:
+            self.mes_actual = 12
+            self.anio_actual -= 1
+        else:
+            self.mes_actual -= 1
+        self._actualizar_label_mes()
+        self.cargar_reservas()
+    
+    def _mes_siguiente(self) -> None:
+        """Navega al mes siguiente."""
+        if self.mes_actual == 12:
+            self.mes_actual = 1
+            self.anio_actual += 1
+        else:
+            self.mes_actual += 1
+        self._actualizar_label_mes()
+        self.cargar_reservas()
+    
+    def _ir_a_hoy(self) -> None:
+        """Vuelve al mes y año actuales."""
+        hoy = date.today()
+        self.mes_actual = hoy.month
+        self.anio_actual = hoy.year
+        self._actualizar_label_mes()
+        self.cargar_reservas()
+    
+    def _on_estado_changed(self) -> None:
+        """Recarga la tabla cuando cambia el estado seleccionado."""
+        self.estado_actual = self.cmb_estado.currentData()
+        self.cargar_reservas()
 
     def cargar_reservas(self) -> None:
         """Recarga la tabla de reservas desde el servicio.
         
-        Obtiene todas las reservas de la base de datos y actualiza la tabla con sus datos.
+        Obtiene las reservas del mes y año actuales de la base de datos y actualiza la tabla con sus datos.
         Utiliza mapeos internos para evitar acceso lazy loading a relaciones.
         """
-        reservas = listar_reservas()
+        reservas = listar_reservas(mes=self.mes_actual, anio=self.anio_actual, estado=self.estado_actual)
         self.reservas_originales = reservas
         self.tabla_reservas.setRowCount(len(reservas))
         # Definir siempre las columnas y las cabeceras para que se muestren aun sin filas

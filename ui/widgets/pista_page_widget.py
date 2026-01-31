@@ -18,7 +18,7 @@ Notas:
   (widgets con nombres esperados: tabla, botones, combos, etc.).
 """
 
-from PySide6.QtWidgets import QWidget, QTableWidgetItem, QMessageBox, QHeaderView, QFileDialog, QDialog
+from PySide6.QtWidgets import QWidget, QTableWidgetItem, QMessageBox, QHeaderView, QFileDialog, QDialog, QComboBox
 from PySide6.QtCore import QDate, Qt
 from ui.pista_page_ui import Ui_PistaPage  # el generado por pyside6-uic
 import services.pista_service as pista_service
@@ -56,6 +56,16 @@ class PistaPage(QWidget, Ui_PistaPage):
         self.btn_listar_reservas.clicked.connect(self.generar_listado_reservas)
         self.btn_limpiar.clicked.connect(self.vaciar_campos)
         self.txt_buscar.textChanged.connect(self.filtrar_tabla)
+        
+        # Crear combo de estado
+        self.cmb_estado = QComboBox(self)
+        self.cmb_estado.addItem("Todos", None)
+        self.cmb_estado.addItem("Activa", PistaEstado.ACTIVA)
+        self.cmb_estado.addItem("Inactiva", PistaEstado.INACTIVA)
+        self.cmb_estado.currentIndexChanged.connect(self._on_estado_changed)
+        
+        # Estado actual para filtrado
+        self.estado_actual = None
 
         # Conectar tabla para que actualice los campos al seleccionar fila
         self.tabla_pistas.itemSelectionChanged.connect(self.actualizar_campos)
@@ -98,20 +108,30 @@ class PistaPage(QWidget, Ui_PistaPage):
         if hasattr(self, 'btn_limpiar'):
             self.btn_limpiar.setGeometry(margin, search_y, 71, search_height)
         if hasattr(self, 'gridLayoutWidget_3'):
-            self.gridLayoutWidget_3.setGeometry(margin + 90, search_y, width - 2*margin - 90, search_height)
+            # Reducir ancho del campo de búsqueda para dejar espacio al combo
+            self.gridLayoutWidget_3.setGeometry(margin + 90, search_y, width - 2*margin - 90 - 140, search_height)
+        
+        # Combo de estado en la barra de búsqueda
+        if hasattr(self, 'cmb_estado'):
+            self.cmb_estado.setGeometry(width - margin - 130, search_y, 120, search_height)
         
         # Tabla (resto del espacio disponible)
         table_y = search_y + 51 + 10
         table_height = height - table_y - margin
         self.tabla_pistas.setGeometry(margin, table_y, width - 2*margin, table_height)
 
+    def _on_estado_changed(self) -> None:
+        """Actualiza el filtro de estado y recarga la tabla de pistas."""
+        self.estado_actual = self.cmb_estado.currentData()
+        self.cargar_pistas()
+
     def cargar_pistas(self) -> None:
         """Recarga la tabla de pistas desde el servicio.
         
-        Obtiene todas las pistas de la base de datos y actualiza la tabla con sus datos.
+        Obtiene las pistas de la base de datos con filtro de estado y actualiza la tabla.
         Muestra el estado de forma legible (Activa/Inactiva).
         """
-        pistas = pista_service.listar_pistas()
+        pistas = pista_service.listar_pistas(estado=self.estado_actual)
         self.pistas_originales = pistas
         self.tabla_pistas.setRowCount(len(pistas))
         self.tabla_pistas.setColumnCount(4)

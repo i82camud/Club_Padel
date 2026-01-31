@@ -52,11 +52,11 @@ def insertar_pista(nombre: str, pared: str, tipo: str, estado=PistaEstado.ACTIVA
         session.close()
 
 
-def listar_pistas(estado: str = None) -> List[PistaORM]:
+def listar_pistas(estado: Optional[PistaEstado] = None) -> List[PistaORM]:
     """Obtiene la lista de pistas con filtro opcional por estado.
     
     Args:
-        estado (str, optional): Estado a filtrar (PistaEstado o int). Si es None, devuelve todas.
+        estado (PistaEstado, optional): Estado a filtrar. Si es None, devuelve todas.
     
     Returns:
         List[PistaORM]: Lista de instancias ORM de pistas.
@@ -64,8 +64,9 @@ def listar_pistas(estado: str = None) -> List[PistaORM]:
     session = orm.SessionLocal()
     try:
         q = session.query(PistaORM)
-        if estado:
-            q = q.filter(PistaORM.estado == _to_pista_estado(estado))
+        if estado is not None:
+            estado_enum = _to_pista_estado(estado)
+            q = q.filter(PistaORM.estado == estado_enum)
         return q.all()
     finally:
         session.close()
