@@ -4,7 +4,7 @@
 
 /* --- Ventana login --- */
 QDialog {
-    background-color: #2C3E50;
+    background-color: #2E5C8A;
     color: #FFFFFF;
     font-family: "Segoe UI", Arial, sans-serif;
     font-size: 14px;
@@ -12,7 +12,7 @@ QDialog {
 
 /* --- Ventana principal --- */
 QMainWindow {
-    background-color: #1E272E;
+    background-color: #1A3A5C;
     color: #FFFFFF;
     font-family: "Segoe UI", Arial, sans-serif;
     font-size: 14px;
@@ -20,7 +20,7 @@ QMainWindow {
 
 /* --- Panel lateral --- */
 #frame_menu {
-    background-color: #2C3E50;
+    background-color: #2E5C8A;
     border: none;
 }
 
@@ -36,11 +36,11 @@ QMainWindow {
 }
 
 #frame_menu QPushButton:hover {
-    background-color: #34495E;
+    background-color: #1A3A5C;
 }
 
 #frame_menu QPushButton:pressed {
-    background-color: #1ABC9C;
+    background-color: #5B9BD5;
     color: #FFFFFF;
 }
 
@@ -49,8 +49,9 @@ QMainWindow {
 #btn_socios[active="true"],
 #btn_pistas[active="true"],
 #btn_pagos[active="true"],
-#btn_reservas[active="true"] {
-    background-color: #1ABC9C;
+#btn_reservas[active="true"],
+#btn_configuracion[active="true"] {
+    background-color: #8BB8E5;
     color: #FFFFFF;
     font-weight: bold;
 }
@@ -76,11 +77,11 @@ QMainWindow {
 /* --- Tablas --- */
 QTableWidget {
     /* Fondo principal para la tabla; filas alternas controladas más abajo */
-    background-color: #1E272E;
+    background-color: #1A3A5C;
     gridline-color: #BDC3C7;
     border: 1px solid #BDC3C7;
     border-radius: 6px;
-    selection-color: #1ABC9C;
+    selection-color: #5B9BD5;
 }
 
 /* Alternancia de filas: par = gris claro, impar = blanco */
@@ -92,8 +93,8 @@ QTableWidget::item:alternate {
 }
 
 QHeaderView::section {
-    background-color: #1ABC9C;
-    color: white;
+    background-color: #5B9BD5;
+    color: #FFFFFF;
     font-weight: bold;
     padding: 4px;
     border: none;
@@ -101,14 +102,14 @@ QHeaderView::section {
 
 QLineEdit, QDateEdit, QTimeEdit, QComboBox {
     background-color: #FFFFFF;
-    border: 1px solid #BDC3C7;
+    border: 1px solid #2E5C8A;
     border-radius: 5px;
     padding: 5px;
-    color: #2C3E50;
+    color: #2E5C8A;
 }
 
 QLineEdit:focus, QDateEdit:focus, QTimeEdit:focus, QComboBox:focus {
-    border: 1px solid #1ABC9C;
+    border: 2px solid #FFFFFF;
 }
 
 /* Drop-down area (date/time) and combo arrow alignment */
@@ -131,8 +132,8 @@ QComboBox::down-arrow:on { /* cuando el combo está desplegado */
 /* Popup list for QComboBox */
 QComboBox QAbstractItemView {
     background-color: #FFFFFF;
-    border: 1px solid #BDC3C7;
-    selection-background-color: #1ABC9C;
+    border: 1px solid #2E5C8A;
+    selection-background-color: #5B9BD5;
     selection-color: #FFFFFF;
 }
 
@@ -147,13 +148,13 @@ QGroupBox {
     border: none; /*border: 1px solid #BDC3C7 */
     border-radius: 6px;
     margin-top: 10px;
-    background-color: #2C3E50; /*#2C3E50 verde claro #A8D5BA gris #D3D3D3*/
+    background-color: #2E5C8A;
 }
 
 #stackedWidget{
     border-radius: 6px;
     margin-top: 10px;
-    background-color: #2C3E50;
+    background-color: #2E5C8A;
 }
 
 QGroupBox::title {
@@ -164,7 +165,7 @@ QGroupBox::title {
 
 /* --- Etiquetas --- */
 QLabel {
-    color: #1ABC9C;
+    color: #FFFFFF;
 }
 
 /* Etiquetas dentro del panel lateral */
@@ -191,7 +192,7 @@ QGroupBox QLabel {
 
 /* Títulos destacados */
 #lbl_bienvenido, #label_socios, #label_pistas, #label_pagos, #label_configuracion {
-    color: #1ABC9C;
+    color: #FFFFFF;
     font-size: 22px;
     font-weight: bold;
 }
@@ -204,7 +205,7 @@ QGroupBox QLabel {
 
 /* --- Botones generales --- */
 QPushButton {
-    background-color: #1ABC9C;
+    background-color: #5B9BD5;
     color: #FFFFFF;
     border: none;
     border-radius: 6px;
@@ -213,21 +214,21 @@ QPushButton {
 }
 
 QPushButton:hover {
-    background-color: #16A085;
+    background-color: #72ABE0;
 }
 
 QPushButton:pressed {
-    background-color: #149174;
+    background-color: #2E5C8A;
 }
 
 /* --- Estilos específicos para diálogos de filtros --- */
 QDialog QLabel {
-    color: #1ABC9C;
+    color: #FFFFFF;
 }
 
 QDialog QGroupBox {
-    color: #1ABC9C;
-    border: 1px solid #1ABC9C;
+    color: #FFFFFF;
+    border: 1px solid #FFFFFF;
     border-radius: 5px;
 }
 
@@ -235,5 +236,5 @@ QDialog QGroupBox::title {
     subcontrol-origin: margin;
     subcontrol-position: top center;
     padding: 0 5px;
-    color: #1ABC9C;
+    color: #FFFFFF;
 }
