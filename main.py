@@ -4,14 +4,14 @@ from PySide6.QtWidgets import QApplication
 
 from ui.main_window import MainWindow
 from ui.widgets.login_dialog import LoginDialog
-from utils.auth import ensure_auth_file_exists
+from utils.auth import asegurar_fichero_auth_existe
 
 
 def main():
     app = QApplication(sys.argv)
 
     # Asegurar que existe el fichero de autenticación (crea contraseña por defecto si falta)
-    ensure_auth_file_exists()
+    asegurar_fichero_auth_existe()
 
     login = LoginDialog()
     if login.exec() != 1:

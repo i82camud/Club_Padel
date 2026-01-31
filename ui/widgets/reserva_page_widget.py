@@ -4,8 +4,8 @@ Contiene la clase `ReservaPage` que permite listar reservas, crear/editar
 y cancelar reservas, y navegar al flujo de pagos para una reserva seleccionada.
 
 Formatos:
-- Fechas: `utils.helpers.format_date()` → DD/MM/YYYY
-- Horas: `utils.helpers.format_time()` → HH:MM
+- Fechas: `utils.helpers.formatear_fecha()` → DD/MM/YYYY
+- Horas: `utils.helpers.formatear_hora()` → HH:MM
 
 Efectos secundarios:
 - Se suscribe a `bus.socios_changed` y `bus.pistas_changed` para recargar autocompletados.
@@ -21,7 +21,7 @@ from PySide6.QtWidgets import QWidget, QTableWidgetItem, QMessageBox, QCompleter
 from PySide6.QtCore import Qt, QDate, QTime
 from PySide6.QtGui import QColor
 from datetime import date, time
-from utils.helpers import format_date, format_time
+from utils.helpers import formatear_fecha, formatear_hora
 from ui.reserva_page_ui import Ui_reserva_page
 from services.reserva_service import insertar_reserva, listar_reservas, obtener_reserva_por_id, actualizar_reserva, cancelar_reserva, hay_solapamiento
 from services.pista_service import listar_pistas
@@ -90,9 +90,9 @@ class ReservaPage(QWidget, Ui_reserva_page):
         bus.pistas_changed.connect(self.cargar_pistas)
 
         # Conectar evento de resize para responsividad
-        self.resizeEvent = self._on_page_resized
+        self.resizeEvent = self._on_redimensionar_pagina
 
-    def _on_page_resized(self, event) -> None:
+    def _on_redimensionar_pagina(self, event) -> None:
         """Ajusta la geometría de widgets al redimensionar la página."""
         width = self.width()
         height = self.height()
@@ -170,8 +170,8 @@ class ReservaPage(QWidget, Ui_reserva_page):
             return
 
         # Validar horario de apertura del club
-        from utils.settings import get_opening_hours
-        apertura, cierre = get_opening_hours()
+        from utils.settings import get_horario_apertura
+        apertura, cierre = get_horario_apertura()
         fuera_horario = hi_py < apertura or hf_py > cierre
 
         self.pistas_disponibilidad = {}
@@ -240,9 +240,9 @@ class ReservaPage(QWidget, Ui_reserva_page):
                 self.mapa_socios_id_to_display.get(r.id_socio, str(r.id_socio)),
                 self.mapa_pistas.get(r.id_pista, str(r.id_pista)),
                 # Mostrar fecha y horas con helpers centralizados
-                format_date(r.fecha),
-                format_time(r.hora_inicio),
-                format_time(r.hora_fin),
+                formatear_fecha(r.fecha),
+                formatear_hora(r.hora_inicio),
+                formatear_hora(r.hora_fin),
                 (r.estado.name.capitalize() if hasattr(r.estado, 'name') else str(r.estado))
             ]
 
@@ -384,8 +384,8 @@ class ReservaPage(QWidget, Ui_reserva_page):
             qtime (QTime): Nueva hora de inicio seleccionada.
         """
         try:
-            from utils.settings import get_reservation_duration
-            duracion_minutos = get_reservation_duration()
+            from utils.settings import get_duracion_reserva
+            duracion_minutos = get_duracion_reserva()
             new_qt = qtime.addSecs(duracion_minutos * 60)
             # establecer la hora fin sin disparar loops (no desconectamos señales porque no hay handling recíproco)
             self.timeEdit_2.setTime(new_qt)
@@ -439,9 +439,9 @@ class ReservaPage(QWidget, Ui_reserva_page):
             values = [
                 self.mapa_socios_id_to_display.get(r.id_socio, str(r.id_socio)),
                 self.mapa_pistas.get(r.id_pista, str(r.id_pista)),
-                format_date(r.fecha),
-                format_time(r.hora_inicio),
-                format_time(r.hora_fin),
+                formatear_fecha(r.fecha),
+                formatear_hora(r.hora_inicio),
+                formatear_hora(r.hora_fin),
                 (r.estado.name.capitalize() if hasattr(r.estado, 'name') else str(r.estado))
             ]
             
@@ -778,9 +778,9 @@ class ReservaPage(QWidget, Ui_reserva_page):
             for fila, r in enumerate(reservas_session, 2):
                 ws.cell(row=fila, column=1, value=f"{r.socio.nombre} {r.socio.apellido1}")
                 ws.cell(row=fila, column=2, value=r.pista.nombre)
-                ws.cell(row=fila, column=3, value=format_date(r.fecha))
-                ws.cell(row=fila, column=4, value=format_time(r.hora_inicio))
-                ws.cell(row=fila, column=5, value=format_time(r.hora_fin))
+                ws.cell(row=fila, column=3, value=formatear_fecha(r.fecha))
+                ws.cell(row=fila, column=4, value=formatear_hora(r.hora_inicio))
+                ws.cell(row=fila, column=5, value=formatear_hora(r.hora_fin))
                 ws.cell(row=fila, column=6, value=r.estado.name.capitalize())
                 
                 # Centrar celdas

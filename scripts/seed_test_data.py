@@ -14,7 +14,7 @@ from models.orm_models import (
 )
 
 
-def reset_database():
+def resetear_base_datos():
     """Resetea la base de datos eliminando todas las tablas y recreándolas."""
     try:
         print("🔄 Reseteando base de datos...")
@@ -300,7 +300,7 @@ def main():
     """Inserta todos los datos de prueba."""
     print("\n=== Datos de Prueba ===\n")
     
-    reset_database()
+    resetear_base_datos()
     
     print("=== Insertando datos de prueba ===\n")
     

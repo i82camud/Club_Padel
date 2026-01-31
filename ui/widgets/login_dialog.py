@@ -1,7 +1,12 @@
+"""Diálogo de autenticación inicial de la aplicación.
+
+Proporciona el formulario de login para verificar la contraseña
+antes de permitir el acceso a la aplicación principal.
+"""
 from PySide6.QtWidgets import QDialog, QVBoxLayout, QLabel, QLineEdit, QDialogButtonBox, QMessageBox
 from PySide6.QtCore import QFile
 from PySide6.QtGui import QIcon
-from utils.auth import verify_password, ensure_auth_file_exists
+from utils.auth import verificar_contrasena, asegurar_fichero_auth_existe
 
 
 class LoginDialog(QDialog):
@@ -24,7 +29,7 @@ class LoginDialog(QDialog):
         from ui.login_ui import Ui_Dialog  # generado por pyside6-uic
 
         # Asegurar fichero de auth antes de mostrar
-        ensure_auth_file_exists()
+        asegurar_fichero_auth_existe()
 
         # Intentar aplicar la misma hoja de estilos que el resto de la app
         try:
@@ -67,7 +72,7 @@ class LoginDialog(QDialog):
         except Exception:
             pwd = ''
 
-        if verify_password(pwd):
+        if verificar_contrasena(pwd):
             super().accept()
             return
         QMessageBox.warning(self, 'Error', 'Contraseña incorrecta')

@@ -27,7 +27,7 @@ from models.orm_models import SocioEstado, ReservaEstado, PagoEstado, PagoTipo
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
 from ui.widgets.filtros_dialog import FiltrosSociosDialog, FiltrosReservasDialog, FiltrosPagosDialog
-from utils.helpers import format_date, format_time
+from utils.helpers import formatear_fecha, formatear_hora
 
 
 class SocioPage(QWidget, Ui_SocioPage):
@@ -66,9 +66,9 @@ class SocioPage(QWidget, Ui_SocioPage):
         self.cargar_socios()
 
         # Conectar evento de resize para responsividad
-        self.resizeEvent = self._on_page_resized
+        self.resizeEvent = self._on_redimensionar_pagina
 
-    def _on_page_resized(self, event) -> None:
+    def _on_redimensionar_pagina(self, event) -> None:
         """Ajusta la geometría de widgets al redimensionar la página."""
         width = self.width()
         height = self.height()
@@ -627,9 +627,9 @@ class SocioPage(QWidget, Ui_SocioPage):
             
             fila = [
                 pista_nombre,
-                format_date(reserva.fecha),
-                format_time(reserva.hora_inicio),
-                format_time(reserva.hora_fin),
+                formatear_fecha(reserva.fecha),
+                formatear_hora(reserva.hora_inicio),
+                formatear_hora(reserva.hora_fin),
                 estado_display,
                 duracion_min
             ]
@@ -820,7 +820,7 @@ class SocioPage(QWidget, Ui_SocioPage):
                 total += pago.importe
             
             fila = [
-                format_date(pago.fecha_pago),
+                formatear_fecha(pago.fecha_pago),
                 f"{pago.importe:.2f}",
                 tipo_display,
                 estado_display,

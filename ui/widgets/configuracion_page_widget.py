@@ -3,9 +3,9 @@
 from PySide6.QtWidgets import QWidget, QMessageBox
 from PySide6.QtCore import QTime
 from ui.configuracion_page_ui import Ui_configuracion_page
-from ui.widgets.change_password_dialog import ChangePasswordDialog
+from ui.widgets.cambiar_contrasena_dialog import CambiarContrasenaDialog
 from ui.widgets.backup_dialog import RestoreBackupDialog
-from utils.settings import get_opening_hours, set_config, get_config
+from utils.settings import get_horario_apertura, set_config, get_config
 from utils.backup import crear_backup, restaurar_backup
 
 
@@ -28,13 +28,13 @@ class ConfiguracionPage(QWidget):
         self.ui.setupUi(self)
 
         # Conectar botones
-        self.ui.btn_clave.clicked.connect(self._open_change_password)
+        self.ui.btn_clave.clicked.connect(self._abrir_cambiar_contrasena)
         self.ui.btn_guardar.clicked.connect(self._on_guardar)
         self.ui.btn_copia.clicked.connect(self._on_crear_backup)
         self.ui.btn_restaurar.clicked.connect(self._on_restaurar_backup)
 
         # Inicializar campos
-        apertura, cierre = get_opening_hours()
+        apertura, cierre = get_horario_apertura()
         self.ui.timeApertura.setTime(QTime(apertura.hour, apertura.minute))
         self.ui.timeCierre.setTime(QTime(cierre.hour, cierre.minute))
         
@@ -56,9 +56,9 @@ class ConfiguracionPage(QWidget):
         self.ui.txt_antelacion_max.setText(str(antelacion_max))
 
         # Conectar evento de resize para responsividad
-        self.resizeEvent = self._on_page_resized
+        self.resizeEvent = self._on_redimensionar_pagina
 
-    def _on_page_resized(self, event) -> None:
+    def _on_redimensionar_pagina(self, event) -> None:
         """Ajusta la geometría de widgets al redimensionar la página."""
         width = self.width()
         height = self.height()
@@ -68,14 +68,14 @@ class ConfiguracionPage(QWidget):
         if hasattr(self.ui, 'centralwidget'):
             self.ui.centralwidget.resize(width, height)
 
-    def _open_change_password(self) -> None:
+    def _abrir_cambiar_contrasena(self) -> None:
         """Abre el diálogo para cambiar la contraseña del administrador."""
-        dlg = ChangePasswordDialog(self)
+        dlg = CambiarContrasenaDialog(self)
         dlg.exec()
 
     def on_btn_clave_clicked(self) -> None:
         """Manejador del botón de cambio de contraseña (slot de Qt)."""
-        self._open_change_password()
+        self._abrir_cambiar_contrasena()
 
     def _on_guardar(self) -> None:
         """Guarda los valores de configuración (horarios, duración de reservas, máximo de reservas simultáneas y antelaciones).

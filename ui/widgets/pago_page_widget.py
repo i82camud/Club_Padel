@@ -16,7 +16,7 @@ Efectos secundarios:
 - Llama a funciones en `services.pago_service`, `services.socio_service`, etc.
 
 Formato de fechas:
-- Las fechas se muestran con `utils.helpers.format_date()` → DD/MM/YYYY.
+- Las fechas se muestran con `utils.helpers.formatear_fecha()` → DD/MM/YYYY.
 
 Ejemplo de uso (desde MainWindow):
         main_win.pago_page.cargar_para_reserva(123)
@@ -31,7 +31,7 @@ Notas:
 from PySide6.QtWidgets import QWidget, QTableWidgetItem, QMessageBox, QCompleter, QHeaderView, QFileDialog
 from PySide6.QtCore import Qt, QDate
 from datetime import date
-from utils.helpers import format_date
+from utils.helpers import formatear_fecha
 
 from ui.pago_page_ui import Ui_pago_page
 from services.pago_service import (
@@ -66,7 +66,7 @@ class PagoPage(QWidget, Ui_pago_page):
     Dependencias externas importantes:
     - services.pago_service: funciones de inserción y consulta de pagos.
     - services.socio_service, services.reserva_service, services.pista_service.
-    - utils.helpers.format_date para formatear fechas.
+    - utils.helpers.formatear_fecha para formatear fechas.
     """
     def __init__(self):
         super().__init__()
@@ -112,9 +112,9 @@ class PagoPage(QWidget, Ui_pago_page):
         self.cargar_pagos()
 
         # Conectar evento de resize para responsividad
-        self.resizeEvent = self._on_page_resized
+        self.resizeEvent = self._on_redimensionar_pagina
 
-    def _on_page_resized(self, event) -> None:
+    def _on_redimensionar_pagina(self, event) -> None:
         """Ajusta la geometría de widgets al redimensionar la página."""
         width = self.width()
         height = self.height()
@@ -209,7 +209,7 @@ class PagoPage(QWidget, Ui_pago_page):
             self.txt_socio.setText(str(r.id_socio))
             self.selected_socio_id = r.id_socio
 
-    # concepto: descripción legible de la reserva (no se almacena en Pago_Reserva)
+        # concepto: descripción legible de la reserva (no se almacena en Pago_Reserva)
         # intentar obtener nombre de pista y hora
         pistas = listar_pistas()
         mapa_pistas = {p.id_pista: p.nombre for p in pistas}
@@ -219,7 +219,7 @@ class PagoPage(QWidget, Ui_pago_page):
             hora = r.hora_inicio.strftime('%H:%M') if hasattr(r.hora_inicio, 'strftime') else ''
         except Exception:
             hora = ''
-        descripcion = f"Reserva {pista_nombre} — {format_date(r.fecha)} {hora}"
+        descripcion = f"Reserva {pista_nombre} — {formatear_fecha(r.fecha)} {hora}"
         self.txt_concepto.setText(descripcion)
         # guardar la referencia interna y bloquear edición del concepto
         self._linked_reserva_id = id_reserva
@@ -291,7 +291,7 @@ class PagoPage(QWidget, Ui_pago_page):
             values = [
                 mapa.get(p.id_socio, str(p.id_socio)),
                 f"{p.importe:.2f}",
-                format_date(p.fecha_pago),
+                formatear_fecha(p.fecha_pago),
                 tipo_display,
                 estado_display,
             ]
@@ -376,7 +376,7 @@ class PagoPage(QWidget, Ui_pago_page):
                             hora = reserva.hora_inicio.strftime('%H:%M') if hasattr(reserva.hora_inicio, 'strftime') else ''
                         except Exception:
                             hora = ''
-                        concepto = f"Reserva {pista_nombre} — {format_date(reserva.fecha)} {hora}"
+                        concepto = f"Reserva {pista_nombre} — {formatear_fecha(reserva.fecha)} {hora}"
                     else:
                         concepto = str(pago.pago_reserva.id_reserva)
                 elif pago.pago_extra:
@@ -658,7 +658,7 @@ class PagoPage(QWidget, Ui_pago_page):
                 
                 fila = [
                     nombre_socio,
-                    format_date(pago.fecha_pago),
+                    formatear_fecha(pago.fecha_pago),
                     f"{pago.importe:.2f}",
                     tipo_display,
                     estado_display,
@@ -732,7 +732,7 @@ class PagoPage(QWidget, Ui_pago_page):
             values = [
                 mapa.get(p.id_socio, str(p.id_socio)),
                 f"{p.importe:.2f}",
-                format_date(p.fecha_pago),
+                formatear_fecha(p.fecha_pago),
                 tipo_display,
                 estado_display,
             ]

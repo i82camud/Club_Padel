@@ -5,7 +5,7 @@ from datetime import time
 CONFIG_PATH = Path("data") / "config.json"
 
 
-def _ensure_config_exists() -> None:
+def _asegurar_config_existe() -> None:
     """Asegura que el fichero de configuración existe creándolo con valores por defecto si es necesario."""
     CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
     if not CONFIG_PATH.exists():
@@ -21,20 +21,20 @@ def _ensure_config_exists() -> None:
         CONFIG_PATH.write_text(json.dumps(default, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
-def _read_raw() -> dict:
+def _leer_crudo() -> dict:
     """Lee y parsea el fichero de configuración JSON.
     
     Returns:
         dict: Diccionario con la configuración o {} si hay error.
     """
-    _ensure_config_exists()
+    _asegurar_config_existe()
     try:
         return json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
     except Exception:
         return {}
 
 
-def _write_raw(data: dict) -> None:
+def _escribir_crudo(data: dict) -> None:
     """Escribe datos en el fichero de configuración JSON.
     
     Args:
@@ -53,7 +53,7 @@ def get_config(key: str, default=None):
     Returns:
         Valor asociado a la clave o el valor por defecto.
     """
-    cfg = _read_raw()
+    cfg = _leer_crudo()
     return cfg.get(key, default)
 
 
@@ -64,12 +64,12 @@ def set_config(key: str, value) -> None:
         key (str): Clave de configuración.
         value: Valor a guardar.
     """
-    cfg = _read_raw()
+    cfg = _leer_crudo()
     cfg[key] = value
-    _write_raw(cfg)
+    _escribir_crudo(cfg)
 
 
-def get_opening_hours() -> tuple[time, time]:
+def get_horario_apertura() -> tuple[time, time]:
     """Obtiene el horario de apertura y cierre del club.
     
     Los valores se almacenan en formato 'HH:MM'. Si no existen, se usan
@@ -93,7 +93,7 @@ def get_opening_hours() -> tuple[time, time]:
     return apertura, cierre
 
 
-def get_reservation_duration() -> int:
+def get_duracion_reserva() -> int:
     """Devuelve la duración de reserva en minutos.
 
     El valor se almacena en formato 'HH:MM'. Si no existe, se usa

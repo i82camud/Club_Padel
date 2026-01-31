@@ -1,3 +1,7 @@
+"""Tests de funcionalidad de servicios de Pista.
+
+Prueba las operaciones CRUD básicas del módulo pista_service.
+"""
 import pytest
 
 
