@@ -34,7 +34,7 @@ class Ui_MainWindow(object):
         self.groupBox.setGeometry(QRect(10, 10, 150, 771))
         self.lbl_logo = QLabel(self.groupBox)
         self.lbl_logo.setObjectName(u"lbl_logo")
-        self.lbl_logo.setGeometry(QRect(10, 20, 130, 100))
+        self.lbl_logo.setGeometry(QRect(25, 20, 100, 100))
         self.lbl_logo.setAlignment(Qt.AlignCenter)
         self.lbl_logo.setScaledContents(True)
         self.btn_inicio = QPushButton(self.groupBox)

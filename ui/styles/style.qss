@@ -49,8 +49,9 @@ QMainWindow {
 #btn_socios[active="true"],
 #btn_pistas[active="true"],
 #btn_pagos[active="true"],
-#btn_reservas[active="true"] {
-    background-color: #5B9BD5;
+#btn_reservas[active="true"],
+#btn_configuracion[active="true"] {
+    background-color: #8BB8E5;
     color: #FFFFFF;
     font-weight: bold;
 }

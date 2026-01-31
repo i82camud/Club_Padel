@@ -64,7 +64,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.lbl_bienvenido.setText("Bienvenido al Club de Pádel")
         
         # Cargar imagen de inicio
-        self.pixmap_original = QPixmap("ui/icons/ImangenInicio.png")
+        self.pixmap_original = QPixmap("ui/icons/ImagenInicio.png")
         self.ultimo_ancho_imagen = 0  # Para controlar rescalados
         if not self.pixmap_original.isNull():
             self.lbl_imagen.setScaledContents(False)
@@ -135,6 +135,35 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.stackedWidget.currentIndex() == 0:
             self._ajustar_imagen_inicio()
 
+    def _actualizar_boton_activo(self, indice: int) -> None:
+        """Actualiza el estilo del botón activo según la página actual.
+        
+        Args:
+            indice (int): Índice de la página en el stackedWidget.
+        """
+        # Lista de botones y sus índices
+        botones = {
+            0: self.btn_inicio,
+            1: self.btn_socios,
+            2: self.btn_pistas,
+            3: self.btn_pagos,
+            4: self.btn_reservas,
+            5: self.btn_configuracion
+        }
+        
+        # Limpiar el atributo active de todos los botones
+        for btn in botones.values():
+            btn.setProperty("active", False)
+        
+        # Establecer el botón actual como activo
+        if indice in botones:
+            botones[indice].setProperty("active", True)
+        
+        # Forzar actualización de estilos
+        for btn in botones.values():
+            btn.style().unpolish(btn)
+            btn.style().polish(btn)
+    
     def _cambiar_pagina(self, indice: int) -> None:
         """Cambia a la página indicada y limpia los campos de formularios.
         
@@ -146,6 +175,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
         # Cambiar a la nueva página
         self.stackedWidget.setCurrentIndex(indice)
+        
+        # Actualizar botones activos
+        self._actualizar_boton_activo(indice)
         
         # Si vamos a la página de inicio, escalar la imagen para que no tenga zoom
         if indice == 0 and hasattr(self, 'pixmap_original'):
