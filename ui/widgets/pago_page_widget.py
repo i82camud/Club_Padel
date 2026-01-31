@@ -112,9 +112,9 @@ class PagoPage(QWidget, Ui_pago_page):
         self.cargar_pagos()
 
         # Conectar evento de resize para responsividad
-        self.resizeEvent = self._on_page_resized
+        self.resizeEvent = self._on_redimensionar_pagina
 
-    def _on_page_resized(self, event) -> None:
+    def _on_redimensionar_pagina(self, event) -> None:
         """Ajusta la geometría de widgets al redimensionar la página."""
         width = self.width()
         height = self.height()
@@ -209,7 +209,7 @@ class PagoPage(QWidget, Ui_pago_page):
             self.txt_socio.setText(str(r.id_socio))
             self.selected_socio_id = r.id_socio
 
-    # concepto: descripción legible de la reserva (no se almacena en Pago_Reserva)
+        # concepto: descripción legible de la reserva (no se almacena en Pago_Reserva)
         # intentar obtener nombre de pista y hora
         pistas = listar_pistas()
         mapa_pistas = {p.id_pista: p.nombre for p in pistas}

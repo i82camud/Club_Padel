@@ -68,9 +68,9 @@ class PistaPage(QWidget, Ui_PistaPage):
         self.cargar_pistas()
 
         # Conectar evento de resize para responsividad
-        self.resizeEvent = self._on_page_resized
+        self.resizeEvent = self._on_redimensionar_pagina
 
-    def _on_page_resized(self, event) -> None:
+    def _on_redimensionar_pagina(self, event) -> None:
         """Ajusta la geometría de widgets al redimensionar la página."""
         width = self.width()
         height = self.height()

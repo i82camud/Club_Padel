@@ -39,11 +39,11 @@ class CambiarContrasenaDialog(QDialog):
         layout.addWidget(self.new2)
 
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, parent=self)
-        buttons.accepted.connect(self._on_accept)
+        buttons.accepted.connect(self._on_aceptar)
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)
 
-    def _on_accept(self) -> None:
+    def _on_aceptar(self) -> None:
         """Maneja la aceptación del diálogo validando y aplicando el cambio de contraseña.
         
         Verifica que todos los campos estén llenos, que las nuevas contraseñas coincidan,

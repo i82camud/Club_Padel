@@ -68,7 +68,7 @@ class RestoreBackupDialog(QDialog):
         layout.addLayout(botones)
         
         # Conectar selección
-        self.list_backups.itemSelectionChanged.connect(self._on_backup_selected)
+        self.list_backups.itemSelectionChanged.connect(self._on_backup_seleccionado)
     
     def _cargar_backups(self) -> None:
         """Carga la lista de backups disponibles."""
@@ -86,7 +86,7 @@ class RestoreBackupDialog(QDialog):
                 item.setData(256, backup)  # Guardar ruta en rol personalizado
                 self.list_backups.addItem(item)
     
-    def _on_backup_selected(self) -> None:
+    def _on_backup_seleccionado(self) -> None:
         """Muestra la información del backup seleccionado."""
         item = self.list_backups.currentItem()
         if not item:
