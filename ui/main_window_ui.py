@@ -63,7 +63,7 @@ class Ui_MainWindow(object):
         self.page_inicio.setObjectName(u"page_inicio")
         self.verticalLayout = QVBoxLayout(self.page_inicio)
         self.verticalLayout.setObjectName(u"verticalLayout")
-        self.verticalLayout.setContentsMargins(47, 30, 30, 30)
+        self.verticalLayout.setContentsMargins(54, 30, 30, 30)
         self.lbl_bienvenido = QLabel(self.page_inicio)
         self.lbl_bienvenido.setObjectName(u"lbl_bienvenido")
 
