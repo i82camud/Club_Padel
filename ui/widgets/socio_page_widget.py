@@ -833,7 +833,28 @@ class SocioPage(QWidget, Ui_SocioPage):
                 finally:
                     session.close()
             elif pago.tipo == PagoTipo.RESERVA:
-                concepto = ""  # Reserva se deja en blanco
+                # Para reserva: mostrar el mismo concepto que en cargar_para_reserva
+                session = orm.SessionLocal()
+                try:
+                    from models.orm_models import PagoReserva
+                    from services.pista_service import listar_pistas
+                    pago_reserva = session.query(PagoReserva).filter(PagoReserva.id_pago == pago.id_pago).first()
+                    if pago_reserva:
+                        reserva = pago_reserva.reserva if hasattr(pago_reserva, 'reserva') else None
+                        if reserva:
+                            pistas = listar_pistas()
+                            mapa_pistas = {p.id_pista: p.nombre for p in pistas}
+                            pista_nombre = mapa_pistas.get(reserva.id_pista, str(reserva.id_pista))
+                            hora = ''
+                            try:
+                                hora = reserva.hora_inicio.strftime('%H:%M') if hasattr(reserva.hora_inicio, 'strftime') else ''
+                            except Exception:
+                                hora = ''
+                            concepto = f"Reserva {pista_nombre} — {formatear_fecha(reserva.fecha)} {hora}"
+                        else:
+                            concepto = str(pago_reserva.id_reserva)
+                finally:
+                    session.close()
             
             # Sumar solo pagos con estado PAGADO (no anulados)
             if pago.estado == PagoEstado.PAGADO:

@@ -755,10 +755,26 @@ class PagoPage(QWidget, Ui_pago_page):
                 if pago.tipo == PagoTipo.CUOTA:
                     pago_cuota = session.query(PagoCuota).filter_by(id_pago=pago.id_pago).first()
                     concepto = pago_cuota.periodo if pago_cuota else ""
+                elif pago.tipo == PagoTipo.RESERVA:
+                    # Para reserva: mostrar el mismo concepto que en cargar_para_reserva
+                    pago_reserva = pago.pago_reserva
+                    if pago_reserva:
+                        reserva = pago_reserva.reserva if hasattr(pago_reserva, 'reserva') else None
+                        if reserva:
+                            pistas = listar_pistas()
+                            mapa_pistas = {p.id_pista: p.nombre for p in pistas}
+                            pista_nombre = mapa_pistas.get(reserva.id_pista, str(reserva.id_pista))
+                            hora = ''
+                            try:
+                                hora = reserva.hora_inicio.strftime('%H:%M') if hasattr(reserva.hora_inicio, 'strftime') else ''
+                            except Exception:
+                                hora = ''
+                            concepto = f"Reserva {pista_nombre} — {formatear_fecha(reserva.fecha)} {hora}"
+                        else:
+                            concepto = str(pago_reserva.id_reserva)
                 elif pago.tipo == PagoTipo.EXTRA:
                     pago_extra = session.query(PagoExtra).filter_by(id_pago=pago.id_pago).first()
                     concepto = pago_extra.concepto if pago_extra else ""
-                # RESERVA no tiene concepto adicional
                 
                 estado_display = pago.estado.name.capitalize() if hasattr(pago.estado, 'name') else str(pago.estado)
                 tipo_display = pago.tipo.name.capitalize() if hasattr(pago.tipo, 'name') else str(pago.tipo)
