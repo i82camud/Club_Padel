@@ -637,6 +637,15 @@ class PagoPage(QWidget, Ui_pago_page):
             QMessageBox.warning(self, "Error", "No se pudo obtener el ID del pago")
             return
         id_pago = int(id_pago_data)
+        confirm = QMessageBox.question(
+            self,
+            "Confirmar anulación",
+            "¿Seguro que quieres anular este pago?",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No
+        )
+        if confirm != QMessageBox.Yes:
+            return
         # recuperar y cambiar estado
         p = obtener_pago_por_id(id_pago)
         if p is None:

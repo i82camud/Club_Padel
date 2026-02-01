@@ -725,6 +725,15 @@ class ReservaPage(QWidget, Ui_reserva_page):
             QMessageBox.warning(self, "Error", "No se pudo obtener el ID de la reserva")
             return
         id_reserva = int(id_reserva_data)
+        confirm = QMessageBox.question(
+            self,
+            "Confirmar cancelación",
+            "¿Seguro que quieres cancelar esta reserva?",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No
+        )
+        if confirm != QMessageBox.Yes:
+            return
         cancelar_reserva(id_reserva)
         QMessageBox.information(self, "Éxito", "Reserva cancelada")
         self.cargar_reservas()
