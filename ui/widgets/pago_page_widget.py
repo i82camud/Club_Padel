@@ -637,6 +637,15 @@ class PagoPage(QWidget, Ui_pago_page):
             QMessageBox.warning(self, "Error", "No se pudo obtener el ID del pago")
             return
         id_pago = int(id_pago_data)
+        # recuperar y cambiar estado
+        p = obtener_pago_por_id(id_pago)
+        if p is None:
+            QMessageBox.warning(self, "Error", "Pago no encontrado")
+            return
+        from models.orm_models import PagoEstado
+        if p.estado == PagoEstado.ANULADO:
+            QMessageBox.information(self, "Aviso", "El pago ya está anulado")
+            return
         confirm = QMessageBox.question(
             self,
             "Confirmar anulación",
@@ -646,11 +655,6 @@ class PagoPage(QWidget, Ui_pago_page):
         )
         if confirm != QMessageBox.Yes:
             return
-        # recuperar y cambiar estado
-        p = obtener_pago_por_id(id_pago)
-        if p is None:
-            QMessageBox.warning(self, "Error", "Pago no encontrado")
-            return
         # anular -> cambiar estado
         from models import orm
         session = orm.SessionLocal()
@@ -659,7 +663,6 @@ class PagoPage(QWidget, Ui_pago_page):
             if pago_obj is None:
                 QMessageBox.warning(self, "Error", "Pago no encontrado en sesión")
                 return
-            from models.orm_models import PagoEstado
             pago_obj.estado = PagoEstado.ANULADO
             session.commit()
         finally:
