@@ -17,9 +17,9 @@ API pública:
 - ir_a_pagos(): navega a la página de pagos precargando la reserva.
 """
 
-from PySide6.QtWidgets import QWidget, QTableWidgetItem, QMessageBox, QCompleter, QHeaderView, QFileDialog, QPushButton, QLabel, QHBoxLayout, QComboBox
+from PySide6.QtWidgets import QWidget, QTableWidgetItem, QMessageBox, QCompleter, QHeaderView, QFileDialog, QPushButton, QLabel, QHBoxLayout, QComboBox, QStyledItemDelegate, QStyleOptionViewItem
 from PySide6.QtCore import Qt, QDate, QTime
-from PySide6.QtGui import QColor
+from PySide6.QtGui import QColor, QPainter, QPalette
 from datetime import date, time
 from utils.helpers import formatear_fecha, formatear_hora
 import calendar
@@ -33,6 +33,25 @@ from models.orm import SessionLocal
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
 from ui.widgets.filtros_dialog import FiltrosReservasDialog
+
+
+class ColoredComboBoxDelegate(QStyledItemDelegate):
+    """Delegado personalizado para mostrar colores en items de QComboBox.
+    
+    Necesario en macOS donde el estilo nativo puede ignorar los colores
+    establecidos con setItemData(Qt.ForegroundRole).
+    """
+    def paint(self, painter, option, index):
+        """Pinta el item del combo con el color personalizado si está definido."""
+        opt = QStyleOptionViewItem(option)
+        self.initStyleOption(opt, index)
+
+        color = index.data(Qt.ForegroundRole)
+        if color and isinstance(color, QColor):
+            opt.palette.setColor(QPalette.Text, color)
+            opt.palette.setColor(QPalette.HighlightedText, color)
+
+        super().paint(painter, opt, index)
 
 
 class ReservaPage(QWidget, Ui_reserva_page):
@@ -86,6 +105,9 @@ class ReservaPage(QWidget, Ui_reserva_page):
         self.reservas_originales = []
         # Mapa de disponibilidad de pistas (id_pista -> bool)
         self.pistas_disponibilidad = {}
+
+        # Establecer delegado personalizado para el combo de pistas (colores en macOS)
+        self.cmb_pista.setItemDelegate(ColoredComboBoxDelegate(self.cmb_pista))
 
         # Inicializar campos
         self.cargar_pistas()
