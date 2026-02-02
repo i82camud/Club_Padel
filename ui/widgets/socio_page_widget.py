@@ -93,6 +93,31 @@ class SocioPage(QWidget, Ui_SocioPage):
         gb_y = margin + 35
         gb_height = 41
         self.groupBox.setGeometry(margin, gb_y, width - 2*margin, gb_height)
+
+        # Botones de acciones: calcular anchos para que no se corte el texto
+        if hasattr(self, "btn_agregar"):
+            botones = [
+                self.btn_agregar,
+                self.btn_modificar,
+                self.btn_baja,
+                self.btn_activar,
+                self.btn_listar,
+                self.btn_listar_pagos,
+                self.btn_listar_reservas,
+            ]
+            spacing = 8
+            min_width = 130
+            padding = 28
+            fm = self.btn_agregar.fontMetrics()
+            max_text = max(fm.horizontalAdvance(b.text()) for b in botones)
+            preferred = max(min_width, max_text + padding)
+            available = self.groupBox.width()
+            max_width = max(1, (available - spacing * (len(botones) - 1)) // len(botones))
+            button_width = min(preferred, max_width)
+            x = 0
+            for btn in botones:
+                btn.setGeometry(x, 0, button_width, gb_height)
+                x += button_width + spacing
         
         # GridLayoutWidget (campos de entrada): ancho completo, alto fijo
         grid1_y = gb_y + gb_height + 10
@@ -104,14 +129,20 @@ class SocioPage(QWidget, Ui_SocioPage):
         grid2_y = grid1_y + grid1_height + 10
         search_height = 35
         if hasattr(self, 'btn_limpiar'):
-            self.btn_limpiar.setGeometry(margin, grid2_y, 71, search_height)
+            limpiar_width = max(100, self.btn_limpiar.fontMetrics().horizontalAdvance(self.btn_limpiar.text()) + 24)
+            self.btn_limpiar.setGeometry(margin, grid2_y, limpiar_width, search_height)
         if hasattr(self, 'gridLayoutWidget_2'):
             # Reducir ancho del campo de búsqueda para dejar espacio al combo
-            self.gridLayoutWidget_2.setGeometry(margin + 90, grid2_y, width - 2*margin - 90 - 140, search_height)
+            gap = 10
+            combo_width = 120
+            search_x = margin + limpiar_width + gap
+            search_w = width - 2*margin - limpiar_width - gap - combo_width - gap
+            self.gridLayoutWidget_2.setGeometry(search_x, grid2_y, max(0, search_w), search_height)
         
         # Combo de estado en la barra de búsqueda
         if hasattr(self, 'cmb_estado'):
-            self.cmb_estado.setGeometry(width - margin - 130, grid2_y, 120, search_height)
+            combo_width = 120
+            self.cmb_estado.setGeometry(width - margin - combo_width, grid2_y, combo_width, search_height)
         
         # Tabla (resto del espacio disponible)
         table_y = grid2_y + 51 + 10

@@ -141,6 +141,28 @@ class PagoPage(QWidget, Ui_pago_page):
         gb_y = margin + 35
         gb_height = 41
         self.groupBox.setGeometry(margin, gb_y, width - 2*margin, gb_height)
+
+        # Botones de acciones: calcular anchos para que no se corte el texto
+        if hasattr(self, "btn_agregar"):
+            botones = [
+                self.btn_agregar,
+                self.btn_modificar,
+                self.btn_baja,
+                self.btn_listar,
+            ]
+            spacing = 8
+            min_width = 130
+            padding = 28
+            fm = self.btn_agregar.fontMetrics()
+            max_text = max(fm.horizontalAdvance(b.text()) for b in botones)
+            preferred = max(min_width, max_text + padding)
+            available = self.groupBox.width()
+            max_width = max(1, (available - spacing * (len(botones) - 1)) // len(botones))
+            button_width = min(preferred, max_width)
+            x = 0
+            for btn in botones:
+                btn.setGeometry(x, 0, button_width, gb_height)
+                x += button_width + spacing
         
         # GridLayoutWidget (campos de entrada): ancho completo, alto fijo
         grid_y = gb_y + gb_height + 10
@@ -152,9 +174,13 @@ class PagoPage(QWidget, Ui_pago_page):
         search_y = grid_y + grid_height + 10
         search_height = 35
         if hasattr(self, 'btn_limpiar'):
-            self.btn_limpiar.setGeometry(margin, search_y, 71, search_height)
+            limpiar_width = max(100, self.btn_limpiar.fontMetrics().horizontalAdvance(self.btn_limpiar.text()) + 24)
+            self.btn_limpiar.setGeometry(margin, search_y, limpiar_width, search_height)
         if hasattr(self, 'gridLayoutWidget_2'):
-            self.gridLayoutWidget_2.setGeometry(margin + 90, search_y, width - 2*margin - 90, search_height)
+            gap = 10
+            search_x = margin + limpiar_width + gap
+            search_w = width - 2*margin - limpiar_width - gap
+            self.gridLayoutWidget_2.setGeometry(search_x, search_y, max(0, search_w), search_height)
         
         # Controles de navegación de mes
         nav_y = search_y + search_height + 10
