@@ -17,10 +17,10 @@ API pública:
 - ir_a_pagos(): navega a la página de pagos precargando la reserva.
 """
 
-from PySide6.QtWidgets import QWidget, QTableWidgetItem, QMessageBox, QCompleter, QHeaderView, QFileDialog, QPushButton, QLabel, QHBoxLayout, QComboBox, QStyledItemDelegate, QStyleOptionViewItem
+from PySide6.QtWidgets import QWidget, QTableWidgetItem, QMessageBox, QCompleter, QHeaderView, QFileDialog, QPushButton, QLabel, QHBoxLayout, QComboBox, QStyledItemDelegate, QStyleOptionViewItem, QAbstractItemView
 from PySide6.QtCore import Qt, QDate, QTime
 from PySide6.QtGui import QColor, QPainter, QPalette
-from datetime import date, time
+from datetime import date, time, datetime, timedelta
 from utils.helpers import formatear_fecha, formatear_hora
 import calendar
 from ui.reserva_page_ui import Ui_reserva_page
@@ -83,6 +83,8 @@ class ReservaPage(QWidget, Ui_reserva_page):
         self.dateEdit.dateChanged.connect(self.actualizar_disponibilidad_pistas)
         self.timeEdit.timeChanged.connect(self.actualizar_disponibilidad_pistas)
         self.timeEdit_2.timeChanged.connect(self.actualizar_disponibilidad_pistas)
+        # refrescar cuadrante al cambiar fecha
+        self.dateEdit.dateChanged.connect(self._refrescar_cuadrante)
 
         # Conectar botones
         self.btn_agregar.clicked.connect(self.insertar)
@@ -94,6 +96,22 @@ class ReservaPage(QWidget, Ui_reserva_page):
 
         # Conectar tabla
         self.tabla_reservas.itemSelectionChanged.connect(self.actualizar_campos)
+        
+        # Deshabilitar edición directa en la tabla
+        self.tabla_reservas.setEditTriggers(QAbstractItemView.NoEditTriggers)
+
+        # Configurar cuadrante de disponibilidad
+        if hasattr(self, 'tabla_cuadrante'):
+            self.tabla_cuadrante.setEditTriggers(QAbstractItemView.NoEditTriggers)
+            self.tabla_cuadrante.setSelectionBehavior(QAbstractItemView.SelectItems)
+            self.tabla_cuadrante.setSelectionMode(QAbstractItemView.SingleSelection)
+            self.tabla_cuadrante.itemSelectionChanged.connect(self._on_cuadrante_seleccion)
+            header_h = self.tabla_cuadrante.horizontalHeader()
+            header_h.setSectionResizeMode(QHeaderView.Fixed)
+            header_h.setDefaultSectionSize(80)
+            header_v = self.tabla_cuadrante.verticalHeader()
+            header_v.setSectionResizeMode(QHeaderView.Fixed)
+            header_v.setDefaultSectionSize(24)
 
         # Avisar si se selecciona una pista ocupada
         self.cmb_pista.currentIndexChanged.connect(self._avisar_si_pista_ocupada)
@@ -116,10 +134,15 @@ class ReservaPage(QWidget, Ui_reserva_page):
         # Crear controles de navegación de mes
         self._crear_controles_navegacion_mes()
         
+        # Crear controles de navegación de cuadrante
+        self._crear_controles_navegacion_cuadrante()
+        
         self.cargar_reservas()
 
         # Pintar disponibilidad inicial
         self.actualizar_disponibilidad_pistas()
+        # Pintar cuadrante inicial
+        self._refrescar_cuadrante()
 
         # Suscribirse a cambios globales para mantener autocompleters/combos actualizados
         bus.socios_changed.connect(self.cargar_socios)
@@ -143,6 +166,29 @@ class ReservaPage(QWidget, Ui_reserva_page):
         gb_y = margin + 35
         gb_height = 41
         self.groupBox.setGeometry(margin, gb_y, width - 2*margin, gb_height)
+
+        # Botones de acciones: calcular anchos para que no se corte el texto
+        if hasattr(self, "btn_agregar"):
+            botones = [
+                self.btn_agregar,
+                self.btn_modificar,
+                self.btn_baja,
+                self.btn_pagar,
+                self.btn_listar,
+            ]
+            spacing = 8
+            min_width = 130
+            padding = 28
+            fm = self.btn_agregar.fontMetrics()
+            max_text = max(fm.horizontalAdvance(b.text()) for b in botones)
+            preferred = max(min_width, max_text + padding)
+            available = self.groupBox.width()
+            max_width = max(1, (available - spacing * (len(botones) - 1)) // len(botones))
+            button_width = min(preferred, max_width)
+            x = 0
+            for btn in botones:
+                btn.setGeometry(x, 0, button_width, gb_height)
+                x += button_width + spacing
         
         # GridLayoutWidget (campos de entrada): ancho completo, alto fijo
         grid_y = gb_y + gb_height + 10
@@ -154,20 +200,45 @@ class ReservaPage(QWidget, Ui_reserva_page):
         search_y = grid_y + grid_height + 10
         search_height = 35
         if hasattr(self, 'btn_limpiar'):
-            self.btn_limpiar.setGeometry(margin, search_y, 71, search_height)
+            limpiar_width = max(100, self.btn_limpiar.fontMetrics().horizontalAdvance(self.btn_limpiar.text()) + 24)
+            self.btn_limpiar.setGeometry(margin, search_y, limpiar_width, search_height)
         if hasattr(self, 'gridLayoutWidget_2'):
-            self.gridLayoutWidget_2.setGeometry(margin + 90, search_y, width - 2*margin - 90, search_height)
+            gap = 10
+            search_x = margin + limpiar_width + gap
+            search_w = width - 2*margin - limpiar_width - gap
+            self.gridLayoutWidget_2.setGeometry(search_x, search_y, max(0, search_w), search_height)
         
         # Controles de navegación de mes
         nav_y = search_y + search_height + 10
         nav_height = 35
+
+        # Anchos de tablas (reservas + cuadrante)
+        total_width = width - 2 * margin
+        gap = 10
+        cuadrante_width = max(320, int(total_width * 0.33))
+        reservas_width = max(300, total_width - cuadrante_width - gap)
+
         if hasattr(self, 'mes_nav_widget'):
-            self.mes_nav_widget.setGeometry(margin, nav_y, width - 2*margin, nav_height)
-        
-        # Tabla (resto del espacio disponible)
+            self.mes_nav_widget.setGeometry(margin, nav_y, reservas_width, nav_height)
+
+        # Controles de navegación del cuadrante en el hueco superior
+        if hasattr(self, 'cuadrante_nav_widget'):
+            label_x = margin + reservas_width + gap
+            label_y = nav_y
+            self.cuadrante_nav_widget.setGeometry(label_x, label_y, cuadrante_width, nav_height)
+            self._actualizar_label_cuadrante()
+
+        # Tablas (reservas + cuadrante)
         table_y = nav_y + nav_height + 10
+        # Ajustar posición y altura de tablas
         table_height = height - table_y - margin
-        self.tabla_reservas.setGeometry(margin, table_y, width - 2*margin, table_height)
+        cuadrante_y = table_y
+        cuadrante_height = table_height
+
+        self.tabla_reservas.setGeometry(margin, table_y, reservas_width, table_height)
+        if hasattr(self, 'tabla_cuadrante'):
+            cuadrante_x = margin + reservas_width + gap
+            self.tabla_cuadrante.setGeometry(cuadrante_x, cuadrante_y, cuadrante_width, cuadrante_height)
 
     def cargar_pistas(self) -> None:
         """Recarga la lista de pistas en el combo y crea mapeos internos.
@@ -190,6 +261,8 @@ class ReservaPage(QWidget, Ui_reserva_page):
 
         # Refrescar colores de disponibilidad
         self.actualizar_disponibilidad_pistas()
+        # Refrescar cuadrante
+        self._refrescar_cuadrante()
 
     def actualizar_disponibilidad_pistas(self) -> None:
         """Actualiza el color de las pistas según disponibilidad.
@@ -227,6 +300,100 @@ class ReservaPage(QWidget, Ui_reserva_page):
             color = QColor("#2E7D32") if disponible else QColor("#C62828")
             self.cmb_pista.setItemData(i, color, Qt.ForegroundRole)
 
+    def _construir_slots_cuadrante(self) -> list[tuple[time, time]]:
+        """Construye las franjas horarias para el cuadrante según configuración."""
+        from utils.settings import get_horario_apertura, get_duracion_reserva
+
+        apertura, cierre = get_horario_apertura()
+        dur_min = get_duracion_reserva()
+        slots: list[tuple[time, time]] = []
+
+        cur = datetime(2000, 1, 1, apertura.hour, apertura.minute)
+        end = datetime(2000, 1, 1, cierre.hour, cierre.minute)
+        delta = timedelta(minutes=dur_min)
+        while cur + delta <= end:
+            hi = cur.time()
+            hf = (cur + delta).time()
+            slots.append((hi, hf))
+            cur += delta
+
+        return slots
+
+    def _refrescar_cuadrante(self) -> None:
+        """Rellena el cuadrante con disponibilidad por pista y franja."""
+        if not hasattr(self, 'tabla_cuadrante'):
+            return
+
+        from models.orm_models import PistaEstado
+
+        pistas = listar_pistas(estado=PistaEstado.ACTIVA)
+        slots = self._construir_slots_cuadrante()
+
+        self.tabla_cuadrante.clear()
+        self.tabla_cuadrante.setRowCount(len(slots))
+        self.tabla_cuadrante.setColumnCount(len(pistas))
+
+        self.tabla_cuadrante.setHorizontalHeaderLabels([p.nombre for p in pistas])
+        self.tabla_cuadrante.setVerticalHeaderLabels([
+            f"{h1.strftime('%H:%M')}-{h2.strftime('%H:%M')}" for h1, h2 in slots
+        ])
+
+        fecha_qdate = self.dateEdit.date()
+        fecha_py = date(fecha_qdate.year(), fecha_qdate.month(), fecha_qdate.day())
+        
+        # Actualizar label del cuadrante
+        self._actualizar_label_cuadrante()
+
+        for row, (hi, hf) in enumerate(slots):
+            for col, pista in enumerate(pistas):
+                ocupada = hay_solapamiento(pista.id_pista, fecha_py, hi, hf)
+                texto = "Ocupada" if ocupada else ""
+                item = QTableWidgetItem(texto)
+                item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+                item.setData(Qt.UserRole, (pista.id_pista, hi, hf))
+                item.setData(Qt.UserRole + 1, not ocupada)
+                if ocupada:
+                    # Mostrar texto "Ocupada" en rojo
+                    from PySide6.QtGui import QBrush
+                    item.setForeground(QBrush(QColor("#D32F2F")))
+                    # Negrita para mayor visibilidad
+                    from PySide6.QtGui import QFont
+                    font = QFont()
+                    font.setBold(True)
+                    item.setFont(font)
+                item.setTextAlignment(Qt.AlignCenter)
+                self.tabla_cuadrante.setItem(row, col, item)
+
+    def _on_cuadrante_seleccion(self) -> None:
+        """Sincroniza selección del cuadrante con pista y horario."""
+        if not hasattr(self, 'tabla_cuadrante'):
+            return
+
+        item = self.tabla_cuadrante.currentItem()
+        if item is None:
+            return
+
+        data = item.data(Qt.UserRole)
+        disponible = item.data(Qt.UserRole + 1)
+        if not data:
+            return
+
+        id_pista, hi, hf = data
+        if disponible is False:
+            QMessageBox.warning(self, "Aviso", "La franja seleccionada está ocupada.")
+            return
+
+        idx = self.cmb_pista.findData(id_pista)
+        if idx >= 0:
+            was_blocked = self.cmb_pista.blockSignals(True)
+            self.cmb_pista.setCurrentIndex(idx)
+            self.cmb_pista.blockSignals(was_blocked)
+
+        self.timeEdit.setTime(QTime(hi.hour, hi.minute))
+        self.timeEdit_2.setTime(QTime(hf.hour, hf.minute))
+        self.txt_socio.clear()
+        self.actualizar_disponibilidad_pistas()
+
     def _avisar_si_pista_ocupada(self) -> None:
         """Muestra aviso si el usuario selecciona una pista ocupada."""
         id_pista = self.cmb_pista.currentData()
@@ -262,6 +429,59 @@ class ReservaPage(QWidget, Ui_reserva_page):
         # Incluir todos los socios para mostrar en la tabla aunque sean inactivos
         todos_socios = listar_socios()
         self.mapa_socios_id_to_display = {s.id_socio: f"{s.nombre} {s.apellido1} ({s.email})" for s in todos_socios}
+    
+    def _crear_controles_navegacion_cuadrante(self) -> None:
+        """Crea los controles de navegación de día para el cuadrante."""
+        from PySide6.QtWidgets import QWidget
+        
+        # Widget contenedor para los controles
+        self.cuadrante_nav_widget = QWidget(self)
+        layout = QHBoxLayout(self.cuadrante_nav_widget)
+        layout.setContentsMargins(0, 0, 0, 0)
+        
+        # Botón día anterior
+        self.btn_dia_anterior = QPushButton("◀", self.cuadrante_nav_widget)
+        self.btn_dia_anterior.setFixedWidth(50)
+        self.btn_dia_anterior.setStyleSheet("font-size: 30px; font-weight: bold;")
+        self.btn_dia_anterior.clicked.connect(self._dia_anterior)
+        layout.addWidget(self.btn_dia_anterior)
+        
+        # Label con la fecha del cuadrante
+        self.lbl_cuadrante = QLabel(self.cuadrante_nav_widget)
+        self.lbl_cuadrante.setAlignment(Qt.AlignCenter)
+        self.lbl_cuadrante.setStyleSheet("font-size: 14px; font-weight: bold;")
+        self._actualizar_label_cuadrante()
+        layout.addWidget(self.lbl_cuadrante, 1)  # stretch=1 para que ocupe el espacio
+        
+        # Botón día siguiente
+        self.btn_dia_siguiente = QPushButton("▶", self.cuadrante_nav_widget)
+        self.btn_dia_siguiente.setFixedWidth(50)
+        self.btn_dia_siguiente.setStyleSheet("font-size: 30px; font-weight: bold;")
+        self.btn_dia_siguiente.clicked.connect(self._dia_siguiente)
+        layout.addWidget(self.btn_dia_siguiente)
+    
+    def _actualizar_label_cuadrante(self) -> None:
+        """Actualiza el label del cuadrante con la fecha actual."""
+        if hasattr(self, 'lbl_cuadrante'):
+            fecha_qdate = self.dateEdit.date()
+            fecha_py = date(fecha_qdate.year(), fecha_qdate.month(), fecha_qdate.day())
+            self.lbl_cuadrante.setText(f"Cuadrante de disponibilidad - {formatear_fecha(fecha_py)}")
+    
+    def _dia_anterior(self) -> None:
+        """Navega al día anterior."""
+        fecha_actual = self.dateEdit.date()
+        nueva_fecha = fecha_actual.addDays(-1)
+        self.dateEdit.setDate(nueva_fecha)
+        self._actualizar_label_cuadrante()
+        self._refrescar_cuadrante()
+    
+    def _dia_siguiente(self) -> None:
+        """Navega al día siguiente."""
+        fecha_actual = self.dateEdit.date()
+        nueva_fecha = fecha_actual.addDays(1)
+        self.dateEdit.setDate(nueva_fecha)
+        self._actualizar_label_cuadrante()
+        self._refrescar_cuadrante()
     
     def _crear_controles_navegacion_mes(self) -> None:
         """Crea los controles de navegación de mes (botones anterior/siguiente y label)."""
@@ -390,10 +610,12 @@ class ReservaPage(QWidget, Ui_reserva_page):
 
         # ajustar tamaño de columnas
         header = self.tabla_reservas.horizontalHeader()
-        header.setSectionResizeMode(0, QHeaderView.Stretch)
+        header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
         for col in range(1, 6):
-            header.setSectionResizeMode(col, QHeaderView.Fixed)
-            self.tabla_reservas.setColumnWidth(col, 120)    
+            header.setSectionResizeMode(col, QHeaderView.Stretch)
+        
+        # Refrescar cuadrante con los datos actuales
+        self._refrescar_cuadrante()
     
     def actualizar_campos(self) -> None:
         """Carga los datos de la fila seleccionada en los campos del formulario.
@@ -832,7 +1054,10 @@ class ReservaPage(QWidget, Ui_reserva_page):
 
         # Cambiar a la página de pagos (índice 3 según MainWindow)
         try:
-            main_win.stackedWidget.setCurrentIndex(3)
+            if hasattr(main_win, "_cambiar_pagina"):
+                main_win._cambiar_pagina(3)
+            else:
+                main_win.stackedWidget.setCurrentIndex(3)
         except Exception:
             # fallback: intentar buscar método público
             pass

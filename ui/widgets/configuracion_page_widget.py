@@ -63,10 +63,46 @@ class ConfiguracionPage(QWidget):
         width = self.width()
         height = self.height()
         
-        # Para Configuración, simplemente hacer que el widget principal se ajuste
-        # Los widgets internos ya tienen sizePolicy configurado
+        # Para Configuración, ajustar los elementos principales
+        margin = 20
+        
         if hasattr(self.ui, 'centralwidget'):
             self.ui.centralwidget.resize(width, height)
+
+        if hasattr(self.ui, 'label_configuracion'):
+            self.ui.label_configuracion.setGeometry(margin, margin, 260, 31)
+
+        # GroupBox de botones: ancho completo, alto fijo
+        if hasattr(self.ui, 'groupBox'):
+            gb_y = margin + 35
+            gb_height = 41
+            self.ui.groupBox.setGeometry(margin, gb_y, width - 2 * margin, gb_height)
+
+            # Botones de acciones: calcular anchos para que no se corte el texto
+            botones = [
+                self.ui.btn_guardar,
+                self.ui.btn_clave,
+                self.ui.btn_copia,
+                self.ui.btn_restaurar,
+            ]
+            spacing = 8
+            min_width = 160
+            padding = 28
+            fm = self.ui.btn_guardar.fontMetrics()
+            max_text = max(fm.horizontalAdvance(b.text()) for b in botones)
+            preferred = max(min_width, max_text + padding)
+            available = self.ui.groupBox.width()
+            max_width = max(1, (available - spacing * (len(botones) - 1)) // len(botones))
+            button_width = min(preferred, max_width)
+            x = 0
+            for btn in botones:
+                btn.setGeometry(x, 0, button_width, gb_height)
+                x += button_width + spacing
+
+        # Formularios: ajustar ancho con margen
+        if hasattr(self.ui, 'gridLayoutWidget'):
+            grid_y = margin + 35 + 41 + 10
+            self.ui.gridLayoutWidget.setGeometry(margin, grid_y, width - 2 * margin, 131)
 
     def _abrir_cambiar_contrasena(self) -> None:
         """Abre el diálogo para cambiar la contraseña del administrador."""

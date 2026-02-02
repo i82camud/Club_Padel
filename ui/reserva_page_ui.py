@@ -128,7 +128,7 @@ class Ui_reserva_page(object):
 
         self.tabla_reservas = QTableWidget(reserva_page)
         self.tabla_reservas.setObjectName(u"tabla_reservas")
-        self.tabla_reservas.setGeometry(QRect(20, 240, 1041, 511))
+        self.tabla_reservas.setGeometry(QRect(20, 240, 671, 511))
         self.tabla_reservas.setAlternatingRowColors(True)
         self.tabla_reservas.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.btn_limpiar = QPushButton(reserva_page)
@@ -153,6 +153,11 @@ class Ui_reserva_page(object):
 
         self.gridLayout_2.addWidget(self.txt_buscar, 0, 1, 1, 1)
 
+        self.tabla_cuadrante = QTableWidget(reserva_page)
+        self.tabla_cuadrante.setObjectName(u"tabla_cuadrante")
+        self.tabla_cuadrante.setGeometry(QRect(700, 240, 361, 511))
+        self.tabla_cuadrante.setAlternatingRowColors(True)
+        self.tabla_cuadrante.setSelectionBehavior(QAbstractItemView.SelectRows)
 
         self.retranslateUi(reserva_page)
 

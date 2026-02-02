@@ -12,7 +12,7 @@ def _asegurar_config_existe() -> None:
         # valores por defecto
         default = {
             "timeApertura": "09:00",
-            "timeCierre": "22:00",
+            "timeCierre": "22:30",
             "timeReserva": "01:30",
             "maxReservasSimultaneas": 10,
             "timeAntelacionMin": "01:00",

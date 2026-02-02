@@ -235,7 +235,7 @@
     <rect>
      <x>20</x>
      <y>240</y>
-     <width>1041</width>
+     <width>671</width>
      <height>511</height>
     </rect>
    </property>
@@ -289,6 +289,22 @@
      <widget class="QLineEdit" name="txt_buscar"/>
     </item>
    </layout>
+  </widget>
+  <widget class="QTableWidget" name="tabla_cuadrante">
+   <property name="geometry">
+    <rect>
+     <x>700</x>
+     <y>240</y>
+     <width>361</width>
+     <height>511</height>
+    </rect>
+   </property>
+   <property name="alternatingRowColors">
+    <bool>true</bool>
+   </property>
+   <property name="selectionBehavior">
+    <enum>QAbstractItemView::SelectRows</enum>
+   </property>
   </widget>
  </widget>
  <resources/>
