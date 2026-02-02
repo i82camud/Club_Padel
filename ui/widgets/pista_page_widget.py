@@ -310,8 +310,9 @@ class PistaPage(QWidget, Ui_PistaPage):
     def baja_pista(self) -> None:
         """Marca la pista seleccionada como inactiva (baja).
         
-        Cambia el estado de la pista a INACTIVA. Emite la señal bus.pistas_changed
-        para actualizar otros widgets.
+        Comprueba si la pista tiene reservas futuras activas. Si las tiene,
+        no permite desactivarla. En caso contrario, cambia el estado de la pista
+        a INACTIVA. Emite la señal bus.pistas_changed para actualizar otros widgets.
         """
         row = self.tabla_pistas.currentRow()
         if row < 0:
@@ -325,6 +326,21 @@ class PistaPage(QWidget, Ui_PistaPage):
         id_pista = item0.data(Qt.UserRole)
         if id_pista is None:
             QMessageBox.warning(self, "Error", "No se pudo obtener el ID de la pista")
+            return
+
+        # Verificar si la pista tiene reservas futuras activas
+        from services.reserva_service import listar_reservas
+        from datetime import date
+        
+        reservas = listar_reservas(id_pista=id_pista, estado=ReservaEstado.ACTIVA)
+        reservas_futuras = [r for r in reservas if r.fecha >= date.today()]
+        
+        if reservas_futuras:
+            nombres_reservas = "\n".join([f"• {r.fecha} a las {formatear_hora(r.hora_inicio)}" for r in reservas_futuras[:5]])
+            mensaje = f"No se puede desactivar la pista porque tiene {len(reservas_futuras)} reservas futuras activas:\n\n{nombres_reservas}"
+            if len(reservas_futuras) > 5:
+                mensaje += f"\n... y {len(reservas_futuras) - 5} más"
+            QMessageBox.warning(self, "Error", mensaje)
             return
 
         pista_service.desactivar_pista(id_pista)
