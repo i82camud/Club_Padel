@@ -70,6 +70,10 @@ class PistaPage(QWidget, Ui_PistaPage):
         # Conectar tabla para que actualice los campos al seleccionar fila
         self.tabla_pistas.itemSelectionChanged.connect(self.actualizar_campos)
         self.tabla_pistas.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        
+        # Deshabilitar edición directa en la tabla
+        from PySide6.QtWidgets import QAbstractItemView
+        self.tabla_pistas.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
         # Lista para almacenar las pistas originales para filtrado
         self.pistas_originales = []

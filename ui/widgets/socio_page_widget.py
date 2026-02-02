@@ -55,6 +55,10 @@ class SocioPage(QWidget, Ui_SocioPage):
         # Conectar tabla para que actualice los campos al seleccionar fila
         self.tabla_socios.itemSelectionChanged.connect(self.actualizar_campos)
         self.tabla_socios.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        
+        # Deshabilitar edición directa en la tabla
+        from PySide6.QtWidgets import QAbstractItemView
+        self.tabla_socios.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
         # Conectar barra de búsqueda para filtrar en tiempo real
         self.txt_buscar.textChanged.connect(self.filtrar_tabla)

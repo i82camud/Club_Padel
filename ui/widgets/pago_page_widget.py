@@ -82,6 +82,12 @@ class PagoPage(QWidget, Ui_pago_page):
         # internal linked reservation id when opened from a reserva
         self._linked_reserva_id = None
         
+        # Eliminar la opción "Reserva" del combo por defecto
+        # Solo se mostrará cuando se carga desde el módulo de reservas
+        idx = self.comboBox.findText('Reserva', Qt.MatchFixedString)
+        if idx >= 0:
+            self.comboBox.removeItem(idx)
+        
         # Mes y año actual para filtrado
         hoy = date.today()
         self.mes_actual = hoy.month
@@ -110,6 +116,10 @@ class PagoPage(QWidget, Ui_pago_page):
         
         # Conectar tabla para que actualice los campos al seleccionar fila
         self.tabla_pagos.itemSelectionChanged.connect(self.actualizar_campos)
+        
+        # Deshabilitar edición directa en la tabla
+        from PySide6.QtWidgets import QAbstractItemView
+        self.tabla_pagos.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
         # Conectar barra de búsqueda para filtrar en tiempo real
         self.txt_buscar.textChanged.connect(self.filtrar_tabla)
@@ -345,6 +355,9 @@ class PagoPage(QWidget, Ui_pago_page):
         else:
             self.txt_socio.setText(str(r.id_socio))
             self.selected_socio_id = r.id_socio
+        
+        # Deshabilitar campo de socio ya que está vinculado a la reserva
+        self.txt_socio.setEnabled(False)
 
         # concepto: descripción legible de la reserva (no se almacena en Pago_Reserva)
         # intentar obtener nombre de pista y hora
@@ -364,10 +377,16 @@ class PagoPage(QWidget, Ui_pago_page):
             self.txt_concepto.setReadOnly(True)
         except Exception:
             pass
-        # seleccionar tipo 'Reserva' en combo (segundo elemento)
+        
+        # Agregar 'Reserva' al combo si no existe y seleccionarlo
         idx = self.comboBox.findText('Reserva', Qt.MatchFixedString)
+        if idx < 0:
+            self.comboBox.addItem('Reserva')
+            idx = self.comboBox.findText('Reserva', Qt.MatchFixedString)
         if idx >= 0:
             self.comboBox.setCurrentIndex(idx)
+        # Deshabilitar el combo para que no se pueda cambiar el tipo
+        self.comboBox.setEnabled(False)
 
         # fecha del pago: por defecto fecha de la reserva
         try:
@@ -405,6 +424,13 @@ class PagoPage(QWidget, Ui_pago_page):
             self.txt_concepto.setReadOnly(False)
         except Exception:
             pass
+        # Eliminar 'Reserva' del combo si existe
+        idx = self.comboBox.findText('Reserva', Qt.MatchFixedString)
+        if idx >= 0:
+            self.comboBox.removeItem(idx)
+        # Rehabilitar el combo y el campo de socio
+        self.comboBox.setEnabled(True)
+        self.txt_socio.setEnabled(True)
 
     def cargar_pagos(self) -> None:
         """Recarga la tabla de pagos desde el servicio.
@@ -483,6 +509,7 @@ class PagoPage(QWidget, Ui_pago_page):
                 socios = listar_socios()
                 mapa_socios = {s.id_socio: f"{s.nombre} {s.apellido1} ({s.email})" for s in socios}
                 self.txt_socio.setText(mapa_socios.get(pago.id_socio, str(pago.id_socio)))
+                self.selected_socio_id = pago.id_socio
                 
                 # Importe
                 self.txt_importe.setText(f"{pago.importe:.2f}")
@@ -493,6 +520,22 @@ class PagoPage(QWidget, Ui_pago_page):
                 
                 # Tipo de pago
                 tipo_text = pago.tipo.name.capitalize() if hasattr(pago.tipo, 'name') else str(pago.tipo)
+                
+                # Si es un pago de reserva, agregar la opción al combo si no existe
+                if tipo_text == 'Reserva':
+                    idx_reserva = self.comboBox.findText('Reserva', Qt.MatchFixedString)
+                    if idx_reserva < 0:
+                        self.comboBox.addItem('Reserva')
+                    # Deshabilitar el combo para que no se pueda cambiar el tipo
+                    self.comboBox.setEnabled(False)
+                    # Marcar como vinculado para deshabilitar modificación
+                    if pago.pago_reserva:
+                        self._linked_reserva_id = pago.pago_reserva.id_reserva
+                else:
+                    # Para otros tipos, asegurar que el combo está habilitado
+                    self.comboBox.setEnabled(True)
+                    self._linked_reserva_id = None
+                
                 idx = self.comboBox.findText(tipo_text, Qt.MatchFixedString)
                 if idx >= 0:
                     self.comboBox.setCurrentIndex(idx)
@@ -519,6 +562,14 @@ class PagoPage(QWidget, Ui_pago_page):
                 elif pago.pago_extra:
                     concepto = pago.pago_extra.concepto
                 self.txt_concepto.setText(concepto)
+                
+                # Si es un pago de reserva, bloquear edición del concepto y socio
+                if tipo_text == 'Reserva':
+                    self.txt_concepto.setReadOnly(True)
+                    self.txt_socio.setEnabled(False)
+                else:
+                    self.txt_concepto.setReadOnly(False)
+                    self.txt_socio.setEnabled(True)
             finally:
                 session.close()
             
@@ -561,6 +612,12 @@ class PagoPage(QWidget, Ui_pago_page):
             from models.orm_models import PagoTipo
             # mapear tipo string del combo a PagoTipo
             tipo_enum = PagoTipo.CUOTA if tipo == 'cuota' else (PagoTipo.RESERVA if tipo == 'reserva' else PagoTipo.EXTRA)
+            
+            # Validar que los pagos de reserva tengan una reserva vinculada
+            if tipo == 'reserva' and not getattr(self, '_linked_reserva_id', None):
+                QMessageBox.warning(self, "Error", "Los pagos de reserva deben crearse desde el módulo de Reservas usando el botón 'Pagar'.")
+                return
+            
             pago = insertar_pago(id_socio=sid, importe=importe, fecha_pago=fecha_py, tipo=tipo_enum)
             # crear entradas específicas
             if tipo == 'cuota':
@@ -593,7 +650,8 @@ class PagoPage(QWidget, Ui_pago_page):
     def modificar(self) -> None:
         """Modifica los datos del pago seleccionado en la base de datos.
         
-        Valida los campos, lee los valores del formulario y actualiza el registro del pago.
+        Para pagos de reserva, solo permite modificar el importe.
+        Para otros tipos, permite modificar importe, fecha y socio.
         Luego recarga la tabla de pagos.
         """
         fila = self.tabla_pagos.currentRow()
@@ -628,9 +686,16 @@ class PagoPage(QWidget, Ui_pago_page):
         fecha_q = self.dateEdit.date()
         fecha_py = date(fecha_q.year(), fecha_q.month(), fecha_q.day())
         
-        # resolver socio
-        socio_text = self.txt_socio.text().strip()
-        sid = self.selected_socio_id if self.selected_socio_id and socio_text in self.mapa_socios else self.mapa_socios.get(socio_text)
+        # Para pagos de reserva, usar el socio vinculado; para otros, resolver del campo
+        is_reserva = getattr(self, '_linked_reserva_id', None) is not None
+        if is_reserva:
+            # En pagos de reserva, el socio no se puede cambiar
+            sid = self.selected_socio_id
+        else:
+            # resolver socio del campo
+            socio_text = self.txt_socio.text().strip()
+            sid = self.selected_socio_id if self.selected_socio_id and socio_text in self.mapa_socios else self.mapa_socios.get(socio_text)
+        
         if not sid:
             QMessageBox.warning(self, "Error", "Selecciona un socio válido")
             return
@@ -855,6 +920,9 @@ class PagoPage(QWidget, Ui_pago_page):
         self.txt_concepto.setReadOnly(False)
         self.dateEdit.setDate(QDate.currentDate())
         self.txt_buscar.clear()
+        
+        # Limpiar vinculación de reserva y restaurar estado del combo
+        self._clear_linked_reserva()
 
     def filtrar_tabla(self) -> None:
         """Filtra la tabla de pagos según el texto ingresado en la barra de búsqueda.

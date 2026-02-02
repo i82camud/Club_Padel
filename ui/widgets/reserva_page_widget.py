@@ -94,6 +94,10 @@ class ReservaPage(QWidget, Ui_reserva_page):
 
         # Conectar tabla
         self.tabla_reservas.itemSelectionChanged.connect(self.actualizar_campos)
+        
+        # Deshabilitar edición directa en la tabla
+        from PySide6.QtWidgets import QAbstractItemView
+        self.tabla_reservas.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
         # Avisar si se selecciona una pista ocupada
         self.cmb_pista.currentIndexChanged.connect(self._avisar_si_pista_ocupada)
@@ -859,7 +863,10 @@ class ReservaPage(QWidget, Ui_reserva_page):
 
         # Cambiar a la página de pagos (índice 3 según MainWindow)
         try:
-            main_win.stackedWidget.setCurrentIndex(3)
+            if hasattr(main_win, "_cambiar_pagina"):
+                main_win._cambiar_pagina(3)
+            else:
+                main_win.stackedWidget.setCurrentIndex(3)
         except Exception:
             # fallback: intentar buscar método público
             pass
