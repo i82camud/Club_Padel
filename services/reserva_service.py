@@ -183,6 +183,8 @@ def actualizar_reserva(id_reserva: int, id_socio: int, id_pista: int, fecha: dat
         r = session.get(ReservaORM, id_reserva)
         if r is None:
             return None
+        if r.estado == ReservaEstado.CANCELADA:
+            raise ValueError("No se puede modificar una reserva cancelada")
         r.id_socio = id_socio
         r.id_pista = id_pista
         r.fecha = fecha

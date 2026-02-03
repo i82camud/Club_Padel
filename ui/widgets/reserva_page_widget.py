@@ -442,7 +442,15 @@ class ReservaPage(QWidget, Ui_reserva_page):
         # Botón día anterior
         self.btn_dia_anterior = QPushButton("◀", self.cuadrante_nav_widget)
         self.btn_dia_anterior.setFixedWidth(50)
-        self.btn_dia_anterior.setStyleSheet("font-size: 30px; font-weight: bold;")
+        try:
+            import sys
+            if sys.platform.startswith("linux"):
+                self.btn_dia_anterior.setFixedHeight(42)
+                self.btn_dia_anterior.setStyleSheet("font-size: 26px; font-weight: bold; padding-bottom: 2px;")
+            else:
+                self.btn_dia_anterior.setStyleSheet("font-size: 30px; font-weight: bold;")
+        except Exception:
+            self.btn_dia_anterior.setStyleSheet("font-size: 30px; font-weight: bold;")
         self.btn_dia_anterior.clicked.connect(self._dia_anterior)
         layout.addWidget(self.btn_dia_anterior)
         
@@ -456,7 +464,15 @@ class ReservaPage(QWidget, Ui_reserva_page):
         # Botón día siguiente
         self.btn_dia_siguiente = QPushButton("▶", self.cuadrante_nav_widget)
         self.btn_dia_siguiente.setFixedWidth(50)
-        self.btn_dia_siguiente.setStyleSheet("font-size: 30px; font-weight: bold;")
+        try:
+            import sys
+            if sys.platform.startswith("linux"):
+                self.btn_dia_siguiente.setFixedHeight(42)
+                self.btn_dia_siguiente.setStyleSheet("font-size: 26px; font-weight: bold; padding-bottom: 2px;")
+            else:
+                self.btn_dia_siguiente.setStyleSheet("font-size: 30px; font-weight: bold;")
+        except Exception:
+            self.btn_dia_siguiente.setStyleSheet("font-size: 30px; font-weight: bold;")
         self.btn_dia_siguiente.clicked.connect(self._dia_siguiente)
         layout.addWidget(self.btn_dia_siguiente)
     
@@ -495,7 +511,15 @@ class ReservaPage(QWidget, Ui_reserva_page):
         # Botón mes anterior
         self.btn_mes_anterior = QPushButton("◀", self.mes_nav_widget)
         self.btn_mes_anterior.setFixedWidth(50)
-        self.btn_mes_anterior.setStyleSheet("font-size: 30px; font-weight: bold;")
+        try:
+            import sys
+            if sys.platform.startswith("linux"):
+                self.btn_mes_anterior.setFixedHeight(42)
+                self.btn_mes_anterior.setStyleSheet("font-size: 26px; font-weight: bold; padding-bottom: 2px;")
+            else:
+                self.btn_mes_anterior.setStyleSheet("font-size: 30px; font-weight: bold;")
+        except Exception:
+            self.btn_mes_anterior.setStyleSheet("font-size: 30px; font-weight: bold;")
         self.btn_mes_anterior.clicked.connect(self._mes_anterior)
         layout.addWidget(self.btn_mes_anterior)
         
@@ -509,7 +533,15 @@ class ReservaPage(QWidget, Ui_reserva_page):
         # Botón mes siguiente
         self.btn_mes_siguiente = QPushButton("▶", self.mes_nav_widget)
         self.btn_mes_siguiente.setFixedWidth(50)
-        self.btn_mes_siguiente.setStyleSheet("font-size: 30px; font-weight: bold;")
+        try:
+            import sys
+            if sys.platform.startswith("linux"):
+                self.btn_mes_siguiente.setFixedHeight(42)
+                self.btn_mes_siguiente.setStyleSheet("font-size: 26px; font-weight: bold; padding-bottom: 2px;")
+            else:
+                self.btn_mes_siguiente.setStyleSheet("font-size: 30px; font-weight: bold;")
+        except Exception:
+            self.btn_mes_siguiente.setStyleSheet("font-size: 30px; font-weight: bold;")
         self.btn_mes_siguiente.clicked.connect(self._mes_siguiente)
         layout.addWidget(self.btn_mes_siguiente)
         
@@ -586,8 +618,23 @@ class ReservaPage(QWidget, Ui_reserva_page):
         self.reservas_originales = reservas
         self.tabla_reservas.setRowCount(len(reservas))
         # Definir siempre las columnas y las cabeceras para que se muestren aun sin filas
-        self.tabla_reservas.setColumnCount(6)
-        self.tabla_reservas.setHorizontalHeaderLabels(["Socio", "Pista", "Fecha", "Hora Inicio", "Hora Fin", "Estado"])
+        self.tabla_reservas.setColumnCount(7)
+        self.tabla_reservas.setHorizontalHeaderLabels(["Socio", "Pista", "Fecha", "Hora Inicio", "Hora Fin", "Estado", "Pagada"])
+
+        # Calcular reservas pagadas (pago existente y no anulado)
+        pagadas_ids = set()
+        if reservas:
+            from models import orm
+            from models.orm_models import PagoReserva, Pago, PagoEstado
+            session = orm.SessionLocal()
+            try:
+                ids_reservas = [r.id_reserva for r in reservas]
+                q = session.query(PagoReserva.id_reserva).join(Pago, Pago.id_pago == PagoReserva.id_pago)
+                q = q.filter(PagoReserva.id_reserva.in_(ids_reservas), Pago.estado == PagoEstado.PAGADO)
+                pagadas_ids = {rid for (rid,) in q.all()}
+            finally:
+                session.close()
+        self.pagadas_ids = pagadas_ids
 
         for fila, r in enumerate(reservas):
             values = [
@@ -598,7 +645,8 @@ class ReservaPage(QWidget, Ui_reserva_page):
                 formatear_fecha(r.fecha),
                 formatear_hora(r.hora_inicio),
                 formatear_hora(r.hora_fin),
-                (r.estado.name.capitalize() if hasattr(r.estado, 'name') else str(r.estado))
+                (r.estado.name.capitalize() if hasattr(r.estado, 'name') else str(r.estado)),
+                ("Sí" if r.id_reserva in pagadas_ids else "No")
             ]
 
             for col, dato in enumerate(values):
@@ -611,7 +659,7 @@ class ReservaPage(QWidget, Ui_reserva_page):
         # ajustar tamaño de columnas
         header = self.tabla_reservas.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
-        for col in range(1, 6):
+        for col in range(1, 7):
             header.setSectionResizeMode(col, QHeaderView.Stretch)
         
         # Refrescar cuadrante con los datos actuales
@@ -642,6 +690,24 @@ class ReservaPage(QWidget, Ui_reserva_page):
         r = obtener_reserva_por_id(id_reserva)
         if r is None:
             return
+        # Si está cancelada, bloquear edición de campos
+        from models.orm_models import ReservaEstado
+        is_cancelada = (r.estado == ReservaEstado.CANCELADA)
+        try:
+            self.cmb_pista.setEnabled(not is_cancelada)
+            self.txt_socio.setEnabled(not is_cancelada)
+            self.dateEdit.setEnabled(not is_cancelada)
+            self.timeEdit.setEnabled(not is_cancelada)
+            self.timeEdit_2.setEnabled(not is_cancelada)
+        except Exception:
+            pass
+        try:
+            for w in [self.cmb_pista, self.txt_socio, self.dateEdit, self.timeEdit, self.timeEdit_2]:
+                w.setProperty("locked", is_cancelada)
+                w.style().unpolish(w)
+                w.style().polish(w)
+        except Exception:
+            pass
 
         # Seleccionar pista en cmb_pista por id
         idx = self.cmb_pista.findData(r.id_pista)
@@ -750,6 +816,27 @@ class ReservaPage(QWidget, Ui_reserva_page):
             # no queremos que un fallo de UI rompa la app
             pass
 
+    def refrescar_configuracion(self) -> None:
+        """Relee configuración y refresca UI dependiente de horarios y duración."""
+        try:
+            from utils.settings import get_horario_apertura, get_duracion_reserva
+            # Forzar lectura de config
+            get_horario_apertura()
+            get_duracion_reserva()
+        except Exception:
+            pass
+        try:
+            # Recalcular hora fin según duración actual
+            self.suma_tiempo(self.timeEdit.time())
+        except Exception:
+            pass
+        # Refrescar disponibilidad y cuadrante
+        try:
+            self.actualizar_disponibilidad_pistas()
+            self._refrescar_cuadrante()
+        except Exception:
+            pass
+
     def vaciar_campos(self) -> None:
         """Restablece los campos del formulario de reserva al estado por defecto.
 
@@ -767,6 +854,13 @@ class ReservaPage(QWidget, Ui_reserva_page):
         self.timeEdit.setTime(QTime(0, 0))
         self.timeEdit_2.setTime(QTime(0, 0))
         self.txt_buscar.clear()
+        try:
+            for w in [self.cmb_pista, self.txt_socio, self.dateEdit, self.timeEdit, self.timeEdit_2]:
+                w.setProperty("locked", False)
+                w.style().unpolish(w)
+                w.style().polish(w)
+        except Exception:
+            pass
 
     def filtrar_tabla(self) -> None:
         """Filtra la tabla de reservas según el texto del campo de búsqueda.
@@ -789,8 +883,8 @@ class ReservaPage(QWidget, Ui_reserva_page):
         
         # Actualizar tabla con resultados filtrados
         self.tabla_reservas.setRowCount(len(reservas_filtradas))
-        self.tabla_reservas.setColumnCount(6)
-        self.tabla_reservas.setHorizontalHeaderLabels(["Socio", "Pista", "Fecha", "Hora Inicio", "Hora Fin", "Estado"])
+        self.tabla_reservas.setColumnCount(7)
+        self.tabla_reservas.setHorizontalHeaderLabels(["Socio", "Pista", "Fecha", "Hora Inicio", "Hora Fin", "Estado", "Pagada"])
         
         for fila, r in enumerate(reservas_filtradas):
             values = [
@@ -799,7 +893,8 @@ class ReservaPage(QWidget, Ui_reserva_page):
                 formatear_fecha(r.fecha),
                 formatear_hora(r.hora_inicio),
                 formatear_hora(r.hora_fin),
-                (r.estado.name.capitalize() if hasattr(r.estado, 'name') else str(r.estado))
+                (r.estado.name.capitalize() if hasattr(r.estado, 'name') else str(r.estado)),
+                ("Sí" if getattr(self, 'pagadas_ids', set()) and r.id_reserva in self.pagadas_ids else "No")
             ]
             
             for col, dato in enumerate(values):
@@ -897,6 +992,15 @@ class ReservaPage(QWidget, Ui_reserva_page):
             QMessageBox.warning(self, "Error", "No se pudo obtener el ID de la reserva")
             return
         id_reserva = int(id_reserva_data)
+        # No permitir modificar una reserva cancelada
+        reserva = obtener_reserva_por_id(id_reserva)
+        if reserva is None:
+            QMessageBox.warning(self, "Error", "Reserva no encontrada")
+            return
+        from models.orm_models import ReservaEstado
+        if reserva.estado == ReservaEstado.CANCELADA:
+            QMessageBox.warning(self, "Error", "No se puede modificar una reserva cancelada")
+            return
         ok, msg = self.validar_campos()
         if not ok:
             QMessageBox.warning(self, "Error", msg)

@@ -257,6 +257,8 @@ def modificar_pago(id_pago: int, id_socio: int, importe: float, fecha_pago: date
         p = session.get(PagoORM, id_pago)
         if p is None:
             return None
+        if p.estado == PagoEstado.ANULADO:
+            raise ValueError("No se puede modificar un pago anulado")
         p.id_socio = id_socio
         p.importe = importe
         p.fecha_pago = fecha_pago

@@ -108,6 +108,14 @@ QLineEdit, QDateEdit, QTimeEdit, QComboBox {
     color: #2E5C8A;
 }
 
+QLineEdit[locked="true"],
+QDateEdit[locked="true"],
+QTimeEdit[locked="true"],
+QComboBox[locked="true"] {
+    color: #7F8C8D;
+    background-color: #E8ECEF;
+}
+
 QLineEdit:focus, QDateEdit:focus, QTimeEdit:focus, QComboBox:focus {
     border: 2px solid #FFFFFF;
 }

@@ -175,6 +175,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
         # Cambiar a la nueva página
         self.stackedWidget.setCurrentIndex(indice)
+
+        # Refrescar datos al entrar en páginas con listados
+        if indice == 3 and hasattr(self, 'pago_page'):
+            try:
+                self.pago_page.cargar_pagos()
+            except Exception:
+                pass
+        if indice == 4 and hasattr(self, 'reserva_page'):
+            try:
+                self.reserva_page.refrescar_configuracion()
+                self.reserva_page.cargar_reservas()
+            except Exception:
+                pass
         
         # Actualizar botones activos
         self._actualizar_boton_activo(indice)

@@ -239,7 +239,15 @@ class PagoPage(QWidget, Ui_pago_page):
         # Botón mes anterior
         self.btn_mes_anterior = QPushButton("◀", self.mes_nav_widget)
         self.btn_mes_anterior.setFixedWidth(50)
-        self.btn_mes_anterior.setStyleSheet("font-size: 30px; font-weight: bold;")
+        try:
+            import sys
+            if sys.platform.startswith("linux"):
+                self.btn_mes_anterior.setFixedHeight(42)
+                self.btn_mes_anterior.setStyleSheet("font-size: 26px; font-weight: bold; padding-bottom: 2px;")
+            else:
+                self.btn_mes_anterior.setStyleSheet("font-size: 30px; font-weight: bold;")
+        except Exception:
+            self.btn_mes_anterior.setStyleSheet("font-size: 30px; font-weight: bold;")
         self.btn_mes_anterior.clicked.connect(self._mes_anterior)
         layout.addWidget(self.btn_mes_anterior)
         
@@ -253,7 +261,15 @@ class PagoPage(QWidget, Ui_pago_page):
         # Botón mes siguiente
         self.btn_mes_siguiente = QPushButton("▶", self.mes_nav_widget)
         self.btn_mes_siguiente.setFixedWidth(50)
-        self.btn_mes_siguiente.setStyleSheet("font-size: 30px; font-weight: bold;")
+        try:
+            import sys
+            if sys.platform.startswith("linux"):
+                self.btn_mes_siguiente.setFixedHeight(42)
+                self.btn_mes_siguiente.setStyleSheet("font-size: 26px; font-weight: bold; padding-bottom: 2px;")
+            else:
+                self.btn_mes_siguiente.setStyleSheet("font-size: 30px; font-weight: bold;")
+        except Exception:
+            self.btn_mes_siguiente.setStyleSheet("font-size: 30px; font-weight: bold;")
         self.btn_mes_siguiente.clicked.connect(self._mes_siguiente)
         layout.addWidget(self.btn_mes_siguiente)
         
@@ -570,6 +586,26 @@ class PagoPage(QWidget, Ui_pago_page):
                 else:
                     self.txt_concepto.setReadOnly(False)
                     self.txt_socio.setEnabled(True)
+
+                # Si está anulado, bloquear edición de campos
+                from models.orm_models import PagoEstado
+                is_anulado = (pago.estado == PagoEstado.ANULADO)
+                if is_anulado:
+                    self.txt_importe.setReadOnly(True)
+                    self.dateEdit.setEnabled(False)
+                    self.comboBox.setEnabled(False)
+                    self.txt_socio.setEnabled(False)
+                    self.txt_concepto.setReadOnly(True)
+                else:
+                    self.txt_importe.setReadOnly(False)
+                    self.dateEdit.setEnabled(True)
+                try:
+                    for w in [self.txt_importe, self.dateEdit, self.comboBox, self.txt_socio, self.txt_concepto]:
+                        w.setProperty("locked", is_anulado)
+                        w.style().unpolish(w)
+                        w.style().polish(w)
+                except Exception:
+                    pass
             finally:
                 session.close()
             
@@ -670,6 +706,16 @@ class PagoPage(QWidget, Ui_pago_page):
             QMessageBox.warning(self, "Error", "No se pudo obtener el ID del pago")
             return
         id_pago = int(id_pago_data)
+
+        # No permitir modificar un pago anulado
+        p = obtener_pago_por_id(id_pago)
+        if p is None:
+            QMessageBox.warning(self, "Error", "Pago no encontrado")
+            return
+        from models.orm_models import PagoEstado
+        if p.estado == PagoEstado.ANULADO:
+            QMessageBox.warning(self, "Error", "No se puede modificar un pago anulado")
+            return
         
         # Validaciones mínimas
         try:
@@ -923,6 +969,13 @@ class PagoPage(QWidget, Ui_pago_page):
         
         # Limpiar vinculación de reserva y restaurar estado del combo
         self._clear_linked_reserva()
+        try:
+            for w in [self.txt_importe, self.dateEdit, self.comboBox, self.txt_socio, self.txt_concepto]:
+                w.setProperty("locked", False)
+                w.style().unpolish(w)
+                w.style().polish(w)
+        except Exception:
+            pass
 
     def filtrar_tabla(self) -> None:
         """Filtra la tabla de pagos según el texto ingresado en la barra de búsqueda.
