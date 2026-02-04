@@ -242,8 +242,8 @@ class PagoPage(QWidget, Ui_pago_page):
         try:
             import sys
             if sys.platform.startswith("linux"):
-                self.btn_mes_anterior.setFixedHeight(42)
-                self.btn_mes_anterior.setStyleSheet("font-size: 26px; font-weight: bold; padding-bottom: 2px;")
+                self.btn_mes_anterior.setFixedHeight(36)
+                self.btn_mes_anterior.setStyleSheet("font-size: 20px; font-weight: bold;")
             else:
                 self.btn_mes_anterior.setStyleSheet("font-size: 30px; font-weight: bold;")
         except Exception:
@@ -264,8 +264,8 @@ class PagoPage(QWidget, Ui_pago_page):
         try:
             import sys
             if sys.platform.startswith("linux"):
-                self.btn_mes_siguiente.setFixedHeight(42)
-                self.btn_mes_siguiente.setStyleSheet("font-size: 26px; font-weight: bold; padding-bottom: 2px;")
+                self.btn_mes_siguiente.setFixedHeight(36)
+                self.btn_mes_siguiente.setStyleSheet("font-size: 20px; font-weight: bold;")
             else:
                 self.btn_mes_siguiente.setStyleSheet("font-size: 30px; font-weight: bold;")
         except Exception:
