@@ -169,7 +169,7 @@ class FiltrosPagosDialog(QDialog):
         layout.addWidget(self.cmb_tipo)
         
         # Grupo de fechas
-        grupo_fechas = QGroupBox("Rango de Fechas (opcional)")
+        grupo_fechas = QGroupBox("Rango de Fechas")
         form_fechas = QFormLayout()
         
         self.fecha_inicio = QDateEdit()
@@ -227,7 +227,7 @@ class FiltrosPistasDialog(QDialog):
         layout.addWidget(self.cmb_tipo)
         
         # Grupo de fechas
-        grupo_fechas = QGroupBox("Rango de Fechas (opcional)")
+        grupo_fechas = QGroupBox("Rango de Fechas")
         form_fechas = QFormLayout()
         
         self.fecha_inicio = QDateEdit()
@@ -298,7 +298,7 @@ class FiltrosPagePagosDialog(QDialog):
         layout.addWidget(self.cmb_tipo)
         
         # Grupo de fechas
-        grupo_fechas = QGroupBox("Rango de Fechas (opcional)")
+        grupo_fechas = QGroupBox("Rango de Fechas")
         form_fechas = QFormLayout()
         
         self.fecha_inicio = QDateEdit()
