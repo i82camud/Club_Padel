@@ -99,7 +99,7 @@ class FiltrosReservasDialog(QDialog):
         layout = QVBoxLayout(self)
         
         # Grupo de fechas
-        grupo_fechas = QGroupBox("Rango de Fechas (opcional)")
+        grupo_fechas = QGroupBox("Rango de Fechas")
         form_fechas = QFormLayout()
         
         self.fecha_inicio = QDateEdit()
