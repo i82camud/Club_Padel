@@ -78,7 +78,6 @@ Se ha actualizado la documentación (docstrings) de todas las clases y funciones
   - `get_duracion_reserva()` - Duración mínima de reserva
 
 - ✅ **events.py**: Documentación de módulo
-- ✅ **validators.py**: Archivo (vacío actualmente)
 
 ### 📁 models/
 - ✅ **orm_models.py**: Clases ORM documentadas
@@ -189,26 +188,6 @@ Se ha actualizado la documentación (docstrings) de todas las clases y funciones
   - `check_archivos_config()` - Verifica archivos de configuración
   - `main()` - Ejecuta todas las verificaciones
 
-### 📁 test/
-- ✅ **conftest.py**: Configuración de pytest
-  - `db_setup()` - Fixture para configurar BD de prueba
-
-- ✅ **test_insert_socio.py**: Tests de socios
-  - `test_insertar_y_listar_socio()` - Test de inserción y listado
-
-- ✅ **test_insert_pista.py**: Tests de pistas
-  - `test_insertar_y_modificar_pistas()` - Test de inserción y modificación
-
-- ✅ **test_insert_reserva.py**: Tests de reservas
-  - `test_reserva_workflow()` - Test de flujo completo de reservas
-
-- ✅ **test_insert_pago.py**: Tests de pagos
-  - `test_pagos_workflow()` - Test de flujo completo de pagos
-
-- ✅ **test_ui_widgets_smoke.py**: Tests de smoke para widgets
-  - `_make_qapp()` - Crea aplicación Qt para tests
-  - `test_cargar_socios_accepts_orm_objects()` - Test de carga de socios
-  - `test_cargar_pistas_accepts_orm_objects()` - Test de carga de pistas
 
 ## Formato de Documentación
 
@@ -238,20 +217,6 @@ def funcion(param1: tipo, param2: tipo = default) -> ReturnType:
 4. **Tipos Optional**: Uso consistente de `Optional[Type]` para valores que pueden ser None
 5. **Castellano**: Toda la documentación en español
 6. **Consistencia**: Formato uniforme en todos los archivos
-
-## Total de Cambios
-
-- **Servicios**: ~35 funciones actualizadas
-- **Utilidades**: ~20 funciones actualizadas (incluyendo backup)
-- **Modelos**: ~30 clases/métodos actualizados
-- **Scripts**: ~11 funciones actualizadas (reset_db + seed + check_setup)
-- **UI Widgets**: ~87 métodos/funciones actualizadas (incluyendo backup_dialog)
-- **UI Main**: ~7 métodos de main_window.py
-- **Main Launcher**: 1 función principal
-- **Tests**: 6 archivos de prueba con ~8 funciones
-- **Diálogos**: ~20 métodos actualizados
-
-**Total: ~225+ funciones/métodos/clases con docstrings completos**
 
 ## Próximos Pasos (Opcional)
 

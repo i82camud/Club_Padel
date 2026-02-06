@@ -57,7 +57,6 @@ python check_setup.py
 | PySide6 | 6.8.0 | Interfaz gráfica |
 | SQLAlchemy | 2.0.43 | ORM para base de datos |
 | openpyxl | 3.1.5 | Exportación a Excel |
-| pytest | 8.4.2 | Testing |
 
 Todas instaladas con: `pip install -r requirements.txt`
 
@@ -95,16 +94,12 @@ Club_Padel/
 │
 ├── utils/                 # Utilidades
 │   ├── helpers.py
-│   ├── validators.py
 │   ├── auth.py
 │   └── settings.py
 │
 ├── scripts/               # Herramientas
 │   ├── reset_db.py
 │   └── seed_test_data.py
-│
-└── test/                  # Tests unitarios
-    └── test_*.py
 ```
 
 ---
@@ -117,7 +112,6 @@ Club_Padel/
 - ✓ Exportación a Excel con formato profesional
 - ✓ Validación de datos de entrada
 - ✓ Gestión de sesiones SQLAlchemy
-- ✓ Tests unitarios
 
 ### 📊 Listados con Excel
 - Socios (filtro por estado)
@@ -126,6 +120,7 @@ Club_Padel/
 - Pagos globales (filtro por tipo, fecha y estado)
 - Pagos por socio (filtro por tipo, fecha y estado)
 - Reservas por socio (filtro por fecha y estado)
+- Reservas por pista (filtro por fecha y estado)
 
 ---
 
@@ -154,22 +149,11 @@ python main.py
 
 ---
 
-## 🧪 Ejecutar Tests
-
-```bash
-# Tests unitarios
-python -m pytest -q
-
-# Un test específico
-python -m pytest test/test_insert_socio.py::test_insertar_socio -v
-```
-
----
-
 ## 📚 Documentación
 
 Para instrucciones más detalladas, ver:
 - **[SETUP.md](SETUP.md)** - Guía completa de instalación
+- **[CREDENCIALES.md](CREDENCIALES.md)** - Acceso inicial y recuperación de contraseña
 - **Docstrings** - En el código de cada módulo
 
 ---
@@ -203,12 +187,6 @@ Para colaborar:
 2. Commit: `git commit -m "Descripción"`
 3. Push: `git push origin feature/tu-feature`
 4. Pull Request
-
----
-
-## 📝 Notas
-python -m pytest test/test_insert_socio.py::test_insertar_y_listar_socio -q
-```
 
 ## Notas importantes
 
