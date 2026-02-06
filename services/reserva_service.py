@@ -43,7 +43,7 @@ def insertar_reserva(id_socio: int, id_pista: int, fecha: date, hora_inicio: tim
         fecha (date): Fecha de la reserva.
         hora_inicio (time): Hora de inicio de la reserva.
         hora_fin (time): Hora de fin de la reserva.
-        estado: Estado inicial de la reserva (por defecto ACTIVA).
+        estado (ReservaEstado | int): Estado inicial de la reserva (por defecto ACTIVA).
     
     Returns:
         ReservaORM: Instancia de la reserva creada con su ID asignado.
@@ -117,7 +117,7 @@ def listar_reservas(id_socio: int = None, id_pista: int = None, estado: str = No
     Args:
         id_socio (int): Filtro opcional por identificador de socio.
         id_pista (int): Filtro opcional por identificador de pista.
-        estado (str): Filtro opcional por estado de la reserva.
+        estado (ReservaEstado | int): Filtro opcional por estado de la reserva.
         mes (int): Filtro opcional por mes (1-12).
         anio (int): Filtro opcional por año.
     
@@ -173,7 +173,7 @@ def actualizar_reserva(id_reserva: int, id_socio: int, id_pista: int, fecha: dat
         fecha (date): Nueva fecha de la reserva.
         hora_inicio (time): Nueva hora de inicio.
         hora_fin (time): Nueva hora de fin.
-        estado (str): Nuevo estado de la reserva (opcional).
+        estado (ReservaEstado | int): Nuevo estado de la reserva (opcional).
     
     Returns:
         Optional[ReservaORM]: Instancia actualizada o None si la reserva no existe.

@@ -41,7 +41,7 @@ from services.pago_service import (
 from services.socio_service import listar_socios
 from services.pista_service import listar_pistas
 from utils.events import bus
-from ui.widgets.filtros_dialog import FiltrosPagePagosDialog
+from ui.widgets.filtros_dialog import FiltrosPagosGlobalesDialog
 from models.orm_models import PagoEstado, PagoTipo
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
@@ -56,7 +56,7 @@ class PagoPage(QWidget, Ui_pago_page):
     - cargar_pagos(): recarga la tabla de pagos desde la base de datos.
     - cargar_para_reserva(id_reserva): precarga campos para crear un pago vinculado a una reserva.
     - insertar(): lee los campos del formulario y crea un pago (y entradas relacionadas).
-    - modificar(): actualmente no implementado, muestra un mensaje.
+    - modificar(): actualiza un pago existente con validaciones.
     - anular(): marca un pago como anulado en la base de datos.
 
     Excepciones:
@@ -813,7 +813,7 @@ class PagoPage(QWidget, Ui_pago_page):
         """
         from PySide6.QtWidgets import QDialog
         # Mostrar diálogo de filtros
-        dlg = FiltrosPagePagosDialog(self)
+        dlg = FiltrosPagosGlobalesDialog(self)
         if dlg.exec() != QDialog.Accepted:
             return
         

@@ -31,7 +31,7 @@ def insertar_socio(nombre: str, apellido1: str, apellido2: str, email: str, tele
 		apellido2 (str): Segundo apellido del socio.
 		email (str): Correo electrónico del socio.
 		telefono (str): Número de teléfono del socio.
-		estado (SocioEstado): Estado del socio (por defecto ACTIVO).
+		estado (SocioEstado | int): Estado del socio (por defecto ACTIVO).
 	
 	Returns:
 		SocioORM: Instancia del socio creada con su ID asignado.
@@ -52,7 +52,7 @@ def listar_socios(estado: Optional[SocioEstado] = None) -> List[SocioORM]:
 	"""Obtiene la lista de socios de la base de datos con filtro opcional de estado.
 	
 	Args:
-		estado (SocioEstado, optional): Filtro por estado. Si es None, devuelve todos. Defaults to None.
+		estado (SocioEstado | int, optional): Filtro por estado. Si es None, devuelve todos. Defaults to None.
 	
 	Returns:
 		List[SocioORM]: Lista de instancias ORM de socios.

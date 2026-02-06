@@ -62,8 +62,8 @@ def insertar_pago(id_socio: int, importe: float, fecha_pago: date, tipo, estado=
         id_socio (int): Identificador del socio que realiza el pago.
         importe (float): Cantidad a pagar.
         fecha_pago (date): Fecha del pago.
-        tipo: Tipo de pago (PagoTipo o entero).
-        estado: Estado del pago (por defecto PAGADO).
+        tipo (PagoTipo | int): Tipo de pago.
+        estado (PagoEstado | int): Estado del pago (por defecto PAGADO).
     
     Returns:
         PagoORM: Instancia del pago creado con su ID asignado.
@@ -153,10 +153,10 @@ def listar_pagos(id_socio: int = None, tipo: str = None, mes: int = None, anio: 
     
     Args:
         id_socio (int): Filtro opcional por identificador de socio.
-        tipo (str): Filtro opcional por tipo de pago (PagoTipo o entero).
+        tipo (PagoTipo | int): Filtro opcional por tipo de pago.
         mes (int): Filtro opcional por mes (1-12).
         anio (int): Filtro opcional por año.
-        estado (str): Filtro opcional por estado de pago (PagoEstado o entero).
+        estado (PagoEstado | int): Filtro opcional por estado de pago.
     
     Returns:
         List[PagoORM]: Lista de instancias de pagos que cumplen los filtros, ordenados por fecha ascendente.

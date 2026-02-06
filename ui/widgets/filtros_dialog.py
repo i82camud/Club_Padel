@@ -152,7 +152,10 @@ class FiltrosReservasDialog(QDialog):
 
 
 class FiltrosPagosDialog(QDialog):
-    """Diálogo para filtrar pagos por tipo, fechas y estado."""
+    """Diálogo para filtrar pagos por tipo, fechas y estado.
+
+    Se usa para listados de pagos por socio.
+    """
     
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -209,8 +212,11 @@ class FiltrosPagosDialog(QDialog):
         }
 
 
-class FiltrosPistasDialog(QDialog):
-    """Diálogo para filtrar pagos globales (no por socio) por tipo, fechas y estado."""
+class FiltrosPagosGlobalesDialog(QDialog):
+    """Diálogo para filtrar pagos globales (no por socio).
+
+    Se mantiene separado de `FiltrosPagosDialog` (pagos por socio).
+    """
     
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -280,75 +286,6 @@ class FiltrosPistasDialog(QDialog):
         }
 
 
-class FiltrosPagePagosDialog(QDialog):
-    """Diálogo para filtrar pagos globales (no por socio) por tipo, fechas y estado."""
-    
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.setWindowTitle("Filtros para Listado de Pagos")
-        self.setMinimumWidth(400)
-        self.setStyleSheet(_obtener_estilos_dialogo())
-        
-        layout = QVBoxLayout(self)
-        
-        # Tipo de pago
-        layout.addWidget(QLabel("Tipo de Pago:"))
-        self.cmb_tipo = QComboBox()
-        self.cmb_tipo.addItems(["Todos", "Cuota", "Reserva", "Extra"])
-        layout.addWidget(self.cmb_tipo)
-        
-        # Grupo de fechas
-        grupo_fechas = QGroupBox("Rango de Fechas")
-        form_fechas = QFormLayout()
-        
-        self.fecha_inicio = QDateEdit()
-        _configurar_date_edit(self.fecha_inicio, es_fecha_fin=False)
-        
-        self.fecha_fin = QDateEdit()
-        _configurar_date_edit(self.fecha_fin, es_fecha_fin=True)
-        
-        form_fechas.addRow("Desde:", self.fecha_inicio)
-        form_fechas.addRow("Hasta:", self.fecha_fin)
-        grupo_fechas.setLayout(form_fechas)
-        layout.addWidget(grupo_fechas)
-        
-        # Estado
-        layout.addWidget(QLabel("Estado de Pago:"))
-        self.cmb_estado = QComboBox()
-        self.cmb_estado.addItems(["Todos", "Pagados", "Anulados"])
-        layout.addWidget(self.cmb_estado)
-        
-        # Botones
-        botones = QHBoxLayout()
-        self.btn_aceptar = QPushButton("Generar")
-        self.btn_cancelar = QPushButton("Cancelar")
-        self.btn_aceptar.clicked.connect(self._validar_y_aceptar)
-        self.btn_cancelar.clicked.connect(self.reject)
-        botones.addWidget(self.btn_aceptar)
-        botones.addWidget(self.btn_cancelar)
-        layout.addLayout(botones)
-    
-    def _validar_y_aceptar(self):
-        """Valida los filtros antes de aceptar."""
-        es_valido, mensaje = _validar_rango_fechas(
-            self.fecha_inicio.date(),
-            self.fecha_fin.date(),
-            "Filtro de Pagos Globales"
-        )
-        if not es_valido:
-            from PySide6.QtWidgets import QMessageBox
-            QMessageBox.warning(self, "Error de validación", mensaje)
-            return
-        self.accept()
-    
-    def get_filtros(self):
-        """Retorna un diccionario con los filtros seleccionados."""
-        return {
-            'tipo': self.cmb_tipo.currentText(),
-            'fecha_inicio': self.fecha_inicio.date().toPython(),
-            'fecha_fin': self.fecha_fin.date().toPython(),
-            'estado': self.cmb_estado.currentText()
-        }
 
 
 class FiltrosPistasDialog(QDialog):

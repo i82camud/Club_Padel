@@ -18,8 +18,7 @@ def check_dependencias():
     dependencies = {
         'PySide6': 'PySide6',
         'sqlalchemy': 'SQLAlchemy',
-        'openpyxl': 'openpyxl',
-        'pytest': 'pytest'
+        'openpyxl': 'openpyxl'
     }
     
     all_ok = True

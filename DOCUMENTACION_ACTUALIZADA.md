@@ -53,7 +53,7 @@ Se ha actualizado la documentación (docstrings) de todas las clases y funciones
   - `formatear_hora()` - Formato HH:MM documentado
 
 - ✅ **backup.py**: Sistema de copias de seguridad
-  - `_ensure_backup_dir()` - Crea directorio de backups
+  - `_asegurar_dir_backup()` - Crea directorio de backups
   - `crear_backup()` - Crea copia de seguridad con timestamp
   - `restaurar_backup()` - Restaura BD desde backup
   - `listar_backups()` - Lista todos los backups disponibles
@@ -76,6 +76,9 @@ Se ha actualizado la documentación (docstrings) de todas las clases y funciones
   - `set_config()` - Establecer valor de config
   - `get_horario_apertura()` - Horario de apertura/cierre
   - `get_duracion_reserva()` - Duración mínima de reserva
+  - `get_max_reservas_simultaneas()` - Máximo de reservas simultáneas
+  - `get_antelacion_minima()` - Antelación mínima (minutos)
+  - `get_antelacion_maxima()` - Antelación máxima (días)
 
 - ✅ **events.py**: Documentación de módulo
 
@@ -140,9 +143,9 @@ Se ha actualizado la documentación (docstrings) de todas las clases y funciones
 - ✅ **pago_page_widget.py**: Todos los métodos documentados
   - Métodos CRUD para pagos con tipos diferenciados
 
-- ✅ **change_password_dialog.py**: Diálogo documentado
+- ✅ **cambiar_contrasena_dialog.py**: Diálogo documentado
   - `__init__()` - Inicialización del diálogo
-  - `_on_accept()` - Validación y aplicación de cambio
+  - `_on_aceptar()` - Validación y aplicación de cambio
 
 - ✅ **login_dialog.py**: Diálogo documentado
   - `accept()` - Validación de contraseña
@@ -151,13 +154,14 @@ Se ha actualizado la documentación (docstrings) de todas las clases y funciones
   - `FiltrosSociosDialog` - Filtros por estado
   - `FiltrosReservasDialog` - Filtros por fechas y estado
   - `FiltrosPagosDialog` - Filtros por fechas y estado
+  - `FiltrosPagosGlobalesDialog` - Filtros de pagos globales
   - Funciones auxiliares con documentación
 
 - ✅ **backup_dialog.py**: Diálogo de gestión de backups
   - `_obtener_estilos_dialogo()` - Carga estilos CSS
   - `RestoreBackupDialog.__init__()` - Inicialización del diálogo
   - `_cargar_backups()` - Lista backups disponibles
-  - `_on_backup_selected()` - Muestra info del backup seleccionado
+  - `_on_backup_seleccionado()` - Muestra info del backup seleccionado
   - `_on_restaurar()` - Restaura backup con confirmación
   - `get_selected_backup()` - Retorna backup seleccionado
 
