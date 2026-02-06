@@ -5,7 +5,7 @@ Reservas, Pagos, Configuración) y proporciona un diseño responsive
 que se ajusta dinámicamente al tamaño de la ventana.
 """
 import sys
-from PySide6.QtWidgets import QApplication, QMainWindow, QPushButton, QSizePolicy, QHBoxLayout
+from PySide6.QtWidgets import QApplication, QMainWindow, QSizePolicy
 from PySide6.QtCore import QFile, Qt
 from PySide6.QtGui import QPixmap, QIcon
 from ui.main_window_ui import Ui_MainWindow
@@ -14,7 +14,6 @@ from ui.widgets.socio_page_widget import SocioPage
 from ui.widgets.pista_page_widget import PistaPage
 from ui.widgets.reserva_page_widget import ReservaPage
 from ui.widgets.pago_page_widget import PagoPage
-import recursos_rc
 
 
 

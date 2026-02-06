@@ -2,7 +2,6 @@
 
 Prueba el flujo completo de reservas incluyendo validaciones de solapamiento.
 """
-import pytest
 from datetime import date, time
 
 

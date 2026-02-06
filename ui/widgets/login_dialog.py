@@ -3,7 +3,7 @@
 Proporciona el formulario de login para verificar la contraseña
 antes de permitir el acceso a la aplicación principal.
 """
-from PySide6.QtWidgets import QDialog, QVBoxLayout, QLabel, QLineEdit, QDialogButtonBox, QMessageBox
+from PySide6.QtWidgets import QDialog, QMessageBox
 from PySide6.QtCore import QFile
 from PySide6.QtGui import QIcon
 from utils.auth import verificar_contrasena, asegurar_fichero_auth_existe

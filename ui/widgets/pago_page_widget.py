@@ -32,7 +32,6 @@ from PySide6.QtWidgets import QWidget, QTableWidgetItem, QMessageBox, QCompleter
 from PySide6.QtCore import Qt, QDate
 from datetime import date
 from utils.helpers import formatear_fecha
-import calendar
 
 from ui.pago_page_ui import Ui_pago_page
 from services.pago_service import (
@@ -40,10 +39,9 @@ from services.pago_service import (
     listar_pagos, obtener_pago_por_id
 )
 from services.socio_service import listar_socios
-from services.reserva_service import listar_reservas
 from services.pista_service import listar_pistas
 from utils.events import bus
-from ui.widgets.filtros_dialog import FiltrosPagePagosDialog, _obtener_estilos_dialogo
+from ui.widgets.filtros_dialog import FiltrosPagePagosDialog
 from models.orm_models import PagoEstado, PagoTipo
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment

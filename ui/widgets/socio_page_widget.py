@@ -17,8 +17,7 @@ Efectos secundarios:
 """
 
 import re
-from datetime import date
-from PySide6.QtWidgets import QWidget, QTableWidgetItem, QMessageBox, QHeaderView, QInputDialog, QFileDialog, QDialog, QComboBox
+from PySide6.QtWidgets import QWidget, QTableWidgetItem, QMessageBox, QHeaderView, QFileDialog, QDialog, QComboBox
 from PySide6.QtCore import Qt
 from ui.socio_page_ui import Ui_SocioPage  # el generado por pyside6-uic
 import services.socio_service as socio_service

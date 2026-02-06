@@ -6,7 +6,7 @@ Inclye un tipo personalizado IntEnumType para mapear enums a enteros.
 """
 from enum import IntEnum
 
-from sqlalchemy import Column, Integer, String, Text, Float, ForeignKey, CheckConstraint, Date, Time
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, Date, Time
 from sqlalchemy.orm import relationship
 from sqlalchemy.types import TypeDecorator
 

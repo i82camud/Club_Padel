@@ -3,7 +3,6 @@
 Pruebas básicas que verifican que los widgets aceptan correctamente
 objetos ORM y estructuras de datos simples sin fallar.
 """
-import pytest
 from types import SimpleNamespace
 
 # These tests run headless and only verify that the widget methods that fill

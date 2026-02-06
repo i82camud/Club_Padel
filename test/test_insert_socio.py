@@ -2,7 +2,6 @@
 
 Prueba las operaciones CRUD básicas del módulo socio_service.
 """
-import pytest
 
 
 def test_insertar_y_listar_socio(db_setup):

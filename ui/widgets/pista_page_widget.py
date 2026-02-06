@@ -19,11 +19,11 @@ Notas:
 """
 
 from PySide6.QtWidgets import QWidget, QTableWidgetItem, QMessageBox, QHeaderView, QFileDialog, QDialog, QComboBox
-from PySide6.QtCore import QDate, Qt
+from PySide6.QtCore import Qt
 from ui.pista_page_ui import Ui_PistaPage  # el generado por pyside6-uic
 import services.pista_service as pista_service
 from utils.events import bus
-from ui.widgets.filtros_dialog import FiltrosPistasDialog, FiltrosReservasDialog, _obtener_estilos_dialogo
+from ui.widgets.filtros_dialog import FiltrosPistasDialog, FiltrosReservasDialog
 from models.orm_models import PistaEstado, ReservaEstado
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment

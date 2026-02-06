@@ -2,7 +2,6 @@
 
 Prueba las operaciones CRUD básicas del módulo pista_service.
 """
-import pytest
 
 
 def test_insertar_y_modificar_pistas(db_setup):
