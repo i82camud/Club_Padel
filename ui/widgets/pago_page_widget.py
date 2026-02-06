@@ -898,6 +898,7 @@ class PagoPage(QWidget, Ui_pago_page):
             ).all()
             
             # Añadir datos
+            total_pagado = 0.0
             for pago in pagos_sesion:
                 # Obtener concepto según tipo
                 concepto = ""
@@ -935,14 +936,27 @@ class PagoPage(QWidget, Ui_pago_page):
                 fila = [
                     nombre_socio,
                     formatear_fecha(pago.fecha_pago),
-                    f"{pago.importe:.2f}",
+                    float(pago.importe),
                     tipo_display,
                     estado_display,
                     concepto
                 ]
                 ws.append(fila)
+                # Formato numerico; Excel aplicara el separador decimal segun regional
+                ws.cell(row=ws.max_row, column=3).number_format = "0.00"
+
+                if pago.estado == PagoEstado.PAGADO:
+                    total_pagado += pago.importe
         finally:
             session.close()
+
+        # Añadir fila de total (separada por una línea en blanco)
+        ws.append([])
+        ws.append(["", "TOTAL PAGADO:", float(total_pagado)])
+        fila_total = ws.max_row
+        ws[f'B{fila_total}'].font = Font(bold=True)
+        ws[f'C{fila_total}'].font = Font(bold=True)
+        ws[f'C{fila_total}'].number_format = "0.00"
         
         # Ajustar ancho de columnas
         anchos = [20, 12, 15, 12, 12, 35]
