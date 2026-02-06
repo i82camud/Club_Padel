@@ -19,10 +19,9 @@ API pública:
 
 from PySide6.QtWidgets import QWidget, QTableWidgetItem, QMessageBox, QCompleter, QHeaderView, QFileDialog, QPushButton, QLabel, QHBoxLayout, QComboBox, QStyledItemDelegate, QStyleOptionViewItem, QAbstractItemView
 from PySide6.QtCore import Qt, QDate, QTime
-from PySide6.QtGui import QColor, QPainter, QPalette
+from PySide6.QtGui import QColor, QPalette
 from datetime import date, time, datetime, timedelta
 from utils.helpers import formatear_fecha, formatear_hora
-import calendar
 from ui.reserva_page_ui import Ui_reserva_page
 from services.reserva_service import insertar_reserva, listar_reservas, obtener_reserva_por_id, actualizar_reserva, cancelar_reserva, hay_solapamiento
 from services.pista_service import listar_pistas

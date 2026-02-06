@@ -2,7 +2,8 @@
 
 Este módulo centraliza la creación de tablas usando SQLAlchemy.
 """
-from .orm import init_db
+
+from models.orm import inicializar_bd
 
 
 def crear_tablas():
@@ -15,4 +16,4 @@ def crear_tablas():
 
 if __name__ == "__main__":
     crear_tablas()
-    print("✅ Tablas creadas usando SQLAlchemy)
+    print("✅ Tablas creadas usando SQLAlchemy")

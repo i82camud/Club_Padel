@@ -53,7 +53,7 @@ Se ha actualizado la documentación (docstrings) de todas las clases y funciones
   - `formatear_hora()` - Formato HH:MM documentado
 
 - ✅ **backup.py**: Sistema de copias de seguridad
-  - `_ensure_backup_dir()` - Crea directorio de backups
+  - `_asegurar_dir_backup()` - Crea directorio de backups
   - `crear_backup()` - Crea copia de seguridad con timestamp
   - `restaurar_backup()` - Restaura BD desde backup
   - `listar_backups()` - Lista todos los backups disponibles
@@ -76,9 +76,11 @@ Se ha actualizado la documentación (docstrings) de todas las clases y funciones
   - `set_config()` - Establecer valor de config
   - `get_horario_apertura()` - Horario de apertura/cierre
   - `get_duracion_reserva()` - Duración mínima de reserva
+  - `get_max_reservas_simultaneas()` - Máximo de reservas simultáneas
+  - `get_antelacion_minima()` - Antelación mínima (minutos)
+  - `get_antelacion_maxima()` - Antelación máxima (días)
 
 - ✅ **events.py**: Documentación de módulo
-- ✅ **validators.py**: Archivo (vacío actualmente)
 
 ### 📁 models/
 - ✅ **orm_models.py**: Clases ORM documentadas
@@ -141,9 +143,9 @@ Se ha actualizado la documentación (docstrings) de todas las clases y funciones
 - ✅ **pago_page_widget.py**: Todos los métodos documentados
   - Métodos CRUD para pagos con tipos diferenciados
 
-- ✅ **change_password_dialog.py**: Diálogo documentado
+- ✅ **cambiar_contrasena_dialog.py**: Diálogo documentado
   - `__init__()` - Inicialización del diálogo
-  - `_on_accept()` - Validación y aplicación de cambio
+  - `_on_aceptar()` - Validación y aplicación de cambio
 
 - ✅ **login_dialog.py**: Diálogo documentado
   - `accept()` - Validación de contraseña
@@ -152,13 +154,14 @@ Se ha actualizado la documentación (docstrings) de todas las clases y funciones
   - `FiltrosSociosDialog` - Filtros por estado
   - `FiltrosReservasDialog` - Filtros por fechas y estado
   - `FiltrosPagosDialog` - Filtros por fechas y estado
+  - `FiltrosPagosGlobalesDialog` - Filtros de pagos globales
   - Funciones auxiliares con documentación
 
 - ✅ **backup_dialog.py**: Diálogo de gestión de backups
   - `_obtener_estilos_dialogo()` - Carga estilos CSS
   - `RestoreBackupDialog.__init__()` - Inicialización del diálogo
   - `_cargar_backups()` - Lista backups disponibles
-  - `_on_backup_selected()` - Muestra info del backup seleccionado
+  - `_on_backup_seleccionado()` - Muestra info del backup seleccionado
   - `_on_restaurar()` - Restaura backup con confirmación
   - `get_selected_backup()` - Retorna backup seleccionado
 
@@ -189,26 +192,6 @@ Se ha actualizado la documentación (docstrings) de todas las clases y funciones
   - `check_archivos_config()` - Verifica archivos de configuración
   - `main()` - Ejecuta todas las verificaciones
 
-### 📁 test/
-- ✅ **conftest.py**: Configuración de pytest
-  - `db_setup()` - Fixture para configurar BD de prueba
-
-- ✅ **test_insert_socio.py**: Tests de socios
-  - `test_insertar_y_listar_socio()` - Test de inserción y listado
-
-- ✅ **test_insert_pista.py**: Tests de pistas
-  - `test_insertar_y_modificar_pistas()` - Test de inserción y modificación
-
-- ✅ **test_insert_reserva.py**: Tests de reservas
-  - `test_reserva_workflow()` - Test de flujo completo de reservas
-
-- ✅ **test_insert_pago.py**: Tests de pagos
-  - `test_pagos_workflow()` - Test de flujo completo de pagos
-
-- ✅ **test_ui_widgets_smoke.py**: Tests de smoke para widgets
-  - `_make_qapp()` - Crea aplicación Qt para tests
-  - `test_cargar_socios_accepts_orm_objects()` - Test de carga de socios
-  - `test_cargar_pistas_accepts_orm_objects()` - Test de carga de pistas
 
 ## Formato de Documentación
 
@@ -238,20 +221,6 @@ def funcion(param1: tipo, param2: tipo = default) -> ReturnType:
 4. **Tipos Optional**: Uso consistente de `Optional[Type]` para valores que pueden ser None
 5. **Castellano**: Toda la documentación en español
 6. **Consistencia**: Formato uniforme en todos los archivos
-
-## Total de Cambios
-
-- **Servicios**: ~35 funciones actualizadas
-- **Utilidades**: ~20 funciones actualizadas (incluyendo backup)
-- **Modelos**: ~30 clases/métodos actualizados
-- **Scripts**: ~11 funciones actualizadas (reset_db + seed + check_setup)
-- **UI Widgets**: ~87 métodos/funciones actualizadas (incluyendo backup_dialog)
-- **UI Main**: ~7 métodos de main_window.py
-- **Main Launcher**: 1 función principal
-- **Tests**: 6 archivos de prueba con ~8 funciones
-- **Diálogos**: ~20 métodos actualizados
-
-**Total: ~225+ funciones/métodos/clases con docstrings completos**
 
 ## Próximos Pasos (Opcional)
 

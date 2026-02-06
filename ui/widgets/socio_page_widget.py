@@ -17,8 +17,7 @@ Efectos secundarios:
 """
 
 import re
-from datetime import date
-from PySide6.QtWidgets import QWidget, QTableWidgetItem, QMessageBox, QHeaderView, QInputDialog, QFileDialog, QDialog, QComboBox
+from PySide6.QtWidgets import QWidget, QTableWidgetItem, QMessageBox, QHeaderView, QFileDialog, QDialog, QComboBox
 from PySide6.QtCore import Qt
 from ui.socio_page_ui import Ui_SocioPage  # el generado por pyside6-uic
 import services.socio_service as socio_service
@@ -897,19 +896,23 @@ class SocioPage(QWidget, Ui_SocioPage):
             
             fila = [
                 formatear_fecha(pago.fecha_pago),
-                f"{pago.importe:.2f}",
+                float(pago.importe),
                 tipo_display,
                 estado_display,
                 concepto
             ]
             ws.append(fila)
+            # Formato numerico; Excel aplicara el separador decimal segun regional
+            # Excel usa '.' en el codigo de formato; se vera con coma segun la region
+            ws.cell(row=ws.max_row, column=2).number_format = "0.00"
         
         # Añadir fila de total (separada por una línea en blanco)
         ws.append([])
-        ws.append(["TOTAL PAGADO:", f"{total:.2f}"])
+        ws.append(["TOTAL PAGADO:", float(total)])
         fila_total = ws.max_row
         ws[f'A{fila_total}'].font = Font(bold=True)
         ws[f'B{fila_total}'].font = Font(bold=True)
+        ws[f'B{fila_total}'].number_format = "0.00"
         
         # Ajustar ancho de columnas
         from openpyxl.utils import get_column_letter

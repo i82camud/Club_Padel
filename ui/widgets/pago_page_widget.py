@@ -32,7 +32,6 @@ from PySide6.QtWidgets import QWidget, QTableWidgetItem, QMessageBox, QCompleter
 from PySide6.QtCore import Qt, QDate
 from datetime import date
 from utils.helpers import formatear_fecha
-import calendar
 
 from ui.pago_page_ui import Ui_pago_page
 from services.pago_service import (
@@ -40,10 +39,9 @@ from services.pago_service import (
     listar_pagos, obtener_pago_por_id
 )
 from services.socio_service import listar_socios
-from services.reserva_service import listar_reservas
 from services.pista_service import listar_pistas
 from utils.events import bus
-from ui.widgets.filtros_dialog import FiltrosPagePagosDialog, _obtener_estilos_dialogo
+from ui.widgets.filtros_dialog import FiltrosPagosGlobalesDialog
 from models.orm_models import PagoEstado, PagoTipo
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
@@ -58,7 +56,7 @@ class PagoPage(QWidget, Ui_pago_page):
     - cargar_pagos(): recarga la tabla de pagos desde la base de datos.
     - cargar_para_reserva(id_reserva): precarga campos para crear un pago vinculado a una reserva.
     - insertar(): lee los campos del formulario y crea un pago (y entradas relacionadas).
-    - modificar(): actualmente no implementado, muestra un mensaje.
+    - modificar(): actualiza un pago existente con validaciones.
     - anular(): marca un pago como anulado en la base de datos.
 
     Excepciones:
@@ -815,7 +813,7 @@ class PagoPage(QWidget, Ui_pago_page):
         """
         from PySide6.QtWidgets import QDialog
         # Mostrar diálogo de filtros
-        dlg = FiltrosPagePagosDialog(self)
+        dlg = FiltrosPagosGlobalesDialog(self)
         if dlg.exec() != QDialog.Accepted:
             return
         
@@ -898,6 +896,7 @@ class PagoPage(QWidget, Ui_pago_page):
             ).all()
             
             # Añadir datos
+            total_pagado = 0.0
             for pago in pagos_sesion:
                 # Obtener concepto según tipo
                 concepto = ""
@@ -935,14 +934,27 @@ class PagoPage(QWidget, Ui_pago_page):
                 fila = [
                     nombre_socio,
                     formatear_fecha(pago.fecha_pago),
-                    f"{pago.importe:.2f}",
+                    float(pago.importe),
                     tipo_display,
                     estado_display,
                     concepto
                 ]
                 ws.append(fila)
+                # Formato numerico; Excel aplicara el separador decimal segun regional
+                ws.cell(row=ws.max_row, column=3).number_format = "0.00"
+
+                if pago.estado == PagoEstado.PAGADO:
+                    total_pagado += pago.importe
         finally:
             session.close()
+
+        # Añadir fila de total (separada por una línea en blanco)
+        ws.append([])
+        ws.append(["", "TOTAL PAGADO:", float(total_pagado)])
+        fila_total = ws.max_row
+        ws[f'B{fila_total}'].font = Font(bold=True)
+        ws[f'C{fila_total}'].font = Font(bold=True)
+        ws[f'C{fila_total}'].number_format = "0.00"
         
         # Ajustar ancho de columnas
         anchos = [20, 12, 15, 12, 12, 35]

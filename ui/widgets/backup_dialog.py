@@ -128,6 +128,6 @@ class RestoreBackupDialog(QDialog):
         """Retorna la ruta del backup seleccionado.
         
         Returns:
-            str: Ruta del backup o None si no se seleccionó ninguno.
+            Optional[str]: Ruta del backup o None si no se seleccionó ninguno.
         """
         return self.selected_backup

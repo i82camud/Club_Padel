@@ -1,4 +1,4 @@
-# Club Padel - Guía de Instalación
+# Club Padel - Guía de Instalación y Distribución
 
 ## Requisitos previos
 - **Python 3.8+** instalado en el sistema
@@ -37,9 +37,15 @@ pip install -r requirements.txt
 - **PySide6**: Framework de interfaz gráfica
 - **SQLAlchemy**: ORM para la base de datos
 - **openpyxl**: Generación de archivos Excel
-- **pytest**: Testing (opcional)
 
-### 4. Crear la base de datos
+### 4. Verificar configuración (opcional)
+```bash
+python check_setup.py
+```
+
+Esto te mostrará un reporte de todo lo necesario.
+
+### 5. Crear la base de datos
 ```bash
 # Crear las tablas
 python scripts/reset_db.py
@@ -56,7 +62,7 @@ Esto creará:
 - Varios pagos
 - Archivo de autenticación con contraseña por defecto
 
-### 5. Ejecutar la aplicación
+### 6. Ejecutar la aplicación
 ```bash
 python main.py
 ```
@@ -66,6 +72,32 @@ La aplicación se abrirá en una ventana de escritorio.
 **🔐 Acceso inicial:**
 - **Contraseña por defecto:** `admin`
 - Se recomienda cambiar la contraseña en la página de Configuración tras el primer acceso
+
+---
+
+## Uso en otros PC
+
+Después de la primera instalación, en futuros PCs solo necesita:
+
+```bash
+# 1. Clonar o descargar
+git clone https://github.com/i82camud/Club_Padel.git
+cd Club_Padel
+
+# 2. Entorno virtual (1 sola vez)
+python -m venv .venv
+.venv\Scripts\activate
+
+# 3. Dependencias (1 sola vez)
+pip install -r requirements.txt
+
+# 4. Base de datos (1 sola vez)
+python scripts/reset_db.py
+python scripts/seed_test_data.py
+
+# 5. Ejecutar (cada vez que quiera usar)
+python main.py
+```
 
 ---
 
@@ -90,6 +122,20 @@ python scripts/seed_test_data.py
 ```bash
 python scripts/reset_db.py
 python scripts/seed_test_data.py
+```
+
+### Quiero limpiar todo y empezar de nuevo
+```bash
+# Elimina el entorno
+rmdir .venv /s /q
+
+# Crea uno nuevo
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+python scripts/reset_db.py
+python scripts/seed_test_data.py
+python main.py
 ```
 
 ---
@@ -119,14 +165,11 @@ Club_Padel/
 │   └── qt/                # Archivos UI compilados
 ├── utils/                 # Utilidades
 │   ├── helpers.py
-│   ├── validators.py
 │   ├── auth.py
 │   └── settings.py
 ├── scripts/               # Scripts de utilidad
 │   ├── reset_db.py
 │   └── seed_test_data.py
-└── test/                  # Tests unitarios
-    └── test_*.py
 ```
 
 ---
@@ -157,6 +200,21 @@ Club_Padel/
 - Todos los listados permiten filtrar datos
 - Exportación a archivos Excel profesionales
 - Validación de rangos de fechas
+
+---
+
+## Resumen rápido
+
+```
+PC NUEVO:
+1. git clone ... → descargar código
+2. python -m venv .venv → crear entorno
+3. .venv\Scripts\activate → activar entorno
+4. pip install -r requirements.txt → instalar dependencias
+5. python scripts/reset_db.py → crear BD
+6. python scripts/seed_test_data.py → datos de prueba
+7. python main.py → ¡EJECUTAR!
+```
 
 ---
 

@@ -194,8 +194,6 @@
    </widget>
   </widget>
  </widget>
- <resources>
-  <include location="../recursos.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>

@@ -5,7 +5,6 @@ y restaurarlas. Las copias se guardan con timestamp para fácil identificación.
 """
 
 import shutil
-import os
 from datetime import datetime
 from pathlib import Path
 from typing import Tuple

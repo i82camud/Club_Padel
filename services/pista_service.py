@@ -27,7 +27,7 @@ def insertar_pista(nombre: str, pared: str, tipo: str, estado=PistaEstado.ACTIVA
         nombre (str): Nombre de la pista.
         pared (str): Tipo de pared (ej: 'cristal', 'muro').
         tipo (str): Tipo de pista (ej: 'cubierta', 'descubierta').
-        estado (PistaEstado): Estado de la pista (por defecto ACTIVA).
+        estado (PistaEstado | int): Estado de la pista (por defecto ACTIVA).
     
     Returns:
         PistaORM: Instancia de la pista creada con su ID asignado.
@@ -56,7 +56,7 @@ def listar_pistas(estado: Optional[PistaEstado] = None) -> List[PistaORM]:
     """Obtiene la lista de pistas con filtro opcional por estado.
     
     Args:
-        estado (PistaEstado, optional): Estado a filtrar. Si es None, devuelve todas.
+        estado (PistaEstado | int, optional): Estado a filtrar. Si es None, devuelve todas.
     
     Returns:
         List[PistaORM]: Lista de instancias ORM de pistas.
@@ -146,7 +146,7 @@ def actualizar_pista(id_pista: int, nombre: str = None, tipo: str = None, estado
         id_pista (int): ID de la pista a actualizar.
         nombre (str, optional): Nuevo nombre (si se proporciona).
         tipo (str, optional): Nuevo tipo (si se proporciona).
-        estado (str, optional): Nuevo estado (si se proporciona).
+        estado (PistaEstado | int | None): Nuevo estado (si se proporciona).
     
     Returns:
         Optional[PistaORM]: Pista actualizada o None si no existe.
