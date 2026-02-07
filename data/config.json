@@ -2,7 +2,7 @@
   "timeApertura": "09:00",
   "timeCierre": "22:30",
   "timeReserva": "01:30",
-  "maxReservasSimultaneas": "10",
+  "maxReservasSimultaneas": "0",
   "timeAntelacionMin": "00:00",
-  "timeAntelacionMax": "5"
+  "timeAntelacionMax": "0"
 }
