@@ -111,9 +111,10 @@ def get_max_reservas_simultaneas() -> int:
     """Devuelve el máximo número de reservas activas simultáneas que puede tener un socio.
     
     El valor se almacena como entero. Si no existe, se usa el valor por defecto (10).
+    Un valor de 0 indica que no hay límite de reservas simultáneas.
     
     Returns:
-        int: Número máximo de reservas simultáneas permitidas.
+        int: Número máximo de reservas simultáneas permitidas (0 = sin límite).
     """
     max_reservas = get_config("maxReservasSimultaneas", 10)
     try:
@@ -126,9 +127,10 @@ def get_antelacion_minima() -> int:
     """Devuelve la antelación mínima para hacer una reserva en minutos.
     
     El valor se almacena en formato 'HH:MM'. Si no existe, se usa el valor por defecto (01:00 = 60 minutos).
+    Un valor de 00:00 (0 minutos) indica que no hay restricción de antelación mínima.
     
     Returns:
-        int: Número mínimo de minutos de antelación requeridos.
+        int: Número mínimo de minutos de antelación requeridos (0 = sin restricción).
     """
     s_antel_min = get_config("timeAntelacionMin", "01:00")
     try:
@@ -142,9 +144,10 @@ def get_antelacion_maxima() -> int:
     """Devuelve la antelación máxima para hacer una reserva en días.
     
     El valor se almacena como entero (días). Si no existe, se usa el valor por defecto (30).
+    Un valor de 0 indica que no hay restricción de antelación máxima.
     
     Returns:
-        int: Número máximo de días de antelación permitidos.
+        int: Número máximo de días de antelación permitidos (0 = sin restricción).
     """
     antel_max = get_config("timeAntelacionMax", 30)
     try:

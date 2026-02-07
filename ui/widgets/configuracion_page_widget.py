@@ -136,8 +136,8 @@ class ConfiguracionPage(QWidget):
             # Validar máximo de reservas simultáneas
             try:
                 max_reservas = int(self.ui.txt_reservas.text())
-                if max_reservas <= 0:
-                    raise ValueError('El máximo de reservas simultáneas debe ser un número positivo.')
+                if max_reservas < 0:
+                    raise ValueError('El máximo de reservas simultáneas debe ser un número no negativo.')
             except ValueError:
                 raise ValueError('El máximo de reservas simultáneas debe ser un número entero válido.')
             
@@ -147,8 +147,8 @@ class ConfiguracionPage(QWidget):
             # Validar antelación máxima (en días)
             try:
                 antelacion_max = int(self.ui.txt_antelacion_max.text())
-                if antelacion_max <= 0:
-                    raise ValueError('La antelación máxima debe ser un número positivo.')
+                if antelacion_max < 0:
+                    raise ValueError('La antelación máxima debe ser un número no negativo.')
             except ValueError:
                 raise ValueError('La antelación máxima debe ser un número entero válido (días).')
 

@@ -80,9 +80,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     
     def _configurar_responsive(self) -> None:
         """Configura la ventana y sus widgets para ser responsive."""
-        # Iniciar maximizado
-        self.showMaximized()
-        
         # Configurar sizePolicy para que se expandan
         self.centralwidget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.stackedWidget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -90,6 +87,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
         # Conectar evento de resize para ajustar geometría dinámicamente
         self.resizeEvent = self._on_window_resized
+        
+        # Configurar tamaño de ventana
+        # En macOS, showMaximized() no funciona correctamente, por lo que usamos resize con el tamaño de la pantalla
+        from PySide6.QtGui import QGuiApplication
+        screen = QGuiApplication.primaryScreen()
+        if screen:
+            screen_geometry = screen.availableGeometry()
+            self.resize(screen_geometry.width(), screen_geometry.height())
+            self.move(screen_geometry.x(), screen_geometry.y())
+        
+        # Mostrar la ventana
+        self.show()
     
     def _on_window_resized(self, event) -> None:
         """Ajusta la geometría de widgets al redimensionar la ventana."""

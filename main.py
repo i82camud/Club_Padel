@@ -5,6 +5,7 @@ from PySide6.QtWidgets import QApplication
 from ui.main_window import MainWindow
 from ui.widgets.login_dialog import LoginDialog
 from utils.auth import asegurar_fichero_auth_existe
+from models.orm import inicializar_bd
 
 
 def main():
@@ -19,7 +20,6 @@ def main():
         sys.exit(0)
 
     window = MainWindow()
-    window.show()
     sys.exit(app.exec())
 
 

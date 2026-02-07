@@ -75,28 +75,29 @@ def insertar_reserva(id_socio: int, id_pista: int, fecha: date, hora_inicio: tim
         fecha_hora_reserva = datetime.combine(fecha, hora_inicio)
         diferencia = fecha_hora_reserva - ahora
         
-        # Validar antelación mínima
+        # Validar antelación mínima (solo si es mayor que 0)
         antel_min_minutos = get_antelacion_minima()
-        if diferencia < timedelta(minutes=antel_min_minutos):
+        if antel_min_minutos > 0 and diferencia < timedelta(minutes=antel_min_minutos):
             horas = antel_min_minutos // 60
             minutos = antel_min_minutos % 60
             raise ValueError(f"La reserva debe hacerse con una antelación mínima de {horas:02d}:{minutos:02d}")
         
-        # Validar antelación máxima
+        # Validar antelación máxima (solo si es mayor que 0)
         antel_max_dias = get_antelacion_maxima()
-        if diferencia > timedelta(days=antel_max_dias):
+        if antel_max_dias > 0 and diferencia > timedelta(days=antel_max_dias):
             raise ValueError(f"La reserva no puede hacerse con más de {antel_max_dias} días de antelación")
 
-        # Validar máximo de reservas simultáneas activas que no se hayan cumplido
+        # Validar máximo de reservas simultáneas activas (solo si es mayor que 0)
         max_reservas = get_max_reservas_simultaneas()
-        reservas_activas = session.query(ReservaORM).filter(
-            ReservaORM.id_socio == id_socio,
-            ReservaORM.estado == ReservaEstado.ACTIVA,
-            ReservaORM.fecha >= date.today()  # Solo reservas futuras o de hoy
-        ).count()
-        
-        if reservas_activas >= max_reservas:
-            raise ValueError(f"El socio ha alcanzado el máximo de {max_reservas} reservas simultáneas.")
+        if max_reservas > 0:
+            reservas_activas = session.query(ReservaORM).filter(
+                ReservaORM.id_socio == id_socio,
+                ReservaORM.estado == ReservaEstado.ACTIVA,
+                ReservaORM.fecha >= date.today()  # Solo reservas futuras o de hoy
+            ).count()
+            
+            if reservas_activas >= max_reservas:
+                raise ValueError(f"El socio ha alcanzado el máximo de {max_reservas} reservas simultáneas.")
 
         if hay_solapamiento(id_pista, fecha, hora_inicio, hora_fin):
             raise ValueError("La pista ya está reservada en ese horario.")
