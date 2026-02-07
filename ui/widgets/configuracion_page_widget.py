@@ -147,8 +147,8 @@ class ConfiguracionPage(QWidget):
             # Validar antelación máxima (en días)
             try:
                 antelacion_max = int(self.ui.txt_antelacion_max.text())
-                if antelacion_max <= 0:
-                    raise ValueError('La antelación máxima debe ser un número positivo.')
+                if antelacion_max < 0:
+                    raise ValueError('La antelación máxima debe ser un número no negativo.')
             except ValueError:
                 raise ValueError('La antelación máxima debe ser un número entero válido (días).')
 

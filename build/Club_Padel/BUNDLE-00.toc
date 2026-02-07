@@ -1,0 +1,3 @@
+([('Club_Padel',
+   '/Users/elenacachinero/Club_Padel/dist/Club_Padel',
+   'EXECUTABLE')],)
