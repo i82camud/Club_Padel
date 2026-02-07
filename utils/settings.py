@@ -111,9 +111,10 @@ def get_max_reservas_simultaneas() -> int:
     """Devuelve el máximo número de reservas activas simultáneas que puede tener un socio.
     
     El valor se almacena como entero. Si no existe, se usa el valor por defecto (10).
+    Un valor de 0 indica que no hay límite de reservas simultáneas.
     
     Returns:
-        int: Número máximo de reservas simultáneas permitidas.
+        int: Número máximo de reservas simultáneas permitidas (0 = sin límite).
     """
     max_reservas = get_config("maxReservasSimultaneas", 10)
     try:
