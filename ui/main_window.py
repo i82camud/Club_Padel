@@ -89,16 +89,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.resizeEvent = self._on_window_resized
         
         # Configurar tamaño de ventana
-        # En macOS, showMaximized() no funciona correctamente, por lo que usamos resize con el tamaño de la pantalla
-        from PySide6.QtGui import QGuiApplication
-        screen = QGuiApplication.primaryScreen()
-        if screen:
-            screen_geometry = screen.availableGeometry()
-            self.resize(screen_geometry.width(), screen_geometry.height())
-            self.move(screen_geometry.x(), screen_geometry.y())
-        
-        # Mostrar la ventana
-        self.show()
+        if sys.platform == "darwin":
+            # En macOS, showMaximized() no funciona correctamente, por lo que usamos resize con el tamaño de la pantalla
+            from PySide6.QtGui import QGuiApplication
+            screen = QGuiApplication.primaryScreen()
+            if screen:
+                screen_geometry = screen.availableGeometry()
+                self.resize(screen_geometry.width(), screen_geometry.height())
+                self.move(screen_geometry.x(), screen_geometry.y())
+            # Mostrar la ventana en macOS despues de ajustar geometria
+            self.show()
+        else:
+            self.showMaximized()
     
     def _on_window_resized(self, event) -> None:
         """Ajusta la geometría de widgets al redimensionar la ventana."""
@@ -274,7 +276,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 def main():
     app = QApplication(sys.argv)
     window = MainWindow()
-    window.show()
     sys.exit(app.exec())
 
 
