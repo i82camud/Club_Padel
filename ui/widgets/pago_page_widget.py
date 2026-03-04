@@ -42,7 +42,7 @@ from services.socio_service import listar_socios
 from services.pista_service import listar_pistas
 from utils.events import bus
 from ui.widgets.filtros_dialog import FiltrosPagosGlobalesDialog
-from models.orm_models import PagoEstado, PagoTipo
+from models.orm_models import PagoEstado, PagoTipo, SocioEstado
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
 from openpyxl.utils import get_column_letter
@@ -205,11 +205,19 @@ class PagoPage(QWidget, Ui_pago_page):
     def _cargar_socios(self) -> None:
         """Carga el autocompletado de socios desde el servicio.
         
-        Obtiene todos los socios del servicio y configura un completer con autocompletado
-        case-insensitive para el campo de socio. Crea mapeos internos para acceso rápido.
+        Obtiene solo los socios activos del servicio y configura un completer con
+        autocompletado case-insensitive para el campo de socio. También mantiene
+        un mapa de todos los socios para mostrar/editar pagos históricos.
         """
-        socios = listar_socios()
-        self.mapa_socios = {f"{s.nombre} {s.apellido1} ({s.email})": s.id_socio for s in socios}
+        socios_activos = listar_socios(estado=SocioEstado.ACTIVO)
+        self.mapa_socios = {f"{s.nombre} {s.apellido1} ({s.email})": s.id_socio for s in socios_activos}
+
+        # Incluir todos para poder mantener selección en pagos de socios inactivos
+        todos_socios = listar_socios()
+        self.mapa_socios_id_to_display = {
+            s.id_socio: f"{s.nombre} {s.apellido1} ({s.email})" for s in todos_socios
+        }
+
         completer = QCompleter(list(self.mapa_socios.keys()))
         completer.setCaseSensitivity(Qt.CaseInsensitive)
         completer.setFilterMode(Qt.MatchContains)
@@ -634,7 +642,8 @@ class PagoPage(QWidget, Ui_pago_page):
 
         # resolver socio
         socio_text = self.txt_socio.text().strip()
-        sid = self.selected_socio_id if self.selected_socio_id and socio_text in self.mapa_socios else self.mapa_socios.get(socio_text)
+        selected_display = self.mapa_socios_id_to_display.get(self.selected_socio_id)
+        sid = self.selected_socio_id if self.selected_socio_id and socio_text == selected_display else self.mapa_socios.get(socio_text)
         if not sid:
             QMessageBox.warning(self, "Error", "Selecciona un socio válido")
             return
@@ -738,7 +747,8 @@ class PagoPage(QWidget, Ui_pago_page):
         else:
             # resolver socio del campo
             socio_text = self.txt_socio.text().strip()
-            sid = self.selected_socio_id if self.selected_socio_id and socio_text in self.mapa_socios else self.mapa_socios.get(socio_text)
+            selected_display = self.mapa_socios_id_to_display.get(self.selected_socio_id)
+            sid = self.selected_socio_id if self.selected_socio_id and socio_text == selected_display else self.mapa_socios.get(socio_text)
         
         if not sid:
             QMessageBox.warning(self, "Error", "Selecciona un socio válido")
@@ -970,6 +980,7 @@ class PagoPage(QWidget, Ui_pago_page):
         Limpia todos los campos de entrada y resetea los valores de control internos.
         """
         self.txt_importe.clear()
+        self.txt_importe.setReadOnly(False)
         self.txt_socio.clear()
         self.selected_socio_id = None
         self.comboBox.setCurrentIndex(0)
@@ -977,10 +988,13 @@ class PagoPage(QWidget, Ui_pago_page):
         self._linked_reserva_id = None
         self.txt_concepto.setReadOnly(False)
         self.dateEdit.setDate(QDate.currentDate())
+        self.dateEdit.setEnabled(True)
         self.txt_buscar.clear()
         
         # Limpiar vinculación de reserva y restaurar estado del combo
         self._clear_linked_reserva()
+        self.comboBox.setEnabled(True)
+        self.txt_socio.setEnabled(True)
         try:
             for w in [self.txt_importe, self.dateEdit, self.comboBox, self.txt_socio, self.txt_concepto]:
                 w.setProperty("locked", False)

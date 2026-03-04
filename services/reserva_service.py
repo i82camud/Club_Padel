@@ -178,6 +178,10 @@ def actualizar_reserva(id_reserva: int, id_socio: int, id_pista: int, fecha: dat
     
     Returns:
         Optional[ReservaORM]: Instancia actualizada o None si la reserva no existe.
+        
+    Raises:
+        ValueError: Si la reserva está cancelada, el horario está fuera de apertura,
+                    la duración es insuficiente, o existe solapamiento con otra reserva activa.
     """
     session = orm.SessionLocal()
     try:
@@ -186,6 +190,33 @@ def actualizar_reserva(id_reserva: int, id_socio: int, id_pista: int, fecha: dat
             return None
         if r.estado == ReservaEstado.CANCELADA:
             raise ValueError("No se puede modificar una reserva cancelada")
+        
+        # Comprobar que la reserva está dentro del horario de apertura configurado
+        apertura, cierre = get_horario_apertura()
+        if hora_inicio < apertura or hora_fin > cierre:
+            raise ValueError(f"Horario fuera de apertura: el club abre a {apertura.strftime('%H:%M')} y cierra a {cierre.strftime('%H:%M')}")
+        
+        # Validar que la duración de la reserva sea al menos la configurada
+        from utils.settings import get_duracion_reserva
+        duracion_minima = get_duracion_reserva()
+        duracion_actual = (hora_fin.hour * 60 + hora_fin.minute) - (hora_inicio.hour * 60 + hora_inicio.minute)
+        if duracion_actual < duracion_minima:
+            horas = duracion_minima // 60
+            minutos = duracion_minima % 60
+            raise ValueError(f"La duración de la reserva debe ser de al menos {horas:02d}:{minutos:02d}")
+        
+        # Verificar solapamiento con otras reservas activas (excluyendo la actual)
+        q = session.query(ReservaORM).filter(
+            ReservaORM.id_pista == id_pista,
+            ReservaORM.fecha == fecha,
+            ReservaORM.estado == ReservaEstado.ACTIVA,
+            ReservaORM.id_reserva != id_reserva,  # Excluir la reserva actual
+            ReservaORM.hora_inicio < hora_fin,
+            ReservaORM.hora_fin > hora_inicio
+        )
+        if session.query(q.exists()).scalar():
+            raise ValueError("La pista ya está reservada en ese horario.")
+        
         r.id_socio = id_socio
         r.id_pista = id_pista
         r.fecha = fecha

@@ -658,7 +658,8 @@ class ReservaPage(QWidget, Ui_reserva_page):
         # ajustar tamaño de columnas
         header = self.tabla_reservas.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
-        for col in range(1, 7):
+        header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
+        for col in range(2, 7):
             header.setSectionResizeMode(col, QHeaderView.Stretch)
         
         # Refrescar cuadrante con los datos actuales
@@ -904,10 +905,10 @@ class ReservaPage(QWidget, Ui_reserva_page):
         
         # ajustar tamaño de columnas
         header = self.tabla_reservas.horizontalHeader()
-        header.setSectionResizeMode(0, QHeaderView.Stretch)
-        for col in range(1, 6):
-            header.setSectionResizeMode(col, QHeaderView.Fixed)
-            self.tabla_reservas.setColumnWidth(col, 120)
+        header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
+        for col in range(2, 7):
+            header.setSectionResizeMode(col, QHeaderView.Stretch)
 
     def insertar(self) -> None:
         """Inserta una nueva reserva en la base de datos.

@@ -227,7 +227,7 @@ def seed_pagos():
             
             pago_cuota_det = PagoCuota(
                 id_pago=pago_cuota_pagado.id_pago,
-                periodo="Diciembre 2025"
+                periodo="Marzo 2026"
             )
             session.add(pago_cuota_det)
             
@@ -245,7 +245,7 @@ def seed_pagos():
                 
                 pago_cuota_det2 = PagoCuota(
                     id_pago=pago_cuota_anulado.id_pago,
-                    periodo="Noviembre 2025"
+                    periodo="Enero 2026"
                 )
                 session.add(pago_cuota_det2)
         
@@ -261,7 +261,7 @@ def seed_pagos():
             session.add(pago_extra)
             session.flush()
             
-            concepto = "Bolas" if i == 0 else "Cintas adhesivas"
+            concepto = "Pelotas" if i == 0 else "Grip"
             pago_extra_det = PagoExtra(
                 id_pago=pago_extra.id_pago,
                 concepto=concepto
